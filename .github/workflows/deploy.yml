@@ -18,7 +18,7 @@ jobs:
         
       - name: Terminate csx.bat process
         continue-on-error: true
-        run: taskkill /IM C:\laragon\www\sapapi\csx.bat /F
+        run: taskkill /IM csx.bat /F
         
       - name: Start csx.bat
         run: C:\laragon\www\sapapi\csx.bat
