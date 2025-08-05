@@ -1,0 +1,24 @@
+name: Deploy to csxpk
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Pull latest changes
+        run: git pull -f origin main
+        
+      - name: Terminate csx.bat process
+        continue-on-error: true
+        run: taskkill /IM csx.bat /F
+        
+      - name: Start csx.bat
+        run: csx.bat

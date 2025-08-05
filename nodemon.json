@@ -1,0 +1,6 @@
+{
+  "watch": ["src", "config"],
+  "ext": "js,json",
+  "ignore": ["tests/", "node_modules/"],
+  "delay": "1000"
+}

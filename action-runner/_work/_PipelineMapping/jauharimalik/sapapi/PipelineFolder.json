@@ -1,0 +1,12 @@
+﻿{
+  "repositoryName": "jauharimalik/sapapi",
+  "pipelineDirectory": "sapapi",
+  "workspaceDirectory": "sapapi\\sapapi",
+  "repositories": {
+    "jauharimalik/sapapi": {
+      "repositoryPath": "sapapi\\sapapi",
+      "lastRunOn": "08/05/2025 13:51:22 +07:00"
+    }
+  },
+  "lastRunOn": "08/05/2025 14:03:26 +07:00"
+}

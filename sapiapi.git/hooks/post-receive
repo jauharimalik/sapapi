@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# Ubah directory ke tempat skrip .bat berada
+cd /c/laragon/www/sapapi
+
+# Panggil skrip Windows `deploy.bat`
+# Opsi "/c" pada cmd.exe memastikan jendela command prompt tertutup setelah skrip selesai
+cmd.exe /c "csx.bat"

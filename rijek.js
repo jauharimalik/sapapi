@@ -1,0 +1,450 @@
+const app = require('./app');
+const axios = require('axios');
+const sql = require('mssql');
+const FormData = require('form-data');
+
+const SAP_CONFIG = {
+    BASE_URL: 'https://192.168.101.254:50000/b1s/v2',
+    COMPANY_DB: 'TEST',
+    CREDENTIALS: {
+        username: 'manager',
+        password: 'Password#1'
+    }
+};
+
+const DB_CONFIG = {
+    user: 'PK-SERVE',
+    password: 'n0v@0707#',
+    server: '192.168.100.202',
+    database: 'db_pandurasa',
+    options: {
+        encrypt: false,
+        trustServerCertificate: true,
+        connectTimeout: 30000,
+        requestTimeout: 30000
+    },
+    pool: {
+        max: 10,
+        min: 0,
+        idleTimeoutMillis: 30000
+    }
+};
+
+const WHATSAPP_CONFIG = {
+    apiUrl: 'http://103.169.73.3:4040/send-group-message',
+    successGroup: '120363420162985105@g.us',
+    failureGroup: '120363421138507049@g.us'
+};
+
+
+const processReturnsColdspace = async () => {
+    let pool;
+    try {
+        pool = await sql.connect(DB_CONFIG);
+
+        const result = await pool.request()
+            .query(`SELECT * FROM r_grpo_coldspace WHERE (iswa is null or jo_status is null) and TRK_TYPE = 'TY'`);
+
+        if (result.recordset.length === 0) {
+            console.log('------------------------------------------------------------------------------------');
+            console.log('Tidak ada data Rejection (TY) yang perlu diproses.');
+            return;
+        }
+
+        const sessionCookie = await loginToSAP();
+        if (!sessionCookie) {
+            console.error('Gagal login ke SAP.');
+            return;
+        }
+
+        let sukses = 0;
+        for (const record of result.recordset) {
+            try {
+                if (record.QTYPO <= 0) {
+                    const note = 'Kuantitas nol atau tidak valid';
+                    await updateRecordStatus(record.id, 0, note, null, null, pool);
+                    await sendWhatsAppNotification(record.PO_NO, null, null, `Gagal: ${note}`, false, pool);
+                    continue;
+                }
+
+                const docEntry = await getDocEntryFromDeliveryNote(record.PO_NO, pool);
+                console.log('------------------------------------------------------------------------------------');
+                console.log(`Process Rejection: ${record.PO_NO} | Doc Entry: ${docEntry}`);
+
+                if (!docEntry) {
+                    const note = 'Docentry Delivery Note tidak ditemukan';
+                    console.log('------------------------------------------------------------------------------------');
+                    console.log(`Error-2: Not Found Docnum: ${record.PO_NO}`);
+                    sukses = 1;
+                    
+                    await updateRecordStatus(record.id, 0, note, null, null, pool);
+                    await sendWhatsAppNotification(record.PO_NO, null, null, `Gagal: ${note}`, false, pool);
+                    continue;
+                }
+
+                const deliveryNote = await getDeliveryNoteFromSAP(docEntry, sessionCookie);
+                let validationResult = validateVfdatWithExpDate(record, deliveryNote);
+                const vendor = record.VENDOR === 'VIRTUAL' ? 'CS-03' : record.VENDOR;
+
+                if (!validationResult.isValid || !validationResult.batchData) {
+                    const batchDataFromOBTN = await getBatchDataFromOBTN(record.SKU, vendor, pool);
+                    if (!batchDataFromOBTN) {
+                        const note = 'Batch data tidak ditemukan untuk SKU';
+                        console.log('------------------------------------------------------------------------------------');
+                        console.log(`SKU: ${record.SKU} | WHS: ${vendor} | Error-4: ${note}`);
+                        await updateRecordStatus(record.id, 0, note, null, null, pool);
+                        await sendWhatsAppNotification(record.PO_NO, null, null, `Gagal: ${note}`, false, pool);
+                        continue;
+                    }
+                    validationResult = { isValid: true, batchData: batchDataFromOBTN };
+                }
+
+                const returnsPayload = createReturnsPayload(record, validationResult.batchData, deliveryNote);
+                const returnsPostResult = await postReturnsToSAP(returnsPayload, sessionCookie);
+
+                if (returnsPostResult?.error) {
+                    const status = returnsPostResult.message.includes('closed') ? 4 : 0;
+                    const note = status === 4 ? `Gagal: ${returnsPostResult.message}` : `Gagal: ${returnsPostResult.message}`;
+                    await updateRecordStatus(record.id, status, returnsPostResult.message, null, null, pool);
+                    await sendWhatsAppNotification(record.PO_NO, null, null, note, false, pool);
+                    continue;
+                }
+
+                const finalData = await getFinalReturnsData(docEntry, pool);
+
+                if (finalData) {
+                    const { ReturnsDocEntry, ReturnsDocNum } = finalData;
+                    const successNote = 'Berhasil diproses sebagai Returns';
+                    console.log('------------------------------------------------------------------------------------');
+                    console.log(`DocEntry Returns: ${ReturnsDocEntry} | DocNum Returns: ${ReturnsDocNum}`);
+                    await updateRecordStatus(record.id, 3, successNote, ReturnsDocNum, ReturnsDocEntry, pool);
+                    await sendWhatsAppNotification(record.PO_NO, ReturnsDocNum, ReturnsDocEntry, successNote, true, pool);
+                } else {
+                    const note = 'Gagal: Returns tidak ditemukan setelah posting';
+                    await updateRecordStatus(record.id, 0, note, null, null, pool);
+                    await sendWhatsAppNotification(record.PO_NO, null, null, `Gagal: ${note}`, false, pool);
+                }
+
+            } catch (error) {
+                const note = error.message.includes('already exists') || error.message.includes('already closed')
+                    ? 'Data sudah ada/closed di SAP'
+                    : error.message;
+                const status = note.includes('already closed') ? 4 : 0;
+                await updateRecordStatus(record.id, status, note, null, null, pool);
+                await sendWhatsAppNotification(record.PO_NO, null, null, `Gagal: ${note}`, false, pool);
+            }
+        }
+
+    } catch (error) {
+        console.error('Error dalam proses Returns:', error);
+    } finally {
+        if (pool) await pool.close();
+    }
+};
+
+const loginToSAP = async () => {
+    try {
+        const response = await axios.post(
+            `${SAP_CONFIG.BASE_URL}/Login`,
+            {
+                CompanyDB: SAP_CONFIG.COMPANY_DB,
+                UserName: SAP_CONFIG.CREDENTIALS.username,
+                Password: SAP_CONFIG.CREDENTIALS.password
+            },
+            {
+                httpsAgent: new (require('https').Agent)({ rejectUnauthorized: false })
+            }
+        );
+        return response.headers['set-cookie'].join('; ');
+    } catch (error) {
+        throw new Error(`Gagal login ke SAP: ${error.response?.data?.error?.message?.value || error.message}`);
+    }
+};
+
+const getDocEntryFromDeliveryNote = async (poNo, pool) => {
+    try {
+        const query = `
+            SELECT DISTINCT T2.DocEntry
+            FROM [pksrv-sap].test.dbo.ORDR T0
+            INNER JOIN [pksrv-sap].test.dbo.RDR1 T1 ON T0.DocEntry = T1.DocEntry
+            INNER JOIN [pksrv-sap].test.dbo.DLN1 T2 ON T1.DocEntry = T2.BaseEntry AND T1.LineNum = T2.BaseLine AND T2.BaseType = 17
+            WHERE T0.DocNum = @poNo
+        `;
+        const result = await pool.request()
+            .input('poNo', sql.Int, poNo)
+            .query(query);
+        return result.recordset[0]?.DocEntry || null;
+    } catch (error) {
+        console.log('------------------------------------------------------------------------------------');
+        console.log(`Process: ${poNo} | Error-1: ${error.message}`);
+        await updateRecordStatus(null, 0, error.message, null, null, pool, poNo);
+        await sendWhatsAppNotification(poNo, null, null, `Gagal: ${error.message}`, false, pool);
+        return null;
+    }
+};
+
+const getDeliveryNoteFromSAP = async (docEntry, sessionCookie) => {
+    try {
+        const response = await axios.get(
+            `${SAP_CONFIG.BASE_URL}/DeliveryNotes(${docEntry})`,
+            {
+                headers: { 'Cookie': sessionCookie },
+                httpsAgent: new (require('https').Agent)({ rejectUnauthorized: false })
+            }
+        );
+        return response.data;
+    } catch (error) {
+        throw new Error(`Gagal mendapatkan DeliveryNote dari SAP: ${error.response?.data?.error?.message?.value || error.message}`);
+    }
+};
+
+const validateVfdatWithExpDate = (record, deliveryNote) => {
+    const lineItem = deliveryNote.DocumentLines.find(line =>
+        line.ItemCode === record.SKU && line.LineNum.toString() === record.LINE_NO.toString()
+    );
+
+    if (!lineItem?.BatchNumbers || lineItem.BatchNumbers.length === 0) {
+        return { isValid: false, batchData: null };
+    }
+
+    const vfdat = new Date(record.VFDAT).toISOString().split('T')[0];
+    const matchingBatch = lineItem.BatchNumbers.find(batch => {
+        const expDate = batch.ExpiryDate?.split('T')[0];
+        return expDate === vfdat;
+    });
+
+    return matchingBatch ? {
+        isValid: true,
+        batchData: {
+            BatchNumber: matchingBatch.BatchNumber,
+            ExpiryDate: matchingBatch.ExpiryDate,
+            Quantity: record.QTYPO
+        }
+    } : { isValid: false, batchData: null };
+};
+
+const getBatchDataFromOBTN = async (itemCode, whsCode, pool) => {
+    try {
+        const query = `
+            SELECT TOP 1
+                T1.BatchNum AS BatchNumber,
+                T1.Quantity AS AvailableQuantity,
+                T0.ExpDate AS ExpirationDate
+            FROM [pksrv-sap].test.dbo.OBTN T0
+            INNER JOIN [pksrv-sap].test.dbo.OIBT T1 ON T0.AbsEntry = T1.BaseEntry
+            WHERE T1.ItemCode = @itemCode AND T1.WhsCode = @whsCode AND T1.Quantity > 0
+            ORDER BY T0.ExpDate ASC`;
+
+        const result = await pool.request()
+            .input('itemCode', sql.VarChar, itemCode)
+            .input('whsCode', sql.VarChar, whsCode)
+            .query(query);
+
+        if (result.recordset.length === 0) return null;
+
+        const batch = result.recordset[0];
+        return {
+            BatchNumber: batch.BatchNumber,
+            ExpiryDate: batch.ExpirationDate?.toISOString().split('T')[0],
+            Quantity: batch.AvailableQuantity
+        };
+    } catch (error) {
+        throw new Error(`Gagal mendapatkan batch data dari OBTN: ${error.message}`);
+    }
+};
+
+const createReturnsPayload = (record, batchData, deliveryNote) => {
+    const lineItem = deliveryNote.DocumentLines.find(line =>
+        line.ItemCode === record.SKU && line.LineNum.toString() === record.LINE_NO.toString()
+    );
+
+    const documentLines = [{
+        ItemCode: record.SKU,
+        Quantity: record.QTYPO,
+        WarehouseCode: record.VENDOR === 'VIRTUAL' ? 'CS-03' : record.VENDOR,
+        BaseEntry: deliveryNote.DocEntry,
+        BaseType: 15,
+        VatGroup: lineItem.VatGroup,
+        BaseLine: lineItem.LineNum
+    }];
+
+    if (batchData?.BatchNumber) {
+        documentLines[0].BatchNumbers = [{
+            BatchNumber: batchData.BatchNumber,
+            Quantity: record.QTYPO,
+            AddmisionDate: new Date().toISOString().split('T')[0]
+        }];
+    }
+
+    return {
+        CardCode: deliveryNote.CardCode,
+        DocDate: new Date().toISOString().split('T')[0],
+        DocDueDate: new Date().toISOString().split('T')[0],
+        TaxDate: new Date().toISOString().split('T')[0],
+        Comments: `Return Rejection untuk PO: ${record.PO_NO}, ASN: ${record.WMS_ASN_NO}`,
+        U_IDU_ReturnType: "RJ",
+        DocumentLines: documentLines
+    };
+};
+
+const postReturnsToSAP = async (payload, sessionCookie) => {
+    try {
+        const response = await axios.post(
+            `${SAP_CONFIG.BASE_URL}/Returns`,
+            payload, {
+            headers: { 'Cookie': sessionCookie },
+            httpsAgent: new(require('https').Agent)({ rejectUnauthorized: false })
+        });
+        return response.data;
+    } catch (error) {
+        const errorMessage = error.response?.data?.error?.message?.value ||
+                             error.response?.statusText ||
+                             error.message ||
+                             'Terjadi kesalahan tidak dikenal.';
+        
+        console.log('------------------------------------------------------------------------------------');
+        console.log('Error-3:', errorMessage);
+
+        return { error: true, message: errorMessage };
+    }
+};
+
+const getFinalReturnsData = async (deliveryNoteDocEntry, pool) => {
+    const query = `
+        SELECT
+            T1.DocEntry AS ReturnsDocEntry,
+            T1.DocNum AS ReturnsDocNum
+        FROM
+            [pksrv-sap].test.dbo.RDN1 T0
+        LEFT JOIN
+            [pksrv-sap].test.dbo.ORIN T1 ON T0.DocEntry = T1.DocEntry
+        WHERE
+            T0.BaseEntry = @DeliveryNoteDocEntry
+    `;
+    const result = await pool.request()
+        .input('DeliveryNoteDocEntry', sql.Int, deliveryNoteDocEntry)
+        .query(query);
+    return result.recordset.length > 0 ? result.recordset[0] : null;
+};
+
+const updateRecordStatus = async (id, joStatus, note, docNum, docEntry, pool, pono = null) => {
+    try {
+        await pool.request()
+            .input('id', sql.Int, id)
+            .input('PO_NO', sql.Int, pono)
+            .input('joStatus', sql.Int, joStatus)
+            .input('note', sql.NVarChar, note)
+            .input('docNum', sql.Int, docNum)
+            .input('docEntry', sql.Int, docEntry)
+            .query(`
+                UPDATE r_grpo_coldspace
+                SET jo_status = @joStatus,
+                    note = @note,
+                    doc_num = @docNum,
+                    doc_entry = @docEntry,
+                    iswa = CASE WHEN @joStatus = 3 THEN 1 ELSE 0 END
+                WHERE id = @id OR (@PO_NO IS NOT NULL AND PO_NO = @PO_NO);
+            `);
+    } catch (error) {
+        throw new Error(`Gagal update status record: ${error.message}`);
+    }
+};
+
+const sendWhatsAppNotification = async (poNo, existingDocNum, existingDocEntry, note, isSuccess, pool) => {
+    let finalDocNum = existingDocNum;
+    let finalDocEntry = existingDocEntry;
+    const finalNote = note;
+
+    if (isSuccess && (!finalDocNum || !finalDocEntry) && poNo) {
+        try {
+            const docEntryFromDN = await getDocEntryFromDeliveryNote(poNo, pool);
+            if (docEntryFromDN) {
+                const finalData = await getFinalReturnsData(docEntryFromDN, pool);
+                if (finalData) {
+                    finalDocEntry = finalData.ReturnsDocEntry;
+                    finalDocNum = finalData.ReturnsDocNum;
+                }
+            }
+        } catch (queryError) {
+            console.error(`Gagal mencari DocNum/DocEntry di dalam sendWhatsAppNotification: ${queryError.message}`);
+        }
+    }
+
+    const groupId = isSuccess ? WHATSAPP_CONFIG.successGroup : WHATSAPP_CONFIG.failureGroup;
+    const statusText = isSuccess ? 'SUCCESS' : 'FAILED';
+    const message = formatWhatsAppMessage(poNo, finalDocNum, finalDocEntry, finalNote, isSuccess, statusText);
+
+    const form = new FormData();
+    form.append('id_group', groupId);
+    form.append('message', message);
+
+    try {
+        const response = await axios.post(WHATSAPP_CONFIG.apiUrl, form, {
+            headers: {
+                ...form.getHeaders(),
+                'Accept': 'application/json'
+            },
+            timeout: 10000
+        });
+
+        // console.log('------------------------------------------------------------------------------------');
+        // console.log('Notifikasi WhatsApp terkirim:', {
+        //     poNo,
+        //     docNum: finalDocNum,
+        //     status: statusText,
+        //     messageId: response.data?.id || null
+        // });
+
+        return { success: true, messageId: response.data?.id || null };
+    } catch (error) {
+
+        console.log('------------------------------------------------------------------------------------');
+        console.log('Gagal mengirim notifikasi WhatsApp:');
+        // console.log('------------------------------------------------------------------------------------');
+        // console.log('Gagal mengirim notifikasi WhatsApp:', error);
+        if (isSuccess) await resetNotificationStatus(poNo, pool);
+        return { success: false, error: error.message };
+    }
+};
+
+const formatWhatsAppMessage = (poNo, docNum, docEntry, note, isSuccess, statusText) => {
+    const header = `*GR Rejection COLDSPACE PROCESSING - ${statusText}*`;
+    let docInfo = `*PO No:* ${poNo}`;
+    if (docNum) docInfo += `\n*Returns Doc Num:* ${docNum}`;
+    if (docEntry) docInfo += `\n*Returns Doc Entry:* ${docEntry}`;
+    
+    return isSuccess
+        ? `${header}\n\n${docInfo}`
+        : `${header}\n\n${docInfo}\n\n*Details:*\n${note}`;
+};
+
+const resetNotificationStatus = async (poNo, pool) => {
+    try {
+        await pool.request()
+            .input('poNo', sql.VarChar, poNo)
+            .query('UPDATE r_grpo_coldspace SET iswa = NULL WHERE PO_NO = @poNo');
+    } catch (error) {
+        console.error('Gagal reset status notifikasi:', error.message);
+    }
+};
+
+const initialize = async () => {
+    try {
+        processReturnsColdspace().catch(error => {
+            console.log('------------------------------------------------------------------------------------');
+            console.log(`Error: ${error}`);
+            console.log('------------------------------------------------------------------------------------');
+        });
+
+        console.log('------------------------------------------------------------------------------------');
+        setInterval(() => processReturnsColdspace(), 20000);
+        app.listen(31046, () => {
+            console.log('Server ready on port 31046 for Returns process');
+        });
+    } catch (error) {
+        console.error('Startup failed:', error);
+        process.exit(1);
+    }
+};
+
+initialize();
