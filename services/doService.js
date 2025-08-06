@@ -137,7 +137,8 @@ exports.checkSingleDO = async (doNo, pool) => {
 
         // 4. Jika semua valid, proses ke SAP
         if (allValid) {
-            const sapResult = await sapService.postDeliveryNoteToSAP(doNo, pool);            
+            const sapResult = await sapService.postDeliveryNoteToSAP(doNo, pool);
+            
             return {
                 status: sapResult.status === 'success' ? 'processed' : 'matched_but_failed',
                 message: sapResult.message
@@ -192,7 +193,7 @@ exports.checkSingleDO = async (doNo, pool) => {
         // 4. Post to SAP InventoryGenExits endpoint
         const sessionCookie = await sapService.loginToB1ServiceLayer();
         const sapResponse = await sapService.makeApiRequest(
-            'https://192.168.101.254:50000/b1s/v1/InventoryGenExits',
+            'https://192.168.101.254:50000/b1s/v2/InventoryGenExits',
             'POST',
             sessionCookie,
             payload
@@ -216,7 +217,7 @@ exports.checkSingleDO = async (doNo, pool) => {
                 "Ref2": currentDoNo.toString()
             };
 
-            const patchUrl = `https://192.168.101.254:50000/b1s/v1/InventoryGenExits(${docEntryFromOIGE})`;
+            const patchUrl = `https://192.168.101.254:50000/b1s/v2/InventoryGenExits(${docEntryFromOIGE})`;
             // console.log(`Attempting to PATCH InventoryGenExits at ${patchUrl} with payload:`, patchPayload);
             const patchSapResponse = await sapService.makeApiRequest(
                 patchUrl,
@@ -237,7 +238,7 @@ exports.checkSingleDO = async (doNo, pool) => {
         }, pool);
 
         
-        // console.log(JSON.stringify(payload, null, 2));
+        console.log(JSON.stringify(payload, null, 2));
         console.log('------------------------------------------------------------------------------------');
         console.log('Process : '+doNo+' | Status : Success Insert Into SAP');
 
@@ -267,21 +268,6 @@ exports.checkSingleDO = async (doNo, pool) => {
   }
 };
 
-exports.getRnColdspaceData = async (pool) => {
-    try {
-        // Use pool.request() for MSSQL queries
-        const result = await pool.request().query('SELECT * FROM r_dn_coldspace WITH (NOLOCK)');
-        return {
-            success: true,
-            message: 'Data retrieved successfully from r_dn_coldspace',
-            data: result.recordset // MSSQL results are in recordset
-        };
-    } catch (error) {
-        console.error('Error fetching data from r_dn_coldspace:', error);
-        throw new Error(`Database error: ${error.message}`);
-    }
-};
-
 
 exports.dnbund = async (pool) => {
   try {
@@ -289,7 +275,7 @@ exports.dnbund = async (pool) => {
           SELECT T0.DocEntry, T1.DO_NO, T1.doc_num
           FROM [pksrv-sap].test.dbo.ODLN T0 WITH (NOLOCK)
           INNER JOIN r_dn_coldspace T1 WITH (NOLOCK) ON T0.DocEntry = T1.doc_entry
-          WHERE ismatch = 1 and T1.ORDER_TYPE LIKE '%bund%' 
+          WHERE T1.ORDER_TYPE LIKE '%bund%'
           AND T0.U_BUNDLING_CS IS NULL;
       `;
 
@@ -404,10 +390,9 @@ exports.runAutoCheck = async (pool) => {
   try {
     const result = await pool.request()
       .query(`SELECT DISTINCT DO_NO FROM r_dn_coldspace WITH (NOLOCK) 
-              WHERE ismatch = 1 and (jo_status IS NULL or jo_status =0 or  iswa is null)`);
+              WHERE is_match = 0 and (jo_status IS NULL or iswa is null)`);
     
     const doList = result.recordset.map(row => row.DO_NO);
-   
     if (doList.length === 0) { 
       console.log('------------------------------------------------------------------------------------');
       console.log('No pending DOs found for auto check');
@@ -433,7 +418,7 @@ exports.runAutoCheck = async (pool) => {
 exports.recheckNullIswaDOs = async (pool) => {
   const result = await pool.request()
       .query(`SELECT DISTINCT DO_NO FROM r_dn_coldspace WITH (NOLOCK) 
-              WHERE ismatch = 1 and iswa IS NULL AND del_date >= '2025-07-01'`);
+              WHERE iswa IS NULL AND del_date >= '2025-07-01'`);
     
     const doList = result.recordset.map(row => row.DO_NO);
     

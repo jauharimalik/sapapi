@@ -1764,3 +1764,62 @@
 [2025-08-06 10:45:50Z INFO BrokerMessageListener] Get messages has been cancelled using local token source. Continue to get messages with new status.
 [2025-08-06 11:00:17Z INFO RSAEncryptedFileKeyManager] Loading RSA key parameters from file C:\laragon\www\sapapi\action-runner\.credentials_rsaparams
 [2025-08-06 11:00:18Z INFO GitHubActionsService] AAD Correlation ID for this token request: Unknown
+[2025-08-06 11:17:25Z INFO ConfigurationStore] HasCredentials()
+[2025-08-06 11:17:25Z INFO ConfigurationStore] stored True
+[2025-08-06 11:17:25Z INFO CredentialManager] GetCredentialProvider
+[2025-08-06 11:17:25Z INFO CredentialManager] Creating type OAuth
+[2025-08-06 11:17:25Z INFO CredentialManager] Creating credential type: OAuth
+[2025-08-06 11:17:25Z INFO RSAEncryptedFileKeyManager] Loading RSA key parameters from file C:\laragon\www\sapapi\action-runner\.credentials_rsaparams
+[2025-08-06 11:17:25Z INFO RSAEncryptedFileKeyManager] Loading RSA key parameters from file C:\laragon\www\sapapi\action-runner\.credentials_rsaparams
+[2025-08-06 11:17:25Z INFO RSAEncryptedFileKeyManager] Loading RSA key parameters from file C:\laragon\www\sapapi\action-runner\.credentials_rsaparams
+[2025-08-06 11:17:26Z INFO GitHubActionsService] AAD Correlation ID for this token request: Unknown
+[2025-08-06 11:17:28Z INFO JobDispatcher] Job request 0 for plan 8d4478f8-7b6f-4576-b128-d6def60a4501 job d37aaafa-a778-5cb7-b0a7-406b5e99cd01 received.
+[2025-08-06 11:17:28Z INFO JobDispatcher] Pull OrchestrationId 8d4478f8-7b6f-4576-b128-d6def60a4501.deploy.__default from JWT claims
+[2025-08-06 11:17:28Z INFO BrokerMessageListener] Received job status event. JobState: Busy
+[2025-08-06 11:17:28Z INFO BrokerMessageListener] _getMessagesTokenSource is already disposed.
+[2025-08-06 11:17:28Z INFO JobDispatcher] Job request 0941e9ec-f05f-5690-a116-da4f4ed04173 processed succeed.
+[2025-08-06 11:17:28Z INFO Terminal] WRITE LINE: 2025-08-06 11:17:28Z: Running job: deploy
+[2025-08-06 11:17:28Z INFO JobDispatcher] Start renew job request 0 for job d37aaafa-a778-5cb7-b0a7-406b5e99cd01.
+[2025-08-06 11:17:29Z INFO JobDispatcher] Successfully renew job d37aaafa-a778-5cb7-b0a7-406b5e99cd01, job is valid till 8/6/2025 11:27:31 AM
+[2025-08-06 11:17:29Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-06 11:17:29Z INFO ProcessInvokerWrapper] Starting process:
+[2025-08-06 11:17:29Z INFO ProcessInvokerWrapper]   File name: 'C:\laragon\www\sapapi\action-runner\bin\Runner.Worker.exe'
+[2025-08-06 11:17:29Z INFO ProcessInvokerWrapper]   Arguments: 'spawnclient 2624 2856'
+[2025-08-06 11:17:29Z INFO ProcessInvokerWrapper]   Working directory: 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-06 11:17:29Z INFO ProcessInvokerWrapper]   Require exit code zero: 'False'
+[2025-08-06 11:17:29Z INFO ProcessInvokerWrapper]   Encoding web name:  ; code page: ''
+[2025-08-06 11:17:29Z INFO ProcessInvokerWrapper]   Force kill process on cancellation: 'True'
+[2025-08-06 11:17:29Z INFO ProcessInvokerWrapper]   Redirected STDIN: 'False'
+[2025-08-06 11:17:29Z INFO ProcessInvokerWrapper]   Persist current code page: 'False'
+[2025-08-06 11:17:29Z INFO ProcessInvokerWrapper]   Keep redirected STDIN open: 'False'
+[2025-08-06 11:17:29Z INFO ProcessInvokerWrapper]   High priority process: 'True'
+[2025-08-06 11:17:29Z INFO ProcessInvokerWrapper] Process started with process id 25028, waiting for process exit.
+[2025-08-06 11:17:29Z INFO JobDispatcher] Send job request message to worker for job d37aaafa-a778-5cb7-b0a7-406b5e99cd01.
+[2025-08-06 11:17:29Z INFO ProcessChannel] Sending message of length 19925, with hash 'e2b3e6d65719940d9318cbf802cff22c1fa4b18f80174d71ceb388315f159107'
+[2025-08-06 11:17:29Z INFO JobNotification] Entering JobStarted Notification
+[2025-08-06 11:17:29Z INFO JobNotification] Entering StartMonitor
+[2025-08-06 11:18:29Z INFO JobDispatcher] Successfully renew job d37aaafa-a778-5cb7-b0a7-406b5e99cd01, job is valid till 8/6/2025 11:28:32 AM
+[2025-08-06 11:19:30Z INFO JobDispatcher] Successfully renew job d37aaafa-a778-5cb7-b0a7-406b5e99cd01, job is valid till 8/6/2025 11:29:32 AM
+[2025-08-06 11:20:31Z INFO JobDispatcher] Successfully renew job d37aaafa-a778-5cb7-b0a7-406b5e99cd01, job is valid till 8/6/2025 11:30:33 AM
+[2025-08-06 11:21:31Z INFO JobDispatcher] Successfully renew job d37aaafa-a778-5cb7-b0a7-406b5e99cd01, job is valid till 8/6/2025 11:31:33 AM
+[2025-08-06 11:22:42Z INFO JobDispatcher] Successfully renew job d37aaafa-a778-5cb7-b0a7-406b5e99cd01, job is valid till 8/6/2025 11:32:44 AM
+[2025-08-06 11:23:42Z INFO JobDispatcher] Successfully renew job d37aaafa-a778-5cb7-b0a7-406b5e99cd01, job is valid till 8/6/2025 11:33:44 AM
+[2025-08-06 11:24:42Z INFO JobDispatcher] Successfully renew job d37aaafa-a778-5cb7-b0a7-406b5e99cd01, job is valid till 8/6/2025 11:34:44 AM
+[2025-08-06 11:25:42Z INFO JobDispatcher] Successfully renew job d37aaafa-a778-5cb7-b0a7-406b5e99cd01, job is valid till 8/6/2025 11:35:45 AM
+[2025-08-06 11:26:43Z INFO JobDispatcher] Successfully renew job d37aaafa-a778-5cb7-b0a7-406b5e99cd01, job is valid till 8/6/2025 11:36:45 AM
+[2025-08-06 11:27:43Z INFO JobDispatcher] Successfully renew job d37aaafa-a778-5cb7-b0a7-406b5e99cd01, job is valid till 8/6/2025 11:37:46 AM
+[2025-08-06 11:28:44Z INFO JobDispatcher] Successfully renew job d37aaafa-a778-5cb7-b0a7-406b5e99cd01, job is valid till 8/6/2025 11:38:46 AM
+[2025-08-06 11:29:47Z INFO JobDispatcher] Successfully renew job d37aaafa-a778-5cb7-b0a7-406b5e99cd01, job is valid till 8/6/2025 11:39:50 AM
+[2025-08-06 11:30:48Z INFO JobDispatcher] Successfully renew job d37aaafa-a778-5cb7-b0a7-406b5e99cd01, job is valid till 8/6/2025 11:40:50 AM
+[2025-08-06 11:31:48Z INFO JobDispatcher] Successfully renew job d37aaafa-a778-5cb7-b0a7-406b5e99cd01, job is valid till 8/6/2025 11:41:51 AM
+[2025-08-06 11:32:49Z INFO JobDispatcher] Successfully renew job d37aaafa-a778-5cb7-b0a7-406b5e99cd01, job is valid till 8/6/2025 11:42:51 AM
+[2025-08-06 11:33:49Z INFO JobDispatcher] Successfully renew job d37aaafa-a778-5cb7-b0a7-406b5e99cd01, job is valid till 8/6/2025 11:43:52 AM
+[2025-08-06 11:34:50Z INFO JobDispatcher] Successfully renew job d37aaafa-a778-5cb7-b0a7-406b5e99cd01, job is valid till 8/6/2025 11:44:52 AM
+[2025-08-06 11:35:50Z INFO JobDispatcher] Successfully renew job d37aaafa-a778-5cb7-b0a7-406b5e99cd01, job is valid till 8/6/2025 11:45:53 AM
+[2025-08-06 11:36:52Z INFO JobDispatcher] Successfully renew job d37aaafa-a778-5cb7-b0a7-406b5e99cd01, job is valid till 8/6/2025 11:46:53 AM
+[2025-08-06 11:37:53Z INFO JobDispatcher] Successfully renew job d37aaafa-a778-5cb7-b0a7-406b5e99cd01, job is valid till 8/6/2025 11:47:55 AM
+[2025-08-06 11:38:54Z INFO JobDispatcher] Successfully renew job d37aaafa-a778-5cb7-b0a7-406b5e99cd01, job is valid till 8/6/2025 11:48:56 AM
+[2025-08-06 11:39:55Z INFO JobDispatcher] Successfully renew job d37aaafa-a778-5cb7-b0a7-406b5e99cd01, job is valid till 8/6/2025 11:49:57 AM
+[2025-08-06 11:40:56Z INFO JobDispatcher] Successfully renew job d37aaafa-a778-5cb7-b0a7-406b5e99cd01, job is valid till 8/6/2025 11:50:58 AM
+[2025-08-06 11:41:59Z INFO JobDispatcher] Successfully renew job d37aaafa-a778-5cb7-b0a7-406b5e99cd01, job is valid till 8/6/2025 11:52:01 AM
+[2025-08-06 11:43:00Z INFO JobDispatcher] Successfully renew job d37aaafa-a778-5cb7-b0a7-406b5e99cd01, job is valid till 8/6/2025 11:53:02 AM

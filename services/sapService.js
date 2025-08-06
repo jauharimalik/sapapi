@@ -333,7 +333,7 @@ exports.postDeliveryNoteToSAP = async (doNo, pool) => {
       })
     };
 
-    // console.log(JSON.stringify(deliveryNotePayload, null, 2));
+    console.log(JSON.stringify(deliveryNotePayload, null, 2));
 
     const response = await makeApiRequest(
       `${SAP_CONFIG.BASE_URL}/DeliveryNotes`,
