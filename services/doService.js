@@ -8,7 +8,7 @@ exports.checkSingleDO = async (doNo, pool) => {
   let rdn_data = [], rdn_query = await pool.request()
     .input('doNo', sql.Int, doNo)
     .query(`SELECT DISTINCT DO_NO FROM r_dn_coldspace WITH (NOLOCK) 
-            WHERE is_match = 0 and (jo_status IS NULL or iswa is null)`);
+            WHERE ismatch = 1 and (jo_status IS NULL or iswa is null)`);
 
   rdn_query.recordset.forEach(rdn_datar => {
       rdn_data.push(rdn_datar);
@@ -403,7 +403,7 @@ exports.runAutoCheck = async (pool) => {
   try {
     const result = await pool.request()
       .query(`SELECT DISTINCT DO_NO FROM r_dn_coldspace WITH (NOLOCK) 
-              WHERE ismatch = 0 and (jo_status IS NULL or iswa is null)`);
+              WHERE ismatch = 1 and (jo_status IS NULL or iswa is null)`);
     
     const doList = result.recordset.map(row => row.DO_NO);
     if (doList.length === 0) { 
