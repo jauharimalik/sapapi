@@ -272,7 +272,7 @@ const createCreditNotePayload = async (record, batchData, returan) => {
 
     let warehouseCode;
 
-    let dfltwh = await getDfltwhForSKU(record.SKU); 
+    let dfltwh = await getDfltwhForSKU(record.VENDOR); 
     if (record.VENDOR === 'VIRTUAL') {
         warehouseCode = 'CS-03';
     } else {

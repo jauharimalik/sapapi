@@ -3,20 +3,24 @@ const dbService = require('./dbService');
 const sql = require('mssql');
 const notificationService = require('./notificationService');
 
+
+
 exports.checkSingleDO = async (doNo, pool) => {  
   let docEntry, docNum;
   let rdn_data = [], rdn_query = await pool.request()
     .input('doNo', sql.Int, doNo)
-    .query(`SELECT DISTINCT DO_NO FROM r_dn_coldspace WITH (NOLOCK) 
-            WHERE ismatch = 1 and (jo_status IS NULL or iswa is null)`);
+    .query(`select t0.*,isnull((select top 1 tx.SUP_SITE from r_do_coldspace_dev tx where tx.DO_NO = t0.DO_NO),'CS-03') as vendor,
+      isnull((select top 1 tx.SUP_SITE from r_do_coldspace_dev tx where tx.DO_NO = t0.DO_NO),'CS-03') as SITE
+      from r_dn_coldspace t0
+      WHERE t0.ORDER_TYPE != 'N-STO' and t0.ORDER_TYPE != 'PROD' and t0.ismatch = 1 and (t0.jo_status IS NULL or t0.iswa is null) and t0.DO_NO =@doNo`);
 
   rdn_query.recordset.forEach(rdn_datar => {
       rdn_data.push(rdn_datar);
   });
 
-  console.log(rdn_data);
+  // console.log(rdn_data);
 
-  try {
+  // try {
     // 1. Cek informasi dokumen
     const docInfoQuery = `
       SELECT t3.docentry as doc_entry, t3.DocNum as doc_num
@@ -27,10 +31,7 @@ exports.checkSingleDO = async (doNo, pool) => {
       LEFT JOIN [pksrv-sap].test.dbo.ODLN T3 WITH (NOLOCK) ON T2.DocEntry = T3.DocEntry
       WHERE t0.docnum = @doNo`;
     
-    const docInfoResult = await pool.request()
-      .input('doNo', sql.Int, doNo)
-      .query(docInfoQuery);
-    
+    const docInfoResult = await pool.request().input('doNo', sql.Int, doNo).query(docInfoQuery);
     const docInfo = docInfoResult.recordset[0] || {};
     docEntry = docInfo.doc_entry || null;
     docNum = docInfo.doc_num || null;
@@ -148,18 +149,16 @@ exports.checkSingleDO = async (doNo, pool) => {
         // 4. Jika semua valid, proses ke SAP
         if (allValid) {
             const sapResult = await sapService.postDeliveryNoteToSAP(doNo, pool);
-            
             return {
                 status: sapResult.status === 'success' ? 'processed' : 'matched_but_failed',
                 message: sapResult.message
             };
-
-            
         }
 
 
       return { status: 'no_goods_issue', message: `No goods issue data found for DO: ${doNo}` };
     }else{
+
         // 3. Prepare the JSON payload for InventoryGenExits
         const firstRecord = goodsIssueResult.recordset[0];
         const groupedItems = goodsIssueResult.recordset.reduce((acc, item) => {
@@ -262,23 +261,23 @@ exports.checkSingleDO = async (doNo, pool) => {
         };
     }
 
-  } catch (error) {
-    // console.error(`Error processing DO ${doNo}:`, error);
-    // console.log(`Error processing DO ${doNo}:`,error.message);
+  // } catch (error) {
+  //   // console.error(`Error processing DO ${doNo}:`, error);
+  //   // console.log(`Error processing DO ${doNo}:`,error.message);
     
-    const errorMessageObject = JSON.parse(error.message);
-    console.log('------------------------------------------------------------------------------------');
-    console.log('Process : '+doNo+' | Errort :'+errorMessageObject.sapError.message.value);
+  //   const errorMessageObject = JSON.parse(error.message);
+  //   console.log('------------------------------------------------------------------------------------');
+  //   console.log('Process : '+doNo+' | Errort :'+errorMessageObject.sapError.message.value);
     
-    let statusx = (errorMessageObject.sapError.message.value.indexOf('matching') !== -1) ? 0 : 2;
-    await this.updateDOStatusWithNote(doNo, null, statusx, {
-      type: 'PROCESS_ERROR',
-      message: errorMessageObject.sapError.message.value,
-      docEntry: docEntry,
-      docNum: docNum
-    }, pool);
-    return { status: 'error', message: errorMessageObject.sapError.message.value };
-  }
+  //   let statusx = (errorMessageObject.sapError.message.value.indexOf('matching') !== -1) ? 0 : 2;
+  //   await this.updateDOStatusWithNote(doNo, null, statusx, {
+  //     type: 'PROCESS_ERROR',
+  //     message: errorMessageObject.sapError.message.value,
+  //     docEntry: docEntry,
+  //     docNum: docNum
+  //   }, pool);
+  //   return { status: 'error', message: errorMessageObject.sapError.message.value };
+  // }
 };
 
 
@@ -315,7 +314,7 @@ exports.dnbund = async (pool) => {
 
           const patchUrl = `${sapService.SAP_CONFIG.BASE_URL}/DeliveryNotes(${doc.docEntry})`;
 
-          try {
+          // try {
               await sapService.makeApiRequest(
                   patchUrl,
                   'PATCH',
@@ -334,35 +333,35 @@ exports.dnbund = async (pool) => {
                   pool
               );
 
-          } catch (patchError) {
-              let errorMessage = 'Unknown error during patch.';
-              let sapErrorMessage = '';
-              try {
-                  const parsedError = JSON.parse(patchError.message);
-                  if (parsedError && parsedError.sapError && parsedError.sapError.message && typeof parsedError.sapError.message.value === 'string') {
-                      sapErrorMessage = parsedError.sapError.message.value;
-                      errorMessage = `SAP Error: ${sapErrorMessage}`;
-                  } else {
-                      errorMessage = patchError.message;
-                  }
-              } catch (parseErr) {
-                  errorMessage = patchError.message;
-              }
+          // } catch (patchError) {
+          //     let errorMessage = 'Unknown error during patch.';
+          //     let sapErrorMessage = '';
+          //     try {
+          //         const parsedError = JSON.parse(patchError.message);
+          //         if (parsedError && parsedError.sapError && parsedError.sapError.message && typeof parsedError.sapError.message.value === 'string') {
+          //             sapErrorMessage = parsedError.sapError.message.value;
+          //             errorMessage = `SAP Error: ${sapErrorMessage}`;
+          //         } else {
+          //             errorMessage = patchError.message;
+          //         }
+          //     } catch (parseErr) {
+          //         errorMessage = patchError.message;
+          //     }
 
-              console.log('------------------------------------------------------------------------------------');
-              console.log(`Process : ${doc.doNo} | Error Patching DocEntry ${doc.docEntry}: ${errorMessage}`);
+          //     console.log('------------------------------------------------------------------------------------');
+          //     console.log(`Process : ${doc.doNo} | Error Patching DocEntry ${doc.docEntry}: ${errorMessage}`);
 
-              failedUpdates.push({ docEntry: doc.docEntry, error: errorMessage });
+          //     failedUpdates.push({ docEntry: doc.docEntry, error: errorMessage });
 
-              await notificationService.sendWhatsAppNotification(
-                  doc.doNo,
-                  doc.docNum,
-                  doc.docEntry,
-                  `Failed to update U_BUNDLING_CS for DocEntry ${doc.docEntry}. Details: ${errorMessage}`,
-                  false,
-                  pool
-              );
-          }
+          //     await notificationService.sendWhatsAppNotification(
+          //         doc.doNo,
+          //         doc.docNum,
+          //         doc.docEntry,
+          //         `Failed to update U_BUNDLING_CS for DocEntry ${doc.docEntry}. Details: ${errorMessage}`,
+          //         false,
+          //         pool
+          //     );
+          // }
       }
 
       console.log('------------------------------------------------------------------------------------');
@@ -403,7 +402,7 @@ exports.runAutoCheck = async (pool) => {
   try {
     const result = await pool.request()
       .query(`SELECT DISTINCT DO_NO FROM r_dn_coldspace WITH (NOLOCK) 
-              WHERE ismatch = 1 and (jo_status IS NULL or iswa is null)`);
+              WHERE ORDER_TYPE != 'N-STO' and order_type != 'PROD' and ismatch = 1 and (jo_status IS NULL or iswa is null)`);
     
     const doList = result.recordset.map(row => row.DO_NO);
     if (doList.length === 0) { 
@@ -431,7 +430,7 @@ exports.runAutoCheck = async (pool) => {
 exports.recheckNullIswaDOs = async (pool) => {
   const result = await pool.request()
       .query(`SELECT DISTINCT DO_NO FROM r_dn_coldspace WITH (NOLOCK) 
-              WHERE iswa IS NULL AND del_date >= '2025-07-01'`);
+              WHERE  ORDER_TYPE != 'N-STO' and order_type != 'PROD' and ismatch = 1 and  iswa IS NULL AND del_date >= '2025-07-01'`);
     
     const doList = result.recordset.map(row => row.DO_NO);
     
@@ -448,7 +447,7 @@ exports.recheckNullIswaDOs = async (pool) => {
   try {
     const result = await pool.request()
       .query(`SELECT DISTINCT DO_NO FROM r_dn_coldspace WITH (NOLOCK) 
-              WHERE iswa IS NULL AND del_date >= '2025-07-01'`);
+              WHERE  ORDER_TYPE != 'N-STO' and order_type != 'PROD' and ismatch = 1 and  iswa IS NULL AND del_date >= '2025-07-01'`);
     
     const doList = result.recordset.map(row => row.DO_NO);
     

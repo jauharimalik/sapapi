@@ -36,6 +36,14 @@ const WHATSAPP_CONFIG = {
     failureGroup: '120363421138507049@g.us'
 };
 
+exports.getDfltwhForSKU = async (sku)=>{
+    if (sku === 'G502') return 'BS03';
+    if (sku === 'K102') return 'BS04';
+    if (sku === 'F001') return 'BS02';
+    return null;
+};
+
+  
 const processStockTransferOrders = async () => {
     let pool;
     try {
@@ -149,6 +157,8 @@ const getDocEntryFromOWTQ = async (poNo, pool) => {
     }
 };
 
+
+
 const getInventoryTransferRequestFromSAP = async (docEntry, sessionCookie) => {
     try {
         const response = await axios.get(
@@ -257,6 +267,7 @@ const createStockTransferPayload = (record, invTransferRequest, batchData) => {
         }]
     };
 };
+
 const postStockTransferToSAP = async (payload, sessionCookie) => {
     try {
         const response = await axios.post(
@@ -295,6 +306,22 @@ const updateRecordStatus = async (id, joStatus, note, docNum, docEntry, pool, po
                     doc_entry = @docEntry,
                     iswa = CASE WHEN @joStatus = 3 THEN 1 ELSE 0 END
                 WHERE id = @id OR (@PO_NO IS NOT NULL AND PO_NO = @PO_NO);
+            `);
+
+        await pool.request()
+            .input('DO_NO', sql.Int, pono)
+            .input('joStatus', sql.Int, joStatus)
+            .input('note', sql.NVarChar, note)
+            .input('docNum', sql.Int, docNum)
+            .input('docEntry', sql.Int, docEntry)
+            .query(`
+                UPDATE r_dn_coldspace
+                SET jo_status = @joStatus,
+                    note = @note,
+                    doc_num = @docNum,
+                    doc_entry = @docEntry,
+                    iswa = CASE WHEN @joStatus = 3 THEN 1 ELSE 0 END
+                WHERE DO_NO = @DO_NO;
             `);
     } catch (error) {
         throw new Error(`Gagal update status record: ${error.message}`);
