@@ -5,7 +5,17 @@ const notificationService = require('./notificationService');
 
 exports.checkSingleDO = async (doNo, pool) => {  
   let docEntry, docNum;
-  
+  let rdn_data = [], rdn_query = await pool.request()
+    .input('doNo', sql.Int, doNo)
+    .query(`SELECT DISTINCT DO_NO FROM r_dn_coldspace WITH (NOLOCK) 
+            WHERE is_match = 0 and (jo_status IS NULL or iswa is null)`);
+
+  rdn_query.recordset.forEach(rdn_datar => {
+      rdn_data.push(rdn_datar);
+  });
+
+  console.log(rdn_data);
+
   try {
     // 1. Cek informasi dokumen
     const docInfoQuery = `
@@ -190,6 +200,9 @@ exports.checkSingleDO = async (doNo, pool) => {
             "DocumentLines": documentLines
         };
             
+        
+        console.log(JSON.stringify(payload, null, 2));
+
         // 4. Post to SAP InventoryGenExits endpoint
         const sessionCookie = await sapService.loginToB1ServiceLayer();
         const sapResponse = await sapService.makeApiRequest(
@@ -255,7 +268,7 @@ exports.checkSingleDO = async (doNo, pool) => {
     
     const errorMessageObject = JSON.parse(error.message);
     console.log('------------------------------------------------------------------------------------');
-    console.log('Process : '+doNo+' | Error :'+errorMessageObject.sapError.message.value);
+    console.log('Process : '+doNo+' | Errort :'+errorMessageObject.sapError.message.value);
     
     let statusx = (errorMessageObject.sapError.message.value.indexOf('matching') !== -1) ? 0 : 2;
     await this.updateDOStatusWithNote(doNo, null, statusx, {
@@ -390,7 +403,7 @@ exports.runAutoCheck = async (pool) => {
   try {
     const result = await pool.request()
       .query(`SELECT DISTINCT DO_NO FROM r_dn_coldspace WITH (NOLOCK) 
-              WHERE is_match = 0 and (jo_status IS NULL or iswa is null)`);
+              WHERE ismatch = 0 and (jo_status IS NULL or iswa is null)`);
     
     const doList = result.recordset.map(row => row.DO_NO);
     if (doList.length === 0) { 
