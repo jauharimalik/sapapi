@@ -164,7 +164,7 @@ exports.postDeliveryNoteToSAP = async (doNo, pool) => {
   let sessionCookie;
   let docEntryFromSAP, docNumFromSAP;
 
-  // try {
+  try {
 
     sessionCookie = await exports.loginToB1ServiceLayer();
     const docEntryRequest = pool.request();
@@ -464,39 +464,39 @@ exports.postDeliveryNoteToSAP = async (doNo, pool) => {
       docNum: response.DocNum
     };
 
-  // } catch (error) {
-  //   let errorDetails = {};
-  //   if (error.message) {
-  //     try {
-  //       errorDetails = JSON.parse(error.message);
-  //     } catch (parseError) {
-  //       errorDetails = { message: error.message };
-  //     }
-  //   } else {
-  //     errorDetails = { message: "An unexpected error occurred." };
-  //   }
+  } catch (error) {
+    let errorDetails = {};
+    if (error.message) {
+      try {
+        errorDetails = JSON.parse(error.message);
+      } catch (parseError) {
+        errorDetails = { message: error.message };
+      }
+    } else {
+      errorDetails = { message: "An unexpected error occurred." };
+    }
 
-  //   const errorMessageToLog = errorDetails.sapError?.message?.value || errorDetails.message || "Unknown error occurred.";
+    const errorMessageToLog = errorDetails.sapError?.message?.value || errorDetails.message || "Unknown error occurred.";
 
-  //   await updateDOStatusWithNote(
-  //       doNo,
-  //       docNumFromSAP,
-  //       2,
-  //       {
-  //         type: 'PROCESSING_ERROR',
-  //         message: errorMessageToLog,
-  //         docEntry: docEntryFromSAP,
-  //         sapError: errorDetails.sapError
-  //       },
-  //       pool
-  //   );
+    await updateDOStatusWithNote(
+        doNo,
+        docNumFromSAP,
+        2,
+        {
+          type: 'PROCESSING_ERROR',
+          message: errorMessageToLog,
+          docEntry: docEntryFromSAP,
+          sapError: errorDetails.sapError
+        },
+        pool
+    );
 
-  //   return {
-  //       status: 'error',
-  //       message: errorMessageToLog,
-  //       sapError: errorDetails.sapError
-  //   };
-  // }
+    return {
+        status: 'error',
+        message: errorMessageToLog,
+        sapError: errorDetails.sapError
+    };
+  }
 };
 
 exports.validateOrderWithColdspace = async (doNo, sapOrderData, pool) => {

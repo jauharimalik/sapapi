@@ -20,7 +20,7 @@ exports.checkSingleDO = async (doNo, pool) => {
 
   // console.log(rdn_data);
 
-  // try {
+  try {
     // 1. Cek informasi dokumen
     const docInfoQuery = `
       SELECT t3.docentry as doc_entry, t3.DocNum as doc_num
@@ -261,23 +261,23 @@ exports.checkSingleDO = async (doNo, pool) => {
         };
     }
 
-  // } catch (error) {
-  //   // console.error(`Error processing DO ${doNo}:`, error);
-  //   // console.log(`Error processing DO ${doNo}:`,error.message);
+  } catch (error) {
+    // console.error(`Error processing DO ${doNo}:`, error);
+    // console.log(`Error processing DO ${doNo}:`,error.message);
     
-  //   const errorMessageObject = JSON.parse(error.message);
-  //   console.log('------------------------------------------------------------------------------------');
-  //   console.log('Process : '+doNo+' | Errort :'+errorMessageObject.sapError.message.value);
+    const errorMessageObject = JSON.parse(error.message);
+    console.log('------------------------------------------------------------------------------------');
+    console.log('Process : '+doNo+' | Errort :'+errorMessageObject.sapError.message.value);
     
-  //   let statusx = (errorMessageObject.sapError.message.value.indexOf('matching') !== -1) ? 0 : 2;
-  //   await this.updateDOStatusWithNote(doNo, null, statusx, {
-  //     type: 'PROCESS_ERROR',
-  //     message: errorMessageObject.sapError.message.value,
-  //     docEntry: docEntry,
-  //     docNum: docNum
-  //   }, pool);
-  //   return { status: 'error', message: errorMessageObject.sapError.message.value };
-  // }
+    let statusx = (errorMessageObject.sapError.message.value.indexOf('matching') !== -1) ? 0 : 2;
+    await this.updateDOStatusWithNote(doNo, null, statusx, {
+      type: 'PROCESS_ERROR',
+      message: errorMessageObject.sapError.message.value,
+      docEntry: docEntry,
+      docNum: docNum
+    }, pool);
+    return { status: 'error', message: errorMessageObject.sapError.message.value };
+  }
 };
 
 
@@ -314,7 +314,7 @@ exports.dnbund = async (pool) => {
 
           const patchUrl = `${sapService.SAP_CONFIG.BASE_URL}/DeliveryNotes(${doc.docEntry})`;
 
-          // try {
+          try {
               await sapService.makeApiRequest(
                   patchUrl,
                   'PATCH',
@@ -333,35 +333,35 @@ exports.dnbund = async (pool) => {
                   pool
               );
 
-          // } catch (patchError) {
-          //     let errorMessage = 'Unknown error during patch.';
-          //     let sapErrorMessage = '';
-          //     try {
-          //         const parsedError = JSON.parse(patchError.message);
-          //         if (parsedError && parsedError.sapError && parsedError.sapError.message && typeof parsedError.sapError.message.value === 'string') {
-          //             sapErrorMessage = parsedError.sapError.message.value;
-          //             errorMessage = `SAP Error: ${sapErrorMessage}`;
-          //         } else {
-          //             errorMessage = patchError.message;
-          //         }
-          //     } catch (parseErr) {
-          //         errorMessage = patchError.message;
-          //     }
+          } catch (patchError) {
+              let errorMessage = 'Unknown error during patch.';
+              let sapErrorMessage = '';
+              try {
+                  const parsedError = JSON.parse(patchError.message);
+                  if (parsedError && parsedError.sapError && parsedError.sapError.message && typeof parsedError.sapError.message.value === 'string') {
+                      sapErrorMessage = parsedError.sapError.message.value;
+                      errorMessage = `SAP Error: ${sapErrorMessage}`;
+                  } else {
+                      errorMessage = patchError.message;
+                  }
+              } catch (parseErr) {
+                  errorMessage = patchError.message;
+              }
 
-          //     console.log('------------------------------------------------------------------------------------');
-          //     console.log(`Process : ${doc.doNo} | Error Patching DocEntry ${doc.docEntry}: ${errorMessage}`);
+              console.log('------------------------------------------------------------------------------------');
+              console.log(`Process : ${doc.doNo} | Error Patching DocEntry ${doc.docEntry}: ${errorMessage}`);
 
-          //     failedUpdates.push({ docEntry: doc.docEntry, error: errorMessage });
+              failedUpdates.push({ docEntry: doc.docEntry, error: errorMessage });
 
-          //     await notificationService.sendWhatsAppNotification(
-          //         doc.doNo,
-          //         doc.docNum,
-          //         doc.docEntry,
-          //         `Failed to update U_BUNDLING_CS for DocEntry ${doc.docEntry}. Details: ${errorMessage}`,
-          //         false,
-          //         pool
-          //     );
-          // }
+              await notificationService.sendWhatsAppNotification(
+                  doc.doNo,
+                  doc.docNum,
+                  doc.docEntry,
+                  `Failed to update U_BUNDLING_CS for DocEntry ${doc.docEntry}. Details: ${errorMessage}`,
+                  false,
+                  pool
+              );
+          }
       }
 
       console.log('------------------------------------------------------------------------------------');
