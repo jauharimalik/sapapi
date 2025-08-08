@@ -86,12 +86,11 @@ function formatWhatsAppMessage(doNo, docNum, docEntry, note, isSuccess, statusTe
 }
 
 async function updateNotificationStatus(doNo, pool) {
+  // console.log('UPDATE r_dn_coldspace SET iswa = 1 WHERE do_no = '+doNo);
   try {
-    await pool.request()
-      .input('doNo', sql.Int, doNo)
-      .query('UPDATE r_dn_coldspace SET iswa = 1 WHERE do_no = @doNo');
+    await pool.request().input('doNo', sql.Int, doNo).query('UPDATE r_dn_coldspace SET iswa = 1 WHERE do_no = @doNo');
   } catch (error) {
-    console.error(`Failed to update notification status for DO ${doNo}:`, error.message);
+    // console.error(`Failed to update notification status for DO ${doNo}:`, error.message);
   }
 }
 

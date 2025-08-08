@@ -20,7 +20,7 @@ exports.checkSingleDO = async (doNo, pool) => {
 
   // console.log(rdn_data);
 
-  // try {
+  try {
     // 1. Cek informasi dokumen
     const docInfoQuery = `
       SELECT t3.docentry as doc_entry, t3.DocNum as doc_num
@@ -261,23 +261,23 @@ exports.checkSingleDO = async (doNo, pool) => {
         };
     }
 
-  // } catch (error) {
-  //   // console.error(`Error processing DO ${doNo}:`, error);
-  //   // console.log(`Error processing DO ${doNo}:`,error.message);
+  } catch (error) {
+    // console.error(`Error processing DO ${doNo}:`, error);
+    // console.log(`Error processing DO ${doNo}:`,error.message);
     
-  //   const errorMessageObject = JSON.parse(error.message);
-  //   console.log('------------------------------------------------------------------------------------');
-  //   console.log('Process : '+doNo+' | Errort :'+errorMessageObject.sapError.message.value);
+    const errorMessageObject = JSON.parse(error.message);
+    console.log('------------------------------------------------------------------------------------');
+    console.log('Process : '+doNo+' | Errort :'+errorMessageObject.sapError.message.value);
     
-  //   let statusx = (errorMessageObject.sapError.message.value.indexOf('matching') !== -1) ? 0 : 2;
-  //   await this.updateDOStatusWithNote(doNo, null, statusx, {
-  //     type: 'PROCESS_ERROR',
-  //     message: errorMessageObject.sapError.message.value,
-  //     docEntry: docEntry,
-  //     docNum: docNum
-  //   }, pool);
-  //   return { status: 'error', message: errorMessageObject.sapError.message.value };
-  // }
+    let statusx = (errorMessageObject.sapError.message.value.indexOf('matching') !== -1) ? 0 : 2;
+    await this.updateDOStatusWithNote(doNo, null, statusx, {
+      type: 'PROCESS_ERROR',
+      message: errorMessageObject.sapError.message.value,
+      docEntry: docEntry,
+      docNum: docNum
+    }, pool);
+    return { status: 'error', message: errorMessageObject.sapError.message.value };
+  }
 };
 
 

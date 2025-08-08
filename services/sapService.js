@@ -206,7 +206,7 @@ async function createDocumentLines(sapOrderData, doNo, pool, sessionCookie) {
 
 async function getWarehouseData(doNo, itemCode, pool) {
   const query = `
-    SELECT TOP 1 *
+    SELECT TOP 1 *,
     t1.sup_site as vendor,
     t1.sup_site as site
     FROM r_dn_coldspace t0
@@ -256,18 +256,6 @@ async function getBatchNumbers(doNo, line, pool) {
                   AND t0.DO_NO = @doNo 
                   AND t0.SKU = @sku`);
 
-      console.log(`SELECT TOP 1 oibt.batchnum 
-                FROM [db_pandurasa].dbo.r_dn_coldspace t0
-                INNER JOIN [PKSRV-SAP].[test].dbo.OIBT 
-                  ON OIBT.ItemCode COLLATE database_default = t0.SKU 
-                  AND OIBT.Quantity > t0.QTY 
-                  AND FORMAT(OIBT.ExpDate, 'ddmmyy') COLLATE database_default = t0.expired_date
-                WHERE t0.ORDER_TYPE != 'N-STO' 
-                  AND t0.ORDER_TYPE != 'PROD' 
-                  AND t0.ismatch = 1 
-                  AND (t0.jo_status IS NULL OR t0.iswa IS NULL) 
-                  AND t0.DO_NO = @doNo 
-                  AND t0.SKU = @sku`);
 
       const batchnumber = result.recordset.length > 0 ? result.recordset[0].batchnum : batch.BatchNumber;
       
@@ -294,7 +282,7 @@ exports.postDeliveryNoteToSAP = async (doNo, pool) => {
   let sessionCookie;
   let docEntryFromSAP, docNumFromSAP;
 
-  // try {
+  try {
 
     sessionCookie = await exports.loginToB1ServiceLayer();
     const docEntryRequest = pool.request();
@@ -570,39 +558,39 @@ exports.postDeliveryNoteToSAP = async (doNo, pool) => {
       docNum: response.DocNum
     };
 
-  // } catch (error) {
-  //   let errorDetails = {};
-  //   if (error.message) {
-  //     try {
-  //       errorDetails = JSON.parse(error.message);
-  //     } catch (parseError) {
-  //       errorDetails = { message: error.message };
-  //     }
-  //   } else {
-  //     errorDetails = { message: "An unexpected error occurred." };
-  //   }
+  } catch (error) {
+    let errorDetails = {};
+    if (error.message) {
+      try {
+        errorDetails = JSON.parse(error.message);
+      } catch (parseError) {
+        errorDetails = { message: error.message };
+      }
+    } else {
+      errorDetails = { message: "An unexpected error occurred." };
+    }
 
-  //   const errorMessageToLog = errorDetails.sapError?.message?.value || errorDetails.message || "Unknown error occurred.";
+    const errorMessageToLog = errorDetails.sapError?.message?.value || errorDetails.message || "Unknown error occurred.";
 
-  //   await updateDOStatusWithNote(
-  //       doNo,
-  //       docNumFromSAP,
-  //       2,
-  //       {
-  //         type: 'PROCESSING_ERROR',
-  //         message: errorMessageToLog,
-  //         docEntry: docEntryFromSAP,
-  //         sapError: errorDetails.sapError
-  //       },
-  //       pool
-  //   );
+    await updateDOStatusWithNote(
+        doNo,
+        docNumFromSAP,
+        2,
+        {
+          type: 'PROCESSING_ERROR',
+          message: errorMessageToLog,
+          docEntry: docEntryFromSAP,
+          sapError: errorDetails.sapError
+        },
+        pool
+    );
 
-  //   return {
-  //       status: 'error',
-  //       message: errorMessageToLog,
-  //       sapError: errorDetails.sapError
-  //   };
-  // }
+    return {
+        status: 'error',
+        message: errorMessageToLog,
+        sapError: errorDetails.sapError
+    };
+  }
 };
 
 exports.validateOrderWithColdspace = async (doNo, sapOrderData, pool) => {
