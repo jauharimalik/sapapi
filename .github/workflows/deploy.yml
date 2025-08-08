@@ -10,15 +10,25 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          repository: jauharimalik/sapapi
+          token: ${{ secrets.GITHUB_TOKEN }}
+          # set-safe-directory: true sudah otomatis di v4
 
-      - name: Pull latest changes
-        run: git pull -f origin main
-        
-      - name: Terminate csx.bat process
+      - name: Stop all running Node.js processes
         continue-on-error: true
-        run: taskkill /IM csx.bat /F
-        
-      - name: Start csx.bat
-        run: C:\laragon\www\sapapi\csx.bat
+        run: taskkill /F /IM node.exe /T
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Start all Node.js applications
+        shell: cmd
+        run: |
+          start /b node server.js
+          start /b node guling.js
+          start /b node retur.js
+          start /b node rijek.js
+          start /b node sto.js
