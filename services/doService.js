@@ -20,7 +20,7 @@ exports.checkSingleDO = async (doNo, pool) => {
 
   // console.log(rdn_data);
 
-  try {
+  // try {
     // 1. Cek informasi dokumen
     const docInfoQuery = `
       SELECT t3.docentry as doc_entry, t3.DocNum as doc_num
@@ -167,7 +167,7 @@ exports.checkSingleDO = async (doNo, pool) => {
                 acc[key] = {
                     "ItemCode": item.SKU,
                     "Quantity": 0,
-                    "WarehouseCode": item.SITE === 'VIRTUAL' ? 'CS-03' : item.SITE,
+                    "WarehouseCode": item.SUP_SITE === 'VIRTUAL' ? 'CS-03' : item.SUP_SITE,
                     "AccountCode": "101120103",
                     "BatchNumbers": []
                 };
@@ -200,7 +200,7 @@ exports.checkSingleDO = async (doNo, pool) => {
         };
             
         
-        console.log(JSON.stringify(payload, null, 2));
+        // console.log(JSON.stringify(payload, null, 2));
 
         // 4. Post to SAP InventoryGenExits endpoint
         const sessionCookie = await sapService.loginToB1ServiceLayer();
@@ -250,7 +250,7 @@ exports.checkSingleDO = async (doNo, pool) => {
         }, pool);
 
         
-        console.log(JSON.stringify(payload, null, 2));
+        // console.log(JSON.stringify(payload, null, 2));
         console.log('------------------------------------------------------------------------------------');
         console.log('Process : '+doNo+' | Status : Success Insert Into SAP');
 
@@ -261,23 +261,23 @@ exports.checkSingleDO = async (doNo, pool) => {
         };
     }
 
-  } catch (error) {
-    // console.error(`Error processing DO ${doNo}:`, error);
-    // console.log(`Error processing DO ${doNo}:`,error.message);
+  // } catch (error) {
+  //   // console.error(`Error processing DO ${doNo}:`, error);
+  //   // console.log(`Error processing DO ${doNo}:`,error.message);
     
-    const errorMessageObject = JSON.parse(error.message);
-    console.log('------------------------------------------------------------------------------------');
-    console.log('Process : '+doNo+' | Errort :'+errorMessageObject.sapError.message.value);
+  //   const errorMessageObject = JSON.parse(error.message);
+  //   console.log('------------------------------------------------------------------------------------');
+  //   console.log('Process : '+doNo+' | Errort :'+errorMessageObject.sapError.message.value);
     
-    let statusx = (errorMessageObject.sapError.message.value.indexOf('matching') !== -1) ? 0 : 2;
-    await this.updateDOStatusWithNote(doNo, null, statusx, {
-      type: 'PROCESS_ERROR',
-      message: errorMessageObject.sapError.message.value,
-      docEntry: docEntry,
-      docNum: docNum
-    }, pool);
-    return { status: 'error', message: errorMessageObject.sapError.message.value };
-  }
+  //   let statusx = (errorMessageObject.sapError.message.value.indexOf('matching') !== -1) ? 0 : 2;
+  //   await this.updateDOStatusWithNote(doNo, null, statusx, {
+  //     type: 'PROCESS_ERROR',
+  //     message: errorMessageObject.sapError.message.value,
+  //     docEntry: docEntry,
+  //     docNum: docNum
+  //   }, pool);
+  //   return { status: 'error', message: errorMessageObject.sapError.message.value };
+  // }
 };
 
 
@@ -435,7 +435,8 @@ exports.recheckNullIswaDOs = async (pool) => {
     const doList = result.recordset.map(row => row.DO_NO);
     
     if (doList.length === 0) {
-      console.log('No DOs with NULL iswa status');
+      console.log('------------------------------------------------------------------------------------');
+      console.log('No DN Server');
       return { status: 'empty' };
     }
 

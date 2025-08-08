@@ -25,6 +25,7 @@ let getDfltwhForSKU = async (sku)=>{
   if (sku === 'K102') return 'BS04';
   if (sku === 'F001') return 'BS02';
   return null;
+
 };
 
 
@@ -160,11 +161,140 @@ const formatDateToISO = (date) => {
     return `${year}-${month}-${day}`;
 };
 
+async function createDocumentLines(sapOrderData, doNo, pool, sessionCookie) {
+  const documentLines = [];
+  
+  // Validasi data awal
+  if (!sapOrderData.DocumentLines || sapOrderData.DocumentLines.length === 0) {
+    throw new Error('No document lines found in SAP order data');
+  }
+
+  for (const line of sapOrderData.DocumentLines) {
+    try {
+      // Validasi line item
+      if (!line.ItemCode || line.Quantity === undefined || line.Quantity === null) {
+        console.warn(`Skipping invalid line item: ${JSON.stringify(line)}`);
+        continue;
+      }
+
+      // Dapatkan data warehouse
+      const warehouseData = await getWarehouseData(doNo, line.ItemCode, pool);
+      
+      // Buat document line
+      const documentLine = {
+        "ItemCode": line.ItemCode,
+        "Quantity": parseFloat(line.Quantity),
+        "BaseType": 17,
+        "BaseEntry": sapOrderData.DocEntry,
+        "BaseLine": line.LineNum,
+        "WarehouseCode": warehouseData.code || 'CS-03' // Default warehouse
+      };
+
+      // Tambahkan batch numbers jika ada
+      if (line.BatchNumbers && line.BatchNumbers.length > 0) {
+        documentLine.BatchNumbers = await getBatchNumbers(doNo, line, pool);
+      }
+
+      documentLines.push(documentLine);
+    } catch (lineError) {
+      console.error(`Error processing line ${line.LineNum}:`, lineError);
+    }
+  }
+
+  return documentLines;
+}
+
+async function getWarehouseData(doNo, itemCode, pool) {
+  const query = `
+    SELECT TOP 1 *
+    t1.sup_site as vendor,
+    t1.sup_site as site
+    FROM r_dn_coldspace t0
+    inner join r_do_coldspace_dev t1 on t0.do_no = t1.do_no
+    WHERE t0.DO_NO = @doNo 
+    AND t0.SKU = @itemCode
+    AND t0.ORDER_TYPE != 'N-STO' 
+    AND t0.order_type != 'PROD' 
+    AND t0.ismatch = 1`;
+
+  const result = await pool.request()
+    .input('doNo', sql.Int, doNo)
+    .input('itemCode', sql.VarChar, itemCode)
+    .query(query);
+
+  if (!result.recordset || result.recordset.length === 0) {
+    return { code: 'CS-03' }; 
+  }
+
+  const record = result.recordset[0];
+  return { code: record.SITE };
+}
+
+async function getBatchNumbers(doNo, line, pool) {
+  const batchNumbers = [];
+  
+  for (const batch of line.BatchNumbers) {
+    if (!batch.BatchNumber || batch.Quantity === undefined) {
+      // console.warn(`Invalid batch data for item ${line.ItemCode}`);
+      continue;
+    }
+
+    try {
+      const result = await pool.request()
+        .input('doNo', sql.Int, doNo)
+        .input('sku', sql.VarChar, line.ItemCode)
+        .query(`SELECT TOP 1 oibt.batchnum 
+                FROM [db_pandurasa].dbo.r_dn_coldspace t0
+                INNER JOIN [PKSRV-SAP].[test].dbo.OIBT 
+                  ON OIBT.ItemCode COLLATE database_default = t0.SKU 
+                  AND OIBT.Quantity > t0.QTY 
+                  AND FORMAT(OIBT.ExpDate, 'ddmmyy') COLLATE database_default = t0.expired_date
+                WHERE t0.ORDER_TYPE != 'N-STO' 
+                  AND t0.ORDER_TYPE != 'PROD' 
+                  AND t0.ismatch = 1 
+                  AND (t0.jo_status IS NULL OR t0.iswa IS NULL) 
+                  AND t0.DO_NO = @doNo 
+                  AND t0.SKU = @sku`);
+
+      console.log(`SELECT TOP 1 oibt.batchnum 
+                FROM [db_pandurasa].dbo.r_dn_coldspace t0
+                INNER JOIN [PKSRV-SAP].[test].dbo.OIBT 
+                  ON OIBT.ItemCode COLLATE database_default = t0.SKU 
+                  AND OIBT.Quantity > t0.QTY 
+                  AND FORMAT(OIBT.ExpDate, 'ddmmyy') COLLATE database_default = t0.expired_date
+                WHERE t0.ORDER_TYPE != 'N-STO' 
+                  AND t0.ORDER_TYPE != 'PROD' 
+                  AND t0.ismatch = 1 
+                  AND (t0.jo_status IS NULL OR t0.iswa IS NULL) 
+                  AND t0.DO_NO = @doNo 
+                  AND t0.SKU = @sku`);
+
+      const batchnumber = result.recordset.length > 0 ? result.recordset[0].batchnum : batch.BatchNumber;
+      
+      batchNumbers.push({
+        "BatchNumber": batchnumber,
+        "Quantity": parseFloat(batch.Quantity),
+        "BaseLineNumber": line.LineNum
+      });
+    } catch (error) {
+      console.error(`Error fetching batch for ${line.ItemCode}:`, error);
+      batchNumbers.push({
+        "BatchNumber": batch.BatchNumber,
+        "Quantity": parseFloat(batch.Quantity),
+        "BaseLineNumber": line.LineNum
+      });
+    }
+  }
+
+  return batchNumbers;
+}
+
+
 exports.postDeliveryNoteToSAP = async (doNo, pool) => {
   let sessionCookie;
   let docEntryFromSAP, docNumFromSAP;
 
-  try {
+  // try {
 
     sessionCookie = await exports.loginToB1ServiceLayer();
     const docEntryRequest = pool.request();
@@ -290,44 +420,12 @@ exports.postDeliveryNoteToSAP = async (doNo, pool) => {
       // console.error("Error retrieving AddressExtension data:", err.message);
     }
 
-    let rdn_query = await pool.request()
-      .input('doNo', sql.Int, doNo)
-      .query(`select t0.*,isnull((select top 1 tx.SUP_SITE from r_do_coldspace_dev tx where tx.DO_NO = t0.DO_NO),'CS-03') as vendor,
-        isnull((select top 1 tx.SUP_SITE from r_do_coldspace_dev tx where tx.DO_NO = t0.DO_NO),'CS-03') as SITE
-        from r_dn_coldspace t0
-        WHERE t0.ORDER_TYPE != 'N-STO' and t0.order_type != 'PROD' and t0.ismatch = 1 and  (t0.jo_status IS NULL or t0.iswa is null) and t0.DO_NO =@doNo`);
-
-    let CardCode = rdn_query.recordset[0].vendor;
-    let dfltwh = await getDfltwhForSKU(CardCode); 
-    let record = rdn_query.recordset[0];
-    if (CardCode === 'VIRTUAL') {
-      CardCode = 'CS-03';
-    } else {
-        switch (record.SKU_QUALITY) {
-            case 'N':
-                if (dfltwh === 'BS03') {
-                  CardCode = 'BS03';
-                } else if (dfltwh === 'BS04') {
-                  CardCode = 'BS04';
-                } else if (dfltwh === 'BS02') {
-                  CardCode = 'BS02';
-                } else {
-                  console.warn(`SKU_QUALITY 'N' dan dfltwh '${dfltwh}' tidak cocok dengan aturan yang dikenal untuk SKU: ${record.SKU}`);
-                  CardCode = record.VENDOR;
-                }
-                break;
-            case 'Y':
-              CardCode = CardCode
-              break;
-            default:
-              CardCode = CardCode; 
-              break;
-        }
+    const documentLines = await createDocumentLines(sapOrderData, doNo, pool, sessionCookie);
+    if (!documentLines || documentLines.length === 0) {
+      throw new Error('No valid document lines found for this delivery note');
     }
-
-
     const deliveryNotePayload = {
-      "CardCode": CardCode,
+      "CardCode": sapOrderData.CardCode,
       "DocDate": formatDateToISO(new Date()), 
       "DocDueDate": formatDateToISO(sapOrderData.DocDueDate),
       "TaxDate": formatDateToISO(new Date()), 
@@ -339,90 +437,98 @@ exports.postDeliveryNoteToSAP = async (doNo, pool) => {
       "SalesPersonCode": sapOrderData.SalesPersonCode || 12,
       "ShipToCode": sapOrderData.ShipToCode, 
       "U_IDU_Status_DO": addressExtensionData.U_IDU_Status_DO || "Kirim Besok",
-
+      "DocumentLines": documentLines,
       ...Object.keys(addressExtensionData).length > 0 && { "AddressExtension": addressExtensionData },
 
-      "DocumentLines": sapOrderData.DocumentLines.map(line => {
+      // "DocumentLines": await (async () => {
+      //   const documentLines = [];
+      //   for (const line of sapOrderData.DocumentLines) {
+      //     if (!line.ItemCode || line.Quantity === undefined || line.Quantity === null) {
+      //       throw new Error(`Invalid line item data for line ${line.LineNum}: Missing ItemCode or Quantity.`);
+      //     }
 
-        if (!line.ItemCode || line.Quantity === undefined || line.Quantity === null) {
-          throw new Error(`Invalid line item data for line ${line.LineNum}: Missing ItemCode or Quantity.`);
-        }
+          
 
-        let rdn_query =  pool.request()
-        .input('doNo', sql.Int, doNo)
-        .query(`select t0.*,isnull((select top 1 tx.SUP_SITE from r_do_coldspace_dev tx where tx.DO_NO = t0.DO_NO),'CS-03') as vendor,
-          isnull((select top 1 tx.SUP_SITE from r_do_coldspace_dev tx where tx.DO_NO = t0.DO_NO),'CS-03') as SITE
-          from r_dn_coldspace t0
-          WHERE  t0.ORDER_TYPE != 'N-STO' and t0.order_type != 'PROD' and t0.ismatch = 1 and  (t0.jo_status IS NULL or t0.iswa is null) and t0.DO_NO =@doNo`);
-  
-        let WarehouseCode = rdn_query.recordset[0].vendor;
-        let dfltwh = getDfltwhForSKU(WarehouseCode); 
-        if (WarehouseCode === 'VIRTUAL') {
-          WarehouseCode = 'CS-03';
-        } else {
-            switch (record.SKU_QUALITY) {
-                case 'N':
-                    if (dfltwh === 'BS03') {
-                      WarehouseCode = 'BS03';
-                    } else if (dfltwh === 'BS04') {
-                      WarehouseCode = 'BS04';
-                    } else if (dfltwh === 'BS02') {
-                      WarehouseCode = 'BS02';
-                    } else {
-                      console.warn(`SKU_QUALITY 'N' dan dfltwh '${dfltwh}' tidak cocok dengan aturan yang dikenal untuk SKU: ${record.SKU}`);
-                      WarehouseCode = record.VENDOR;
-                    }
-                    break;
-                case 'Y':
-                  WarehouseCode = WarehouseCode
-                  break;
-                default:
-                  WarehouseCode = WarehouseCode; 
-                  break;
-            }
-        }
-    
-        const documentLine = {
-          "ItemCode": line.ItemCode,
-          "Quantity": parseFloat(line.Quantity),
-          "BaseType": 17,
-          "BaseEntry": sapOrderData.DocEntry,
-          "BaseLine": line.LineNum,
-          "WarehouseCode": WarehouseCode ?? (line.WarehouseCode || '')
-        };
-
-        if (line.BatchNumbers && line.BatchNumbers.length > 0) {
-          documentLine.BatchNumbers = line.BatchNumbers.map(batch => {
-            if (!batch.BatchNumber || batch.Quantity === undefined || batch.Quantity === null) {
-              throw new Error(`Invalid batch data for item ${line.ItemCode}, line ${line.LineNum}: Missing BatchNumber or Quantity.`);
-            }
+      //     let rdn_queryx =  await pool.request()
+      //     .input('doNo', sql.Int, doNo)
+      //     .query(`select t0.*,isnull((select top 1 tx.SUP_SITE from r_do_coldspace_dev tx where tx.DO_NO = t0.DO_NO),'CS-03') as vendor,
+      //       isnull((select top 1 tx.SUP_SITE from r_do_coldspace_dev tx where tx.DO_NO = t0.DO_NO),'CS-03') as SITE
+      //       from r_dn_coldspace t0
+      //       WHERE  t0.ORDER_TYPE != 'N-STO' and t0.order_type != 'PROD' and t0.ismatch = 1 and  t0.DO_NO =@doNo`);
 
             
-                    
-          let btch_query = pool.request()
-          .input('doNo', sql.Int, doNo)
-          .input('sku', sql.Int, line.ItemCode)
-          .query(`select distinct top 1 oibt.batchnum from [db_pandurasa].dbo.r_dn_coldspace t0
-            inner join [PKSRV-SAP].[test].dbo.OIBT on OIBT.ItemCode collate database_default = t0.SKU 
-            AND OIBT.Quantity > t0.QTY and FORMAT(OIBT.ExpDate , 'ddmmyy')  collate database_default = t0.expired_date
-            WHERE t0.ORDER_TYPE != 'N-STO' and t0.ORDER_TYPE != 'PROD' and t0.ismatch = 1 and (t0.jo_status IS NULL or t0.iswa is null) 
-            and t0.DO_NO =@doNo and t0.SKU = @sku`);
+      //     if (!rdn_queryx || !rdn_queryx.recordset || rdn_queryx.recordset.length === 0) {
+      //       throw new Error(`No matching record found in r_dn_coldspace for DO ${doNo}`);
+      //     }
+                
+      //     let WarehouseCode = rdn_queryx.recordset[0].vendor;
+      //     let dfltwh = getDfltwhForSKU(WarehouseCode); 
+      //     if (WarehouseCode === 'VIRTUAL') {
+      //       WarehouseCode = 'CS-03';
+      //     } else {
+      //       const quality = rdn_queryx.recordset[0].SKU_QUALITY || 'N';
+      //       switch (quality) {
+      //         case 'N':
+      //           if (dfltwh === 'BS03') {
+      //             WarehouseCode = 'BS03';
+      //           } else if (dfltwh === 'BS04') {
+      //             WarehouseCode = 'BS04';
+      //           } else if (dfltwh === 'BS02') {
+      //             WarehouseCode = 'BS02';
+      //           } else {
+      //             WarehouseCode = rdn_queryx.recordset[0].vendor;
+      //           }
+      //           break;
+      //         case 'Y':
+      //           break;
+      //         default:
+      //           break;
+      //       }
+      //     }
 
-          let batchnumber = btch_query.recordset[0].batchnum;
+      //     const documentLine = {
+      //       "ItemCode": line.ItemCode,
+      //       "Quantity": parseFloat(line.Quantity),
+      //       "BaseType": 17,
+      //       "BaseEntry": sapOrderData.DocEntry,
+      //       "BaseLine": line.LineNum,
+      //       "WarehouseCode": WarehouseCode ?? (line.WarehouseCode || '')
+      //     };
 
-            return {
-              "BatchNumber": batchnumber ?? batch.BatchNumber,
-              "Quantity": parseFloat(batch.Quantity),
-              "BaseLineNumber": line.LineNum
-            };
-          });
-        }
+      //     if (line.BatchNumbers && line.BatchNumbers.length > 0) {
+      //       documentLine.BatchNumbers = [];
+      //       for (const batch of line.BatchNumbers) {
+      //         if (!batch.BatchNumber || batch.Quantity === undefined || batch.Quantity === null) {
+      //           throw new Error(`Invalid batch data for item ${line.ItemCode}, line ${line.LineNum}: Missing BatchNumber or Quantity.`);
+      //         }
 
-        return documentLine;
-      })
+      //         const btch_query = await pool.request()
+      //           .input('doNo', sql.Int, doNo)
+      //           .input('sku', sql.VarChar, line.ItemCode)
+      //           .query(`select distinct top 1 oibt.batchnum from [db_pandurasa].dbo.r_dn_coldspace t0
+      //             inner join [PKSRV-SAP].[test].dbo.OIBT on OIBT.ItemCode collate database_default = t0.SKU 
+      //             AND OIBT.Quantity > t0.QTY and FORMAT(OIBT.ExpDate , 'ddmmyy')  collate database_default = t0.expired_date
+      //             WHERE t0.ORDER_TYPE != 'N-STO' and t0.ORDER_TYPE != 'PROD' and t0.ismatch = 1 and (t0.jo_status IS NULL or t0.iswa is null) 
+      //             and t0.DO_NO =@doNo and t0.SKU = @sku`);
+
+      //         const batchnumber = btch_query.recordset.length > 0 ? btch_query.recordset[0].batchnum : null;
+
+      //         documentLine.BatchNumbers.push({
+      //           "BatchNumber": batchnumber ?? batch.BatchNumber,
+      //           "Quantity": parseFloat(batch.Quantity),
+      //           "BaseLineNumber": line.LineNum
+      //         });
+      //       }
+      //     }
+
+      //     documentLines.push(documentLine);
+      //   }
+      //   return documentLines;
+      // })
+
     };
 
-    console.log(JSON.stringify(deliveryNotePayload, null, 2));
+    // console.log(JSON.stringify(deliveryNotePayload, null, 2));
     const response = await makeApiRequest(
       `${SAP_CONFIG.BASE_URL}/DeliveryNotes`,
       'POST',
@@ -464,39 +570,39 @@ exports.postDeliveryNoteToSAP = async (doNo, pool) => {
       docNum: response.DocNum
     };
 
-  } catch (error) {
-    let errorDetails = {};
-    if (error.message) {
-      try {
-        errorDetails = JSON.parse(error.message);
-      } catch (parseError) {
-        errorDetails = { message: error.message };
-      }
-    } else {
-      errorDetails = { message: "An unexpected error occurred." };
-    }
+  // } catch (error) {
+  //   let errorDetails = {};
+  //   if (error.message) {
+  //     try {
+  //       errorDetails = JSON.parse(error.message);
+  //     } catch (parseError) {
+  //       errorDetails = { message: error.message };
+  //     }
+  //   } else {
+  //     errorDetails = { message: "An unexpected error occurred." };
+  //   }
 
-    const errorMessageToLog = errorDetails.sapError?.message?.value || errorDetails.message || "Unknown error occurred.";
+  //   const errorMessageToLog = errorDetails.sapError?.message?.value || errorDetails.message || "Unknown error occurred.";
 
-    await updateDOStatusWithNote(
-        doNo,
-        docNumFromSAP,
-        2,
-        {
-          type: 'PROCESSING_ERROR',
-          message: errorMessageToLog,
-          docEntry: docEntryFromSAP,
-          sapError: errorDetails.sapError
-        },
-        pool
-    );
+  //   await updateDOStatusWithNote(
+  //       doNo,
+  //       docNumFromSAP,
+  //       2,
+  //       {
+  //         type: 'PROCESSING_ERROR',
+  //         message: errorMessageToLog,
+  //         docEntry: docEntryFromSAP,
+  //         sapError: errorDetails.sapError
+  //       },
+  //       pool
+  //   );
 
-    return {
-        status: 'error',
-        message: errorMessageToLog,
-        sapError: errorDetails.sapError
-    };
-  }
+  //   return {
+  //       status: 'error',
+  //       message: errorMessageToLog,
+  //       sapError: errorDetails.sapError
+  //   };
+  // }
 };
 
 exports.validateOrderWithColdspace = async (doNo, sapOrderData, pool) => {
