@@ -60,7 +60,7 @@ exports.checkSingleDO = async (doNo, pool) => {
           END AS ORDER_TYPE,
           CAST(CONVERT(DATE, T2.DocDate) AS VARCHAR) AS DO_DATE,
           CAST(CONVERT(DATE, T2.DocDueDate) AS VARCHAR) AS DEL_DATE, 
-          T2.Filler AS SUP_SITE, 
+          T2.whscode AS SUP_SITE, 
           CASE
             WHEN T2.CardCode IS NULL THEN (isnull((
                 select top 1 site from [appsrv].db_pandurasa.dbo.r_dn_coldspace csx where csx.do_no = t2.docnum

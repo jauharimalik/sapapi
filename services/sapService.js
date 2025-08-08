@@ -248,7 +248,7 @@ async function getBatchNumbers(doNo, line, pool) {
                 INNER JOIN [PKSRV-SAP].[test].dbo.OIBT 
                   ON OIBT.ItemCode COLLATE database_default = t0.SKU 
                   AND OIBT.Quantity > t0.QTY 
-                  AND FORMAT(OIBT.ExpDate, 'ddmmyy') COLLATE database_default = t0.expired_date
+                  AND OIBT.Batchnum like '%'+t0.expired_date+'%'
                 WHERE t0.ORDER_TYPE != 'N-STO' 
                   AND t0.ORDER_TYPE != 'PROD' 
                   AND t0.ismatch = 1 

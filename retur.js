@@ -277,7 +277,7 @@ const createCreditNotePayload = async (record, batchData, returan) => {
         warehouseCode = 'CS-03';
     } else {
         switch (record.SKU_QUALITY) {
-            case 'N':
+            case 'Y':
                 if (dfltwh === 'BS03') {
                     warehouseCode = 'BS03';
                 } else if (dfltwh === 'BS04') {
@@ -289,8 +289,8 @@ const createCreditNotePayload = async (record, batchData, returan) => {
                     warehouseCode = record.VENDOR;
                 }
                 break;
-            case 'Y':
-                warehouseCode = 'G502';
+            case 'N':
+                warehouseCode = record.VENDOR; 
                 break;
             default:
                 warehouseCode = record.VENDOR; 

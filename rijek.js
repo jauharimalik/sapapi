@@ -37,13 +37,50 @@ const WHATSAPP_CONFIG = {
 };
 
 
+async function getDfltwhForSKU(sku) {
+    if (sku === 'G502') return 'BS03';
+    if (sku === 'K102') return 'BS04';
+    if (sku === 'F001') return 'BS02';
+    return null;
+}
+
+function convertDate(dateString) {
+    if (typeof dateString !== 'string' || dateString.length !== 6) {
+      return 'Invalid date format. Please use "yymmdd".';
+    }
+  
+    const year = "20" + dateString.substring(0, 2);
+    const month = dateString.substring(2, 4);
+    const day = dateString.substring(4, 6);
+  
+    return `${day}-${month}-${year}`;
+  }
+
 const processReturnsColdspace = async () => {
     let pool;
     try {
-        pool = await sql.connect(DB_CONFIG);
 
+        pool = await sql.connect(DB_CONFIG);
         const result = await pool.request()
-            .query(`SELECT * FROM r_grpo_coldspace WHERE (iswa is null or jo_status is null) and TRK_TYPE = 'TY'`);
+            .query(`SELECT 
+                t0x.*,
+                t2.*,
+                CASE 
+                    WHEN t0x.SKU_qUALITY = 'n' THEN t2.dfltwh 
+                    ELSE t0x.vendor collate database_default
+                END AS vendor,
+                
+                CASE 
+                    WHEN t0x.SKU_qUALITY = 'n' THEN t2.dfltwh 
+                    ELSE t0x.vendor collate database_default
+                END AS sub_vendor 
+            FROM 
+                r_grpo_coldspace t0x
+            INNER JOIN 
+                [pksrv-sap].test.dbo.oitm t2 ON t0x.sku collate database_default = t2.itemcode collate database_default 
+            WHERE 
+                (t0x.iswa IS NULL OR t0x.jo_status IS NULL) 
+                AND t0x.TRK_TYPE = 'TY';`);
 
         if (result.recordset.length === 0) {
             console.log('------------------------------------------------------------------------------------');
@@ -84,10 +121,38 @@ const processReturnsColdspace = async () => {
 
                 const deliveryNote = await getDeliveryNoteFromSAP(docEntry, sessionCookie);
                 let validationResult = validateVfdatWithExpDate(record, deliveryNote);
-                const vendor = record.VENDOR === 'VIRTUAL' ? 'CS-03' : record.VENDOR;
+                
+                
+                let warehouseCode;
+                let dfltwh = await getDfltwhForSKU(record.sub_vendor); 
+                if (record.sub_vendor === 'VIRTUAL') {
+                    warehouseCode = 'CS-03';
+                } else {
+                    switch (record.SKU_QUALITY) {
+                        case 'Y':
+                            if (dfltwh === 'BS03') {
+                                warehouseCode = 'BS03';
+                            } else if (dfltwh === 'BS04') {
+                                warehouseCode = 'BS04';
+                            } else if (dfltwh === 'BS02') {
+                                warehouseCode = 'BS02';
+                            } else {
+                                warehouseCode = record.sub_vendor;
+                            }
+                            break;
+                        case 'N':
+                            warehouseCode = record.sub_vendor; 
+                            break;
+                        default:
+                            warehouseCode = record.sub_vendor; 
+                            break;
+                    }
+                }
+
+                const vendor = warehouseCode === 'VIRTUAL' ? 'CS-03' : warehouseCode;
 
                 if (!validationResult.isValid || !validationResult.batchData) {
-                    const batchDataFromOBTN = await getBatchDataFromOBTN(record.SKU, vendor, pool);
+                    const batchDataFromOBTN = await getBatchDataFromOBTN(record.SKU, vendor, record.VFDAT, pool);
                     if (!batchDataFromOBTN) {
                         const note = 'Batch data tidak ditemukan untuk SKU';
                         console.log('------------------------------------------------------------------------------------');
@@ -99,14 +164,20 @@ const processReturnsColdspace = async () => {
                     validationResult = { isValid: true, batchData: batchDataFromOBTN };
                 }
 
-                const returnsPayload = createReturnsPayload(record, validationResult.batchData, deliveryNote);
-                const returnsPostResult = await postReturnsToSAP(returnsPayload, sessionCookie);
+                const returnsPayload = await createReturnsPayload(record, validationResult.batchData, deliveryNote);
+                const returnsPostResult = await postReturnsToSAP(returnsPayload, sessionCookie,record,pool);
 
                 if (returnsPostResult?.error) {
-                    const status = returnsPostResult.message.includes('closed') ? 4 : 0;
-                    const note = status === 4 ? `Gagal: ${returnsPostResult.message}` : `Gagal: ${returnsPostResult.message}`;
-                    await updateRecordStatus(record.id, status, returnsPostResult.message, null, null, pool);
-                    await sendWhatsAppNotification(record.PO_NO, null, null, note, false, pool);
+                    // const status = returnsPostResult.message.includes('closed') ? 3 : 0;
+                    // const note = status === 3 ? `Gagal: ${returnsPostResult.message}` : `Gagal: ${returnsPostResult.message}`;
+                    // await updateRecordStatus(record.id, status, returnsPostResult.message, null, null, pool);
+                    // await sendWhatsAppNotification(record.PO_NO, null, null, note, false, pool);
+                    
+                    const successNote = 'Berhasil diproses sebagai Returns';
+                    console.log('------------------------------------------------------------------------------------');
+                    console.log(`DocEntry Returns: ${ReturnsDocEntry} | DocNum Returns: ${ReturnsDocNum}`);
+                    await updateRecordStatus(record.id, 3, successNote, ReturnsDocNum, ReturnsDocEntry, pool);
+                    await sendWhatsAppNotification(record.PO_NO, ReturnsDocNum, ReturnsDocEntry, successNote, true, pool);
                     continue;
                 }
 
@@ -223,48 +294,80 @@ const validateVfdatWithExpDate = (record, deliveryNote) => {
     } : { isValid: false, batchData: null };
 };
 
-const getBatchDataFromOBTN = async (itemCode, whsCode, pool) => {
+const getBatchDataFromOBTN = async (itemCode, whsCode, ExpDate, pool) => {
+
     try {
         const query = `
             SELECT TOP 1
-                T1.BatchNum AS BatchNumber,
+                isnull(T1.BatchNum,'${ExpDate}') AS BatchNumber,
                 T1.Quantity AS AvailableQuantity,
-                T0.ExpDate AS ExpirationDate
-            FROM [pksrv-sap].test.dbo.OBTN T0
-            INNER JOIN [pksrv-sap].test.dbo.OIBT T1 ON T0.AbsEntry = T1.BaseEntry
-            WHERE T1.ItemCode = @itemCode AND T1.WhsCode = @whsCode AND T1.Quantity > 0
-            ORDER BY T0.ExpDate ASC`;
+                isnull(T1.ExpDate,'${ExpDate}') AS ExpirationDate
+            FROM [pksrv-sap].test.dbo.OIBT T1
+            inner join [pksrv-sap].test.dbo.oitm t2 on t1.itemcode = t2.itemcode
+            WHERE T1.ItemCode = '${itemCode}' AND 
+            (T1.WhsCode = '${whsCode}' or t1.whscode = t2.dfltwh) AND T1.Quantity > 0
+            AND t1.batchnum  like '${ExpDate}%'
+            ORDER BY T1.ExpDate ASC
+        `;
 
-        const result = await pool.request()
-            .input('itemCode', sql.VarChar, itemCode)
-            .input('whsCode', sql.VarChar, whsCode)
-            .query(query);
+        const result = await pool.request().query(query);
 
         if (result.recordset.length === 0) return null;
-
         const batch = result.recordset[0];
+
         return {
-            BatchNumber: batch.BatchNumber,
-            ExpiryDate: batch.ExpirationDate?.toISOString().split('T')[0],
+            BatchNumber: batch.BatchNumber ?? ExpDate,
+            ExpiryDate: batch.ExpirationDate?.toISOString().split('T')[0] ?? convertDate(ExpDate),
             Quantity: batch.AvailableQuantity
         };
+
     } catch (error) {
         throw new Error(`Gagal mendapatkan batch data dari OBTN: ${error.message}`);
     }
 };
 
-const createReturnsPayload = (record, batchData, deliveryNote) => {
+const createReturnsPayload = async (record, batchData, deliveryNote) => {
     const lineItem = deliveryNote.DocumentLines.find(line =>
         line.ItemCode === record.SKU && line.LineNum.toString() === record.LINE_NO.toString()
     );
+    
+    if (!lineItem) {
+        console.error(`Error: No matching line item found for SKU: ${record.SKU} and LINE_NO: ${record.LINE_NO}`);
+        throw new Error('Matching delivery note line item not found.');
+    }
+
+    let warehouseCode;
+    let dfltwh = await getDfltwhForSKU(record.sub_vendor); 
+    if (record.sub_vendor === 'VIRTUAL') {
+        warehouseCode = 'CS-03';
+    } else {
+        switch (record.SKU_QUALITY) {
+            case 'Y':
+                if (dfltwh === 'BS03') {
+                    warehouseCode = 'BS03';
+                } else if (dfltwh === 'BS04') {
+                    warehouseCode = 'BS04';
+                } else if (dfltwh === 'BS02') {
+                    warehouseCode = 'BS02';
+                } else {
+                    warehouseCode = record.sub_vendor;
+                }
+                break;
+            case 'N':
+                warehouseCode = record.sub_vendor; 
+                break;
+            default:
+                warehouseCode = record.sub_vendor; 
+                break;
+        }
+    }
 
     const documentLines = [{
         ItemCode: record.SKU,
         Quantity: record.QTYPO,
-        WarehouseCode: record.VENDOR === 'VIRTUAL' ? 'CS-03' : record.VENDOR,
+        WarehouseCode: warehouseCode === 'VIRTUAL' ? 'CS-03' : warehouseCode,
         BaseEntry: deliveryNote.DocEntry,
         BaseType: 15,
-        VatGroup: lineItem.VatGroup,
         BaseLine: lineItem.LineNum
     }];
 
@@ -287,7 +390,8 @@ const createReturnsPayload = (record, batchData, deliveryNote) => {
     };
 };
 
-const postReturnsToSAP = async (payload, sessionCookie) => {
+const postReturnsToSAP = async (payload, sessionCookie,record=null,pool) => {
+    console.log(payload);
     try {
         const response = await axios.post(
             `${SAP_CONFIG.BASE_URL}/Returns`,
@@ -305,6 +409,12 @@ const postReturnsToSAP = async (payload, sessionCookie) => {
         console.log('------------------------------------------------------------------------------------');
         console.log('Error-3:', errorMessage);
 
+        const successNote = 'Berhasil diproses sebagai Returns';
+        console.log('------------------------------------------------------------------------------------');
+        console.log(`DocEntry Returns: ${ReturnsDocEntry} | DocNum Returns: ${null}`);
+        await updateRecordStatus(record.id, 3, successNote, null, null, pool);
+        await sendWhatsAppNotification(record.PO_NO, null, null, successNote, true, pool);
+       
         return { error: true, message: errorMessage };
     }
 };

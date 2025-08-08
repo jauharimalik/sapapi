@@ -36,17 +36,25 @@ const WHATSAPP_CONFIG = {
     failureGroup: '120363421138507049@g.us'
 };
 
+
+
+async function getDfltwhForSKU(sku) {
+    if (sku === 'G502') return 'BS03';
+    if (sku === 'K102') return 'BS04';
+    if (sku === 'F001') return 'BS02';
+    return null;
+}
+
 const processTradeinTradeout = async () => {
     let pool;
     try {
         pool = await sql.connect(DB_CONFIG);
 
         const result = await pool.request()
-            .query(`SELECT * FROM r_grpo_coldspace WHERE ( jo_status is null or iswa is null) and TRK_TYPE = 'rplc'`);
+            .query(`SELECT * FROM r_grpo_coldspace WHERE (jo_status is null or iswa is null) and TRK_TYPE = 'rplc'`);
 
         if (result.recordset.length === 0) {
             console.log('------------------------------------------------------------------------------------');
-            // console.log('Tidak ada data Tukar Guling yang perlu diproses.');
             return;
         }
 
@@ -81,7 +89,35 @@ const processTradeinTradeout = async () => {
                 const goodsIssueData = await getGoodsIssueFromSAP(docEntry, sessionCookie);
 
                 let validationResult = validateVfdatWithExpDate(record, goodsIssueData);
-                const vendor = record.VENDOR === 'VIRTUAL' ? 'CS-03' : record.VENDOR;
+                // const vendor = record.VENDOR === 'VIRTUAL' ? 'CS-03' : record.VENDOR;
+                
+                let warehouseCode;
+                let dfltwh = await getDfltwhForSKU(record.sub_vendor); 
+                if (record.sub_vendor === 'VIRTUAL') {
+                    warehouseCode = 'CS-03';
+                } else {
+                    switch (record.SKU_QUALITY) {
+                        case 'Y':
+                            if (dfltwh === 'BS03') {
+                                warehouseCode = 'BS03';
+                            } else if (dfltwh === 'BS04') {
+                                warehouseCode = 'BS04';
+                            } else if (dfltwh === 'BS02') {
+                                warehouseCode = 'BS02';
+                            } else {
+                                warehouseCode = record.sub_vendor;
+                            }
+                            break;
+                        case 'N':
+                            warehouseCode = record.sub_vendor; 
+                            break;
+                        default:
+                            warehouseCode = record.sub_vendor; 
+                            break;
+                    }
+                }
+
+                const vendor = warehouseCode === 'VIRTUAL' ? 'CS-03' : warehouseCode;
 
                 if (!validationResult.isValid || !validationResult.batchData) {
                     const batchDataFromOBTN = await getBatchDataFromOBTN(record.SKU, vendor, pool);
@@ -265,7 +301,36 @@ const createGoodsReceiptPayload = async (record, batchData, goodsIssue, pool) =>
         line.ItemCode === record.SKU && line.LineNum.toString() === record.LINE_NO.toString()
     );
 
-    const whsCode = record.VENDOR === 'VIRTUAL' ? 'CS-03' : record.VENDOR;
+    // const whsCode = record.VENDOR === 'VIRTUAL' ? 'CS-03' : record.VENDOR;
+    
+    let warehouseCode;
+    let dfltwh = await getDfltwhForSKU(record.sub_vendor); 
+    if (record.sub_vendor === 'VIRTUAL') {
+        warehouseCode = 'CS-03';
+    } else {
+        switch (record.SKU_QUALITY) {
+            case 'Y':
+                if (dfltwh === 'BS03') {
+                    warehouseCode = 'BS03';
+                } else if (dfltwh === 'BS04') {
+                    warehouseCode = 'BS04';
+                } else if (dfltwh === 'BS02') {
+                    warehouseCode = 'BS02';
+                } else {
+                    warehouseCode = record.sub_vendor;
+                }
+                break;
+            case 'N':
+                warehouseCode = record.sub_vendor; 
+                break;
+            default:
+                warehouseCode = record.sub_vendor; 
+                break;
+        }
+    }
+
+    const whsCode = warehouseCode === 'VIRTUAL' ? 'CS-03' : warehouseCode;
+
     const binAbsEntry = await getBinAbsEntry(whsCode, pool);
 
     const documentLines = [{
