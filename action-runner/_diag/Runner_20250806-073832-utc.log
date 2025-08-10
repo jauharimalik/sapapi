@@ -6123,3 +6123,36 @@
 [2025-08-10 05:36:18Z INFO GitHubActionsService] AAD Correlation ID for this token request: Unknown
 [2025-08-10 06:26:36Z INFO RSAEncryptedFileKeyManager] Loading RSA key parameters from file C:\laragon\www\sapapi\action-runner\.credentials_rsaparams
 [2025-08-10 06:26:37Z INFO GitHubActionsService] AAD Correlation ID for this token request: Unknown
+[2025-08-10 07:03:01Z INFO ConfigurationStore] HasCredentials()
+[2025-08-10 07:03:01Z INFO ConfigurationStore] stored True
+[2025-08-10 07:03:01Z INFO CredentialManager] GetCredentialProvider
+[2025-08-10 07:03:01Z INFO CredentialManager] Creating type OAuth
+[2025-08-10 07:03:01Z INFO CredentialManager] Creating credential type: OAuth
+[2025-08-10 07:03:01Z INFO RSAEncryptedFileKeyManager] Loading RSA key parameters from file C:\laragon\www\sapapi\action-runner\.credentials_rsaparams
+[2025-08-10 07:03:01Z INFO RSAEncryptedFileKeyManager] Loading RSA key parameters from file C:\laragon\www\sapapi\action-runner\.credentials_rsaparams
+[2025-08-10 07:03:01Z INFO RSAEncryptedFileKeyManager] Loading RSA key parameters from file C:\laragon\www\sapapi\action-runner\.credentials_rsaparams
+[2025-08-10 07:03:03Z INFO GitHubActionsService] AAD Correlation ID for this token request: Unknown
+[2025-08-10 07:03:05Z INFO JobDispatcher] Job request 0 for plan 70dc6c41-72b6-40b3-b5f4-8368af486ea2 job 80c4ece7-85b2-5ba0-a4da-76f66d973dd0 received.
+[2025-08-10 07:03:05Z INFO JobDispatcher] Pull OrchestrationId 70dc6c41-72b6-40b3-b5f4-8368af486ea2.deploy.__default from JWT claims
+[2025-08-10 07:03:05Z INFO BrokerMessageListener] Received job status event. JobState: Busy
+[2025-08-10 07:03:05Z INFO BrokerMessageListener] _getMessagesTokenSource is already disposed.
+[2025-08-10 07:03:05Z INFO Terminal] WRITE LINE: 2025-08-10 07:03:05Z: Running job: deploy
+[2025-08-10 07:03:05Z INFO JobDispatcher] Start renew job request 0 for job 80c4ece7-85b2-5ba0-a4da-76f66d973dd0.
+[2025-08-10 07:03:06Z INFO JobDispatcher] Successfully renew job 80c4ece7-85b2-5ba0-a4da-76f66d973dd0, job is valid till 8/10/2025 7:13:08 AM
+[2025-08-10 07:03:06Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-10 07:03:06Z INFO ProcessInvokerWrapper] Starting process:
+[2025-08-10 07:03:06Z INFO ProcessInvokerWrapper]   File name: 'C:\laragon\www\sapapi\action-runner\bin\Runner.Worker.exe'
+[2025-08-10 07:03:06Z INFO ProcessInvokerWrapper]   Arguments: 'spawnclient 2324 2284'
+[2025-08-10 07:03:06Z INFO ProcessInvokerWrapper]   Working directory: 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-10 07:03:06Z INFO ProcessInvokerWrapper]   Require exit code zero: 'False'
+[2025-08-10 07:03:06Z INFO ProcessInvokerWrapper]   Encoding web name:  ; code page: ''
+[2025-08-10 07:03:06Z INFO ProcessInvokerWrapper]   Force kill process on cancellation: 'True'
+[2025-08-10 07:03:06Z INFO ProcessInvokerWrapper]   Redirected STDIN: 'False'
+[2025-08-10 07:03:06Z INFO ProcessInvokerWrapper]   Persist current code page: 'False'
+[2025-08-10 07:03:06Z INFO ProcessInvokerWrapper]   Keep redirected STDIN open: 'False'
+[2025-08-10 07:03:06Z INFO ProcessInvokerWrapper]   High priority process: 'True'
+[2025-08-10 07:03:06Z INFO ProcessInvokerWrapper] Process started with process id 39524, waiting for process exit.
+[2025-08-10 07:03:06Z INFO JobDispatcher] Send job request message to worker for job 80c4ece7-85b2-5ba0-a4da-76f66d973dd0.
+[2025-08-10 07:03:06Z INFO ProcessChannel] Sending message of length 19813, with hash '8bd8cf7811704bdd9521be02c931ce6e2358a592f541ac40079b3b355d014658'
+[2025-08-10 07:03:07Z INFO JobNotification] Entering JobStarted Notification
+[2025-08-10 07:03:07Z INFO JobNotification] Entering StartMonitor
