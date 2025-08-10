@@ -168,16 +168,15 @@ const processReturnsColdspace = async () => {
                 const returnsPostResult = await postReturnsToSAP(returnsPayload, sessionCookie,record,pool);
 
                 if (returnsPostResult?.error) {
-                    // const status = returnsPostResult.message.includes('closed') ? 3 : 0;
-                    // const note = status === 3 ? `Gagal: ${returnsPostResult.message}` : `Gagal: ${returnsPostResult.message}`;
+                    const status = returnsPostResult.message.includes('closed') ? 3 : 0;
+                    const note = status === 3 ? `Berhasil diproses sebagai Returns` : `Gagal: ${returnsPostResult.message}`;
                     // await updateRecordStatus(record.id, status, returnsPostResult.message, null, null, pool);
                     // await sendWhatsAppNotification(record.PO_NO, null, null, note, false, pool);
                     
-                    const successNote = 'Berhasil diproses sebagai Returns';
-                    console.log('------------------------------------------------------------------------------------');
-                    console.log(`DocEntry Returns: ${ReturnsDocEntry} | DocNum Returns: ${ReturnsDocNum}`);
-                    await updateRecordStatus(record.id, 3, successNote, ReturnsDocNum, ReturnsDocEntry, pool);
-                    await sendWhatsAppNotification(record.PO_NO, ReturnsDocNum, ReturnsDocEntry, successNote, true, pool);
+                    // console.log('------------------------------------------------------------------------------------');
+                    // console.log(`DocEntry Returns: ${ReturnsDocEntry} | DocNum Returns: ${ReturnsDocNum}`);
+                    await updateRecordStatus(record.id, status, note, ReturnsDocNum, ReturnsDocEntry, pool);
+                    await sendWhatsAppNotification(record.PO_NO, ReturnsDocNum, ReturnsDocEntry, note, true, pool);
                     continue;
                 }
 

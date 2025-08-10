@@ -2,6 +2,7 @@ const app = require('./app');
 const axios = require('axios');
 const sql = require('mssql');
 const FormData = require('form-data');
+const { stringify } = require('querystring');
 
 const SAP_CONFIG = {
     BASE_URL: 'https://192.168.101.254:50000/b1s/v2',
@@ -51,10 +52,26 @@ const processTradeinTradeout = async () => {
         pool = await sql.connect(DB_CONFIG);
 
         const result = await pool.request()
-            .query(`SELECT * FROM r_grpo_coldspace WHERE (jo_status is null or iswa is null) and TRK_TYPE = 'rplc'`);
+            .query(`SELECT *,
+                CASE 
+                    WHEN t0x.SKU_qUALITY = 'n' THEN t2.dfltwh 
+                    ELSE t0x.vendor collate database_default
+                END AS vendor,
+                
+                CASE 
+                    WHEN t0x.SKU_qUALITY = 'n' THEN t2.dfltwh 
+                    ELSE t0x.vendor collate database_default
+                END AS sub_vendor 
+            
+            FROM 
+                r_grpo_coldspace t0x
+            INNER JOIN 
+                [pksrv-sap].test.dbo.oitm t2 ON t0x.sku collate database_default = t2.itemcode collate database_default 
+            WHERE 
+                (t0x.iswa IS NULL OR t0x.jo_status IS NULL) 
+                AND t0x.TRK_TYPE = 'rplc'`);
 
         if (result.recordset.length === 0) {
-            console.log('------------------------------------------------------------------------------------');
             return;
         }
 
@@ -85,12 +102,14 @@ const processTradeinTradeout = async () => {
                     await sendWhatsAppNotification(record.PO_NO, null, null, `Gagal: ${note}`, false, pool);
                     continue;
                 }
-                
                 const goodsIssueData = await getGoodsIssueFromSAP(docEntry, sessionCookie);
 
+                
+                
                 let validationResult = validateVfdatWithExpDate(record, goodsIssueData);
                 // const vendor = record.VENDOR === 'VIRTUAL' ? 'CS-03' : record.VENDOR;
                 
+
                 let warehouseCode;
                 let dfltwh = await getDfltwhForSKU(record.sub_vendor); 
                 if (record.sub_vendor === 'VIRTUAL') {
@@ -118,13 +137,14 @@ const processTradeinTradeout = async () => {
                 }
 
                 const vendor = warehouseCode === 'VIRTUAL' ? 'CS-03' : warehouseCode;
-
                 if (!validationResult.isValid || !validationResult.batchData) {
-                    const batchDataFromOBTN = await getBatchDataFromOBTN(record.SKU, vendor, pool);
+                    const batchDataFromOBTN = await getBatchDataFromOBTN(record.SKU, vendor,  record.VFDAT,pool);
+                    
                     if (!batchDataFromOBTN) {
                         const note = 'Batch data tidak ditemukan untuk SKU';
                         console.log('------------------------------------------------------------------------------------');
                         console.log(`SKU: ${record.SKU} | WHS: ${vendor} | Error-4: ${note}`);
+                        
                         await updateRecordStatus(record.id, 0, note, null, null, pool);
                         await sendWhatsAppNotification(record.PO_NO, null, null, `Gagal: ${note}`, false, pool);
                         continue;
@@ -132,14 +152,27 @@ const processTradeinTradeout = async () => {
                     validationResult = { isValid: true, batchData: batchDataFromOBTN };
                 }
 
+                
+
+
                 const goodsReceiptPayload = await createGoodsReceiptPayload(record, validationResult.batchData, goodsIssueData, pool);
                 const pcc = await postGoodsReceiptToSAP(goodsReceiptPayload, sessionCookie);
 
                 if (pcc?.error) {
-                    const status = pcc.message.includes('closed') ? 4 : 0;
-                    const note = status === 4 ? `Gagal: ${pcc.message}` : `Gagal: ${pcc.message}`;
-                    await updateRecordStatus(record.id, status, pcc.message, null, null, pool);
-                    await sendWhatsAppNotification(record.PO_NO, null, null, note, false, pool);
+                    // const status = pcc.message.includes('closed') ? 4 : 0;
+                    // const note = status === 4 ? `Gagal: ${pcc.message}` : `Gagal: ${pcc.message}`;
+                    // await updateRecordStatus(record.id, status, pcc.message, null, null, pool);
+                    // await sendWhatsAppNotification(record.PO_NO, null, null, note, false, pool);
+                    const status = pcc.message.includes('closed') ? 3 : 0;
+                    const note = status === 3 ? `Berhasil diproses sebagai Returns` : `Gagal: ${pcc.message}`;
+                    // await updateRecordStatus(record.id, status, returnsPostResult.message, null, null, pool);
+                    // await sendWhatsAppNotification(record.PO_NO, null, null, note, false, pool);
+                    
+                    // console.log('------------------------------------------------------------------------------------');
+                    // console.log(`DocEntry Returns: ${ReturnsDocEntry} | DocNum Returns: ${ReturnsDocNum}`);
+                    await updateRecordStatus(record.id, status, note, ReturnsDocNum, ReturnsDocEntry, pool);
+                    await sendWhatsAppNotification(record.PO_NO, ReturnsDocNum, ReturnsDocEntry, note, true, pool);
+                    
                     continue;
                 }
 
@@ -266,18 +299,31 @@ const validateVfdatWithExpDate = (record, goodsIssueData) => {
     } : { isValid: false, batchData: null };
 };
 
-const getBatchDataFromOBTN = async (itemCode, whsCode, pool) => {
+const getBatchDataFromOBTN = async (itemCode, whsCode, ExpDate, pool) => {
     try {
-        const query = `
-            SELECT TOP 1
-                T1.BatchNum AS BatchNumber,
-                T1.Quantity AS AvailableQuantity,
-                T0.ExpDate AS ExpirationDate
-            FROM [pksrv-sap].test.dbo.OBTN T0
-            INNER JOIN [pksrv-sap].test.dbo.OIBT T1 ON T0.AbsEntry = T1.BaseEntry
-            WHERE T1.ItemCode = @itemCode AND T1.WhsCode = @whsCode AND T1.Quantity > 0
-            ORDER BY T0.ExpDate ASC`;
+        // const query = `
+        //     SELECT TOP 1
+        //         T1.BatchNum AS BatchNumber,
+        //         T1.Quantity AS AvailableQuantity,
+        //         T0.ExpDate AS ExpirationDate
+        //     FROM [pksrv-sap].test.dbo.OBTN T0
+        //     INNER JOIN [pksrv-sap].test.dbo.OIBT T1 ON T0.AbsEntry = T1.BaseEntry
+        //     WHERE T1.ItemCode = @itemCode AND T1.WhsCode = @whsCode AND T1.Quantity > 0
+        //     ORDER BY T0.ExpDate ASC`;
 
+        let query = `
+            SELECT TOP 1
+                isnull(T1.BatchNum,'${ExpDate}') AS BatchNumber,
+                T1.Quantity AS AvailableQuantity,
+                isnull(T1.ExpDate,'${ExpDate}') AS ExpirationDate
+            FROM [pksrv-sap].test.dbo.OIBT T1
+            inner join [pksrv-sap].test.dbo.oitm t2 on t1.itemcode = t2.itemcode
+            WHERE T1.ItemCode = '${itemCode}' AND 
+            (T1.WhsCode = '${whsCode}' or t1.whscode = t2.dfltwh) AND T1.Quantity > 0
+            AND t1.batchnum  like '${ExpDate}%'
+            ORDER BY T1.ExpDate ASC`;
+
+            
         const result = await pool.request()
             .input('itemCode', sql.VarChar, itemCode)
             .input('whsCode', sql.VarChar, whsCode)
@@ -297,12 +343,19 @@ const getBatchDataFromOBTN = async (itemCode, whsCode, pool) => {
 };
 
 const createGoodsReceiptPayload = async (record, batchData, goodsIssue, pool) => {
+
+    console.log('All DocumentLines:', goodsIssue.DocumentLines.map(line => ({
+        ItemCode: line.ItemCode,
+        LineNum: line.LineNum,
+        LineNumType: typeof line.LineNum
+      })));
+
     const lineItem = goodsIssue.DocumentLines.find(line =>
         line.ItemCode === record.SKU && line.LineNum.toString() === record.LINE_NO.toString()
     );
+    
 
     // const whsCode = record.VENDOR === 'VIRTUAL' ? 'CS-03' : record.VENDOR;
-    
     let warehouseCode;
     let dfltwh = await getDfltwhForSKU(record.sub_vendor); 
     if (record.sub_vendor === 'VIRTUAL') {
@@ -337,8 +390,6 @@ const createGoodsReceiptPayload = async (record, batchData, goodsIssue, pool) =>
         ItemCode: record.SKU,
         Quantity: record.QTYPO,
         WarehouseCode: whsCode,
-        UoMEntry: lineItem.UoMEntry,
-        UoMCode: lineItem.UoMCode,
         InventoryQuantity: record.QTYPO,
         BaseEntry: goodsIssue.DocEntry,
         BaseType: 60,
@@ -363,7 +414,7 @@ const createGoodsReceiptPayload = async (record, batchData, goodsIssue, pool) =>
         }];
     }
     
-    return {
+    let res = {
         DocType: "dDocument_Items",
         DocDate: new Date().toISOString().split('T')[0],
         DocDueDate: new Date().toISOString().split('T')[0],
@@ -389,9 +440,14 @@ const createGoodsReceiptPayload = async (record, batchData, goodsIssue, pool) =>
         U_Print: 0,
         U_IDU_Status_DebitNote: "N"
     };
+
+    // console.log(res);
+    return res;
 };
 
 const postGoodsReceiptToSAP = async (payload, sessionCookie) => {
+    // console.log(JSON.stringify(payload,null,2));
+
     try {
         const response = await axios.post(
             `${SAP_CONFIG.BASE_URL}/InventoryGenEntries`,
@@ -405,10 +461,8 @@ const postGoodsReceiptToSAP = async (payload, sessionCookie) => {
                              error.response?.statusText ||
                              error.message ||
                              'Terjadi kesalahan tidak dikenal.';
-        
         console.log('------------------------------------------------------------------------------------');
         console.log('Error-3:', errorMessage);
-
         return { error: true, message: errorMessage };
     }
 };
