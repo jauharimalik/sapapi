@@ -1,3 +1,5 @@
+// jo ganteng 1
+
 const app = require('./app');
 const axios = require('axios');
 const sql = require('mssql');
