@@ -16,16 +16,17 @@ jobs:
           repository: jauharimalik/sapapi
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      # --- Tambahkan langkah ini untuk menginstal PM2 ---
       - name: Install PM2
         run: npm install -g pm2
-      # ---------------------------------------------------
 
       - name: Install dependencies
         run: npm install
 
+      # Menghentikan semua proses PM2 secara aman di Windows
+      # Menghindari error jika tidak ada proses yang berjalan
       - name: Stop all running Node.js processes (safe version)
-        run: pm2 stop all || true
+        run: pm2 stop all
+        continue-on-error: true
 
       - name: Start all Node.js applications with PM2
         shell: cmd
