@@ -4,8 +4,8 @@ name: PM2 Service Monitor
 on:
   schedule:
     # Menjalankan setiap 2 menit
-    - cron: '*/2 * * * *'
-  # --- Tambahkan pemicu manual ini ---
+    - cron: '*/1 * * * *'
+  # Pemicu ini memungkinkan Anda menjalankan secara manual
   workflow_dispatch:
 
 jobs:
