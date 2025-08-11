@@ -1,4 +1,4 @@
-// jo ganteng 1
+// jo ganteng 1z
 
 const app = require('./app');
 const axios = require('axios');
@@ -164,8 +164,6 @@ const processGrpoColdspace = async () => {
                     // console.log(`DocEntry Returns: ${ReturnsDocEntry} | DocNum Returns: ${ReturnsDocNum}`);
                     await updateRecordStatus(record.id, status, note, null, null, pool);
                     await sendWhatsAppNotification(record.PO_NO, null, null, note, true, pool);
-                    
-                    continue;
                     continue;
                 }
 
@@ -315,7 +313,7 @@ const getBatchDataFromOBTN = async (itemCode, whsCode, ExpDate, pool) => {
             AND t1.batchnum  like '${ExpDate}%'
             ORDER BY T1.ExpDate ASC`;
 
-        console.log(query);
+        // console.log(query);
         const result = await pool.request()
             .query(query);
 

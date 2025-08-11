@@ -159,20 +159,16 @@ const processTradeinTradeout = async () => {
                 const pcc = await postGoodsReceiptToSAP(goodsReceiptPayload, sessionCookie);
 
                 if (pcc?.error) {
-                    // const status = pcc.message.includes('closed') ? 4 : 0;
-                    // const note = status === 4 ? `Gagal: ${pcc.message}` : `Gagal: ${pcc.message}`;
-                    // await updateRecordStatus(record.id, status, pcc.message, null, null, pool);
-                    // await sendWhatsAppNotification(record.PO_NO, null, null, note, false, pool);
+                    
                     const status = pcc.message.includes('closed') ? 3 : 0;
-                    const note = status === 3 ? `Berhasil diproses sebagai Returns` : `Gagal: ${pcc.message}`;
+                    const note = status === 3 ? `Berhasil diproses Tukar Guling` : `Gagal: ${pcc.message}`;
                     // await updateRecordStatus(record.id, status, returnsPostResult.message, null, null, pool);
                     // await sendWhatsAppNotification(record.PO_NO, null, null, note, false, pool);
                     
                     // console.log('------------------------------------------------------------------------------------');
                     // console.log(`DocEntry Returns: ${ReturnsDocEntry} | DocNum Returns: ${ReturnsDocNum}`);
-                    await updateRecordStatus(record.id, status, note, ReturnsDocNum, ReturnsDocEntry, pool);
-                    await sendWhatsAppNotification(record.PO_NO, ReturnsDocNum, ReturnsDocEntry, note, true, pool);
-                    
+                    await updateRecordStatus(record.id, status, note, null, null, pool);
+                    await sendWhatsAppNotification(record.PO_NO, null, null, note, true, pool);
                     continue;
                 }
 

@@ -43,6 +43,26 @@ exports.getDfltwhForSKU = async (sku)=>{
     return null;
 };
 
+
+async function getDfltwhForSKU(sku) {
+    if (sku === 'G502') return 'BS03';
+    if (sku === 'K102') return 'BS04';
+    if (sku === 'F001') return 'BS02';
+    return null;
+}
+
+function convertDate(dateString) {
+    if (typeof dateString !== 'string' || dateString.length !== 6) {
+      return 'Invalid date format. Please use "yymmdd".';
+    }
+  
+    const year = "20" + dateString.substring(0, 2);
+    const month = dateString.substring(2, 4);
+    const day = dateString.substring(4, 6);
+  
+    return `${day}-${month}-${year}`;
+}
+
   
 const processStockTransferOrders = async () => {
     let pool;
@@ -51,7 +71,25 @@ const processStockTransferOrders = async () => {
         console.log('------------------------------------------------------------------------------------');
         console.log('Memulai proses Stock Transfer Order (STO)...');
         const result = await pool.request()
-            .query(`SELECT * FROM r_grpo_coldspace WHERE (iswa is null or jo_status is null) and TRK_TYPE = 'N-STO'`);
+            .query(`SELECT 
+                t0x.*,
+                t2.*,
+                CASE 
+                    WHEN t0x.SKU_qUALITY = 'n' THEN t2.dfltwh 
+                    ELSE t0x.vendor collate database_default
+                END AS vendor,
+                
+                CASE 
+                    WHEN t0x.SKU_qUALITY = 'n' THEN t2.dfltwh 
+                    ELSE t0x.vendor collate database_default
+                END AS sub_vendor 
+            FROM 
+                r_grpo_coldspace t0x
+            INNER JOIN 
+                [pksrv-sap].test.dbo.oitm t2 ON t0x.sku collate database_default = t2.itemcode collate database_default 
+            WHERE 
+                (t0x.iswa IS NULL OR t0x.jo_status IS NULL) 
+                AND t0x.TRK_TYPE = 'N-STO'`);
         if (result.recordset.length === 0) {
             console.log('Tidak ada data STO yang perlu diproses.');
             return;
@@ -80,9 +118,9 @@ const processStockTransferOrders = async () => {
                     continue;
                 }
                 const inventoryTransferRequest = await getInventoryTransferRequestFromSAP(docEntry, sessionCookie);
-                let validationResult = validateVfdatWithExpDate(record, inventoryTransferRequest);
-                if (!validationResult.isValid || !validationResult.batchData) {
-                    const batchDataFromOBTN = await getBatchDataFromOBTN(record.SKU, inventoryTransferRequest.FromWarehouse, pool);
+                // let validationResult = validateVfdatWithExpDate(record, inventoryTransferRequest);
+                // if (!validationResult.isValid || !validationResult.batchData) {
+                    const batchDataFromOBTN = await getBatchDataFromOBTN(record.SKU, inventoryTransferRequest.FromWarehouse, record.VFDAT, pool);
                     if (!batchDataFromOBTN) {
                         const note = 'Batch data tidak ditemukan untuk SKU';
                         console.log('------------------------------------------------------------------------------------');
@@ -92,14 +130,21 @@ const processStockTransferOrders = async () => {
                         continue;
                     }
                     validationResult = { isValid: true, batchData: batchDataFromOBTN };
-                }
+                // }
                 const stockTransferPayload = createStockTransferPayload(record, inventoryTransferRequest, validationResult.batchData);
                 const postResult = await postStockTransferToSAP(stockTransferPayload, sessionCookie);
                 if (postResult?.error) {
-                    const status = postResult.message.includes('closed') ? 4 : 0;
-                    const note = status === 4 ? `Gagal: ${postResult.message}` : `Gagal: ${postResult.message}`;
-                    await updateRecordStatus(record.id, status, postResult.message, null, null, pool);
-                    await sendWhatsAppNotification(record.PO_NO, null, null, note, false, pool);
+                    // const status = postResult.message.includes('closed') ? 4 : 0;
+                    // const note = status === 4 ? `Gagal: ${postResult.message}` : `Gagal: ${postResult.message}`;
+                    // await updateRecordStatus(record.id, status, postResult.message, null, null, pool);
+                    // await sendWhatsAppNotification(record.PO_NO, null, null, note, false, pool);
+                    // continue;
+
+                    
+                    const status = postResult.message.includes('closed') ? 3 : 0;
+                    const note = status === 3 ? `Berhasil diproses Tukar Guling` : `Gagal: ${postResult.message}`;
+                    await updateRecordStatus(record.id, status, note, null, null, pool);
+                    await sendWhatsAppNotification(record.PO_NO, null, null, note, true, pool);
                     continue;
                 }
                 const { DocEntry, DocNum } = postResult;
@@ -198,17 +243,30 @@ const validateVfdatWithExpDate = (record, inventoryTransferRequest) => {
     } : { isValid: false, batchData: null };
 };
 
-const getBatchDataFromOBTN = async (itemCode, whsCode, pool) => {
+const getBatchDataFromOBTN = async (itemCode, whsCode,ExpDate, pool) => {
     try {
+        // const query = `
+        //     SELECT TOP 1
+        //         T1.BatchNum AS BatchNumber,
+        //         T1.Quantity AS AvailableQuantity,
+        //         T0.ExpDate AS ExpirationDate
+        //     FROM [pksrv-sap].test.dbo.OBTN T0
+        //     INNER JOIN [pksrv-sap].test.dbo.OIBT T1 ON T0.AbsEntry = T1.BaseEntry
+        //     WHERE T1.ItemCode = @itemCode AND T1.WhsCode = @whsCode AND T1.Quantity > 0
+        //     ORDER BY T0.ExpDate ASC`;
+        
         const query = `
             SELECT TOP 1
-                T1.BatchNum AS BatchNumber,
+                isnull(T1.BatchNum,'${ExpDate}') AS BatchNumber,
                 T1.Quantity AS AvailableQuantity,
-                T0.ExpDate AS ExpirationDate
-            FROM [pksrv-sap].test.dbo.OBTN T0
-            INNER JOIN [pksrv-sap].test.dbo.OIBT T1 ON T0.AbsEntry = T1.BaseEntry
-            WHERE T1.ItemCode = @itemCode AND T1.WhsCode = @whsCode AND T1.Quantity > 0
-            ORDER BY T0.ExpDate ASC`;
+                isnull(T1.ExpDate,'${ExpDate}') AS ExpirationDate
+            FROM [pksrv-sap].test.dbo.OIBT T1
+            inner join [pksrv-sap].test.dbo.oitm t2 on t1.itemcode = t2.itemcode
+            WHERE T1.ItemCode = '${itemCode}' AND 
+            (T1.WhsCode = '${whsCode}' or t1.whscode = t2.dfltwh) AND T1.Quantity > 0
+            AND t1.batchnum  like '${ExpDate}%'
+            ORDER BY T1.ExpDate ASC
+        `;
         const result = await pool.request()
             .input('itemCode', sql.VarChar, itemCode)
             .input('whsCode', sql.VarChar, whsCode)
@@ -227,45 +285,93 @@ const getBatchDataFromOBTN = async (itemCode, whsCode, pool) => {
         throw new Error(`Gagal mendapatkan batch data dari OBTN: ${error.message}`);
     }
 };
+// const createStockTransferPayload = (record, invTransferRequest, batchData) => {
+//     console.log(JSON.stringify(invTransferRequest,null,2));
+
+//     const lineItem = invTransferRequest.StockTransferLines.find(line =>
+//         line.ItemCode.toLowerCase() === record.SKU.toLowerCase() && line.LineNum.toString() === record.LINE_NO.toString()
+//     );
+
+//     // if (!lineItem) {
+//     //     throw new Error(`Item ${record.SKU} tidak ditemukan pada line ${record.LINE_NO} di Inventory Transfer Request.`);
+//     // }
+
+//     const batchNumbers = [{
+//         BatchNumber: batchData.BatchNumber,
+//         ManufacturerSerialNumber: batchData.ManufacturerSerialNumber,
+//         InternalSerialNumber: batchData.InternalSerialNumber,
+//         ExpiryDate: batchData.ExpiryDate,
+//         AddmisionDate: batchData.AddmisionDate,
+//         Quantity: record.QTYPO,
+//         BaseLineNumber: 0
+//     }];
+
+//     return {
+//         DocDate: invTransferRequest.DocDate,
+//         DueDate: invTransferRequest.DueDate,
+//         Comments: `KIRIM Based On Inventory Transfer Request ${invTransferRequest.DocNum}.`,
+//         FromWarehouse: invTransferRequest.FromWarehouse,
+//         ToWarehouse: invTransferRequest.ToWarehouse,
+//         DocObjectCode: "67",
+//         U_IDU_RequestType: "IT",
+//         StockTransferLines: [{
+//             ItemCode: lineItem.ItemCode,
+//             Quantity: lineItem.Quantity,
+//             WarehouseCode: lineItem.WarehouseCode,
+//             FromWarehouseCode: lineItem.FromWarehouseCode,
+//             BaseType: "1250000001",
+//             BaseLine: lineItem.LineNum,
+//             BaseEntry: invTransferRequest.DocEntry,
+//             BatchNumbers: batchNumbers,
+//             StockTransferLinesBinAllocations: []
+//         }]
+//     };
+// };
+
 const createStockTransferPayload = (record, invTransferRequest, batchData) => {
     const lineItem = invTransferRequest.StockTransferLines.find(line =>
         line.ItemCode.toLowerCase() === record.SKU.toLowerCase() && line.LineNum.toString() === record.LINE_NO.toString()
     );
+    
+    if (!lineItem) {
+        
+        console.error(`Error: No matching line item found for SKU: ${record.SKU} and LINE_NO: ${record.LINE_NO}`);
+        // throw new Error('Matching delivery note line item not found.');
+        //throw new Error(`Item ${record.SKU} with line number ${record.LINE_NO} not found in the Inventory Transfer Request.`);
+    }else{
 
-    // if (!lineItem) {
-    //     throw new Error(`Item ${record.SKU} tidak ditemukan pada line ${record.LINE_NO} di Inventory Transfer Request.`);
-    // }
-
-    const batchNumbers = [{
-        BatchNumber: batchData.BatchNumber,
-        ManufacturerSerialNumber: batchData.ManufacturerSerialNumber,
-        InternalSerialNumber: batchData.InternalSerialNumber,
-        ExpiryDate: batchData.ExpiryDate,
-        AddmisionDate: batchData.AddmisionDate,
-        Quantity: record.QTYPO,
-        BaseLineNumber: 0
-    }];
-
-    return {
-        DocDate: invTransferRequest.DocDate,
-        DueDate: invTransferRequest.DueDate,
-        Comments: `KIRIM Based On Inventory Transfer Request ${invTransferRequest.DocNum}.`,
-        FromWarehouse: invTransferRequest.FromWarehouse,
-        ToWarehouse: invTransferRequest.ToWarehouse,
-        DocObjectCode: "67",
-        U_IDU_RequestType: "IT",
-        StockTransferLines: [{
-            ItemCode: lineItem.ItemCode,
-            Quantity: lineItem.Quantity,
-            WarehouseCode: lineItem.WarehouseCode,
-            FromWarehouseCode: lineItem.FromWarehouseCode,
-            BaseType: "1250000001",
-            BaseLine: lineItem.LineNum,
-            BaseEntry: invTransferRequest.DocEntry,
-            BatchNumbers: batchNumbers,
-            StockTransferLinesBinAllocations: []
-        }]
-    };
+        const batchNumbers = [{
+            BatchNumber: batchData.BatchNumber,
+            ManufacturerSerialNumber: batchData.ManufacturerSerialNumber,
+            InternalSerialNumber: batchData.InternalSerialNumber,
+            ExpiryDate: batchData.ExpiryDate,
+            AddmisionDate: batchData.AddmisionDate,
+            Quantity: record.QTYPO,
+            BaseLineNumber: 0
+        }];
+        
+        return {
+            DocDate: invTransferRequest.DocDate,
+            DueDate: invTransferRequest.DueDate,
+            Comments: `KIRIM Based On Inventory Transfer Request ${invTransferRequest.DocNum}.`,
+            FromWarehouse: invTransferRequest.FromWarehouse,
+            ToWarehouse: invTransferRequest.ToWarehouse,
+            DocObjectCode: "67",
+            U_IDU_RequestType: "IT",
+            StockTransferLines: [{
+              ItemCode: lineItem.ItemCode,
+              Quantity: lineItem.Quantity,
+              WarehouseCode: lineItem.WarehouseCode,
+              FromWarehouseCode: lineItem.FromWarehouseCode,
+              BaseType: "1250000001",
+              BaseLine: lineItem.LineNum,
+              BaseEntry: invTransferRequest.DocEntry,
+              BatchNumbers: batchNumbers,
+              StockTransferLinesBinAllocations: []
+            }]
+        };
+    }
+    
 };
 
 const postStockTransferToSAP = async (payload, sessionCookie) => {
