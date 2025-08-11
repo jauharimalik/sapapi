@@ -1,3 +1,4 @@
+# .github/workflows/deploy.yml
 name: Deploy to csxpk
 
 on:
@@ -16,33 +17,25 @@ jobs:
           repository: jauharimalik/sapapi
           token: ${{ secrets.GITHUB_TOKEN }}
       
-      # Menambahkan lokasi PM2 ke PATH untuk sesi ini
       - name: Add npm global to PATH
         run: echo "C:\Users\PROGRAM-002\AppData\Roaming\npm" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
         shell: powershell
         
-      - name: Install PM2
-        run: npm install -g pm2
-      
-      - name: Install dependencies
-        run: npm install
-
-      # Menghentikan semua proses PM2 secara aman di Windows
-      - name: Stop all running Node.js processes (safe version)
-        run: pm2 stop all
-        continue-on-error: true
-
-      - name: Start all Node.js applications with PM2
+      - name: Install PM2 and dependencies
         run: |
+          npm install -g pm2
+          npm install
+
+      - name: Delete and Restart Node.js applications with PM2
+        run: |
+          pm2 delete all || true
           pm2 start grpo.js --name "grpo-service" --watch --ignore-watch "node_modules"
           pm2 start guling.js --name "guling-service" --watch --ignore-watch "node_modules"
           pm2 start retur.js --name "retur-service" --watch --ignore-watch "node_modules"
           pm2 start rijek.js --name "rijek-service" --watch --ignore-watch "node_modules"
           pm2 start sto.js --name "sto-service" --watch --ignore-watch "node_modules"
           pm2 start server.js --name "server-service" --watch --ignore-watch "node_modules"
+          pm2 save
 
-      - name: Save PM2 process list
-        run: pm2 save
-      
       - name: Show PM2 process status
         run: pm2 list

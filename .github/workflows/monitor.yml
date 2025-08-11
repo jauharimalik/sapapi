@@ -1,0 +1,21 @@
+# .github/workflows/monitor.yml
+name: PM2 Service Monitor
+
+on:
+  schedule:
+    # Menjalankan setiap 2 menit
+    - cron: '*/2 * * * *'
+
+jobs:
+  monitor:
+    runs-on: self-hosted
+    steps:
+      - name: Add npm global to PATH
+        run: echo "C:\Users\PROGRAM-002\AppData\Roaming\npm" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+        shell: powershell
+      
+      - name: Install PM2
+        run: npm install -g pm2
+      
+      - name: Show PM2 process status
+        run: pm2 list
