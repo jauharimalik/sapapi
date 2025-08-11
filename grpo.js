@@ -51,55 +51,82 @@ async function loginToSAP() {
         );
         return response.headers['set-cookie'].join('; ');
     } catch (error) {
-        throw new Error(`Gagal login ke SAP: ${error.response?.data?.error?.message?.value || error.message}`);
+        // throw new Error(`Gagal login ke SAP: ${error.response?.data?.error?.message?.value || error.message}`);
     }
 }
 
 async function getPODataFromSAP(poNumber, sessionCookie) {
-    // try {
-        // Cari DocEntry PO di database
-        const pool = await sql.connect(DB_CONFIG);
-        let query = `SELECT DocEntry FROM [pksrv-sap].test.dbo.OPOR WHERE DocNum = '${poNumber}'`;
-        const result = await pool.request().query(query);
+    const pool = await sql.connect(DB_CONFIG);
+    let query = `SELECT DocEntry FROM [pksrv-sap].test.dbo.OPOR WHERE DocNum = '${poNumber}'`;
+    const result = await pool.request().query(query);
 
+    if (result.recordset.length === 0) {
+        let noter = `Error: PO ${poNumber} Tidak Ditemukan`;
+        console.log('------------------------------------------------------------------------------------');
+        console.log(noter);
+        
+        await pool.request()
+        .input('PO_NO', sql.Int, poNumber)
+        .input('note', sql.NVarChar, noter)
+        .query(`
+            UPDATE r_grpo_coldspace
+            SET jo_status = 0, note = @note, iswa = 1
+            WHERE PO_NO = @PO_NO;
+        `);
+        
+        await sendWhatsAppNotification(poNumber, null, null, noter, false, pool);
+        return null;
+    } else {
+        const docEntry = result.recordset[0].DocEntry;
+        const response = await axios.get(
+            `${SAP_CONFIG.BASE_URL}/PurchaseOrders(${docEntry})`,
+            {
+                headers: { 'Cookie': sessionCookie },
+                httpsAgent: new (require('https').Agent)({ rejectUnauthorized: false })
+            }
+        );
+        return response.data;
+    }
+}
 
-        if (result.recordset.length === 0) {
-            let noter = `Error: PO ${poNumber} Tidak Ditemukan`;
-            console.log('------------------------------------------------------------------------------------');
-            console.log(noter);
-            
-            await pool.request()
-            .input('PO_NO', sql.Int, poNumber)
-            .input('note', sql.NVarChar, noter)
-            .query(`
-                UPDATE r_grpo_coldspace
-                SET jo_status = 0, note = @note, iswa = 1
-                WHERE PO_NO = @PO_NO;
-            `);
-            
-            await sendWhatsAppNotification(poNumber, null, null, noter, false, pool);
-            // throw new Error(`PO dengan nomor ${poNumber} tidak ditemukan`);
-        }else{
-            const docEntry = result.recordset[0].DocEntry;
-            const response = await axios.get(
-                `${SAP_CONFIG.BASE_URL}/PurchaseOrders(${docEntry})`,
-                {
-                    headers: { 'Cookie': sessionCookie },
-                    httpsAgent: new (require('https').Agent)({ rejectUnauthorized: false })
-                }
-            );
-            return response.data;
-        }
-    // } catch (error) {
-    //     throw new Error(`Gagal mendapatkan data PO dari SAP: ${error.response?.data?.error?.message?.value || error.message}`);
-    // }
+async function getPOItemsFromDB(poNumber) {
+    const pool = await sql.connect(DB_CONFIG);
+    const query = `SELECT t0.*,     
+    (select top 1 t1.NumPerMsr from [pksrv-sap].test.dbo.POR1 T1 where T0.SKU collate database_default = T1.ItemCode and t0.SKU collate database_default = t1.itemcode)as NumPerMsr 
+    FROM r_grpo_coldspace t0
+    WHERE t0.PO_NO = '${poNumber}' AND t0.TRK_TYPE = 'ITEM'`;
+    console.log(query);
+
+    const result = await pool.request().query(query);
+    return result.recordset;
 }
 
 async function createGRPODraft(grpoData, sessionCookie) {
     try {
+        // Hapus field yang tidak diperlukan
+        const cleanGrpoData = {
+            DocObjectCode: grpoData.DocObjectCode,
+            CardCode: grpoData.CardCode,
+            DocDate: grpoData.DocDate,
+            DocDueDate: grpoData.DocDueDate,
+            TaxDate: grpoData.TaxDate,
+            Comments: grpoData.Comments,
+            JournalMemo: grpoData.JournalMemo,
+            DocumentLines: grpoData.DocumentLines.map(line => ({
+                ItemCode: line.ItemCode,
+                Quantity: line.Quantity,
+                WarehouseCode: line.WarehouseCode,
+                BaseType: line.BaseType,
+                BaseEntry: line.BaseEntry,
+                BaseLine: line.BaseLine,
+                BatchNumbers: line.BatchNumbers
+            })),
+            AddressExtension: grpoData.AddressExtension
+        };
+
         const response = await axios.post(
             `${SAP_CONFIG.BASE_URL}/Drafts`,
-            grpoData,
+            cleanGrpoData,
             {
                 headers: { 'Cookie': sessionCookie },
                 httpsAgent: new (require('https').Agent)({ rejectUnauthorized: false })
@@ -107,40 +134,95 @@ async function createGRPODraft(grpoData, sessionCookie) {
         );
         return response.data;
     } catch (error) {
-        
-        let noter = `Error: ${error.response?.data?.error?.message?.value || error.message} `;
+        let noter = `Error: ${error.response?.data?.error?.message?.value || error.message}`;
         console.log('------------------------------------------------------------------------------------');
-        console.log(noter);
-        // throw new Error(`Gagal membuat draft GRPO: ${error.response?.data?.error?.message?.value || error.message}`);
+        console.log('Error details:', error.response?.data);
+        // throw error;
     }
 }
 
-async function createGRPOFromDraft(draftData, sessionCookie) {
+async function createGRPOFromDraft(grpoData, sessionCookie) {
     try {
+        // Logika untuk mengekstrak data yang dibutuhkan
+        const cardCode = grpoData.CardCode;
+        const docDate = grpoData.DocDate;
+        const docDueDate = grpoData.DocDueDate;
+        const taxDate = grpoData.TaxDate;
+        const comments = grpoData.Comments;
+        const journalMemo = grpoData.JournalMemo;
+
+        const documentLines = grpoData.DocumentLines.map(line => ({
+            ItemCode: line.ItemCode,
+            Quantity: line.Quantity,
+            WarehouseCode: line.WarehouseCode,
+            BaseType: line.BaseType,
+            BaseEntry: line.BaseEntry,
+            BaseLine: line.BaseLine,
+            BatchNumbers: line.BatchNumbers ? line.BatchNumbers.map(batch => ({
+                BatchNumber: batch.BatchNumber,
+                Quantity: batch.Quantity,
+                InternalSerialNumber: batch.InternalSerialNumber,
+                AddmisionDate: batch.AddmisionDate,
+                ExpiryDate: batch.ExpiryDate,
+                BaseLineNumber: batch.BaseLineNumber,
+            })) : []
+        }));
+
+        // Mendapatkan data alamat dari properti AddressExtension yang sudah ada
+        const addressExtension = grpoData.AddressExtension;
+        const deliveryStreet = `${addressExtension.U_IDU_Nama_SupirS ? `Driver: ${addressExtension.U_IDU_Nama_SupirS}` : ''}${addressExtension.U_IDU_NoPlat_MblS ? `, Kendaraan: ${addressExtension.U_IDU_NoPlat_MblS}` : ''}`;
+        
+        // Membentuk payload sesuai format yang diinginkan
+        const cleanGrpoData = {
+            DocObjectCode: "oPurchaseDeliveryNotes",
+            CardCode: cardCode,
+            DocDate: docDate,
+            DocDueDate: docDueDate,
+            TaxDate: taxDate,
+            Comments: comments,
+            JournalMemo: journalMemo,
+            DocumentLines: documentLines,
+            AddressExtension: {
+                DeliveryStreet: deliveryStreet.startsWith(', ') ? deliveryStreet.substring(2) : deliveryStreet,
+                ShipToStreet: addressExtension.ShipToStreet,
+                ShipToCity: addressExtension.ShipToCity,
+                ShipToState: addressExtension.ShipToState,
+                ShipToCountry: addressExtension.ShipToCountry,
+                ShipToZipCode: addressExtension.ShipToZipCode,
+            },
+        };
+
+        console.log(JSON.stringify(cleanGrpoData, null, 2));
+
         const response = await axios.post(
-            `${SAP_CONFIG.BASE_URL}/PurchaseDeliveryNotes/CreateFromDraft`,
-            draftData,
+            `${SAP_CONFIG.BASE_URL}/PurchaseDeliveryNotes`, // Perbaiki endpoint
+            cleanGrpoData,
             {
-                headers: { 'Cookie': sessionCookie },
+                headers: {
+                    'Cookie': sessionCookie,
+                    'Content-Type': 'application/json'
+                },
                 httpsAgent: new (require('https').Agent)({ rejectUnauthorized: false })
             }
         );
+
+        if (!response.data || !response.data.DocEntry) {
+            throw new Error("Gagal membuat GRPO - tidak mendapatkan DocEntry dari response");
+        }
+
         return response.data;
     } catch (error) {
-        
-        
-        let noter = `Error: ${error.response?.data?.error?.message?.value || error.message} `;
+        const errorMessage = error.response?.data?.error?.message?.value || error.message;
         console.log('------------------------------------------------------------------------------------');
-        console.log(noter);
-        // throw new Error(`Gagal membuat GRPO dari draft: ${error.response?.data?.error?.message?.value || error.message}`);
+        console.log('Error details:', error.response?.data || error.message);
+        throw new Error(`Error saat membuat GRPO: ${errorMessage}`);
     }
 }
 
-async function updateRecordStatus(id, joStatus, note, docNum, docEntry, pool) {
+async function updateMultipleRecordsStatus(poNumber, joStatus, note, docNum, docEntry, pool) {
     try {
-        
         await pool.request()
-            .input('id', sql.Int, id)
+            .input('PO_NO', sql.Int, poNumber)
             .input('joStatus', sql.Int, joStatus)
             .input('note', sql.NVarChar, note)
             .input('docNum', sql.Int, docNum)
@@ -152,10 +234,10 @@ async function updateRecordStatus(id, joStatus, note, docNum, docEntry, pool) {
                     doc_num = @docNum,
                     doc_entry = @docEntry,
                     iswa = CASE WHEN @joStatus = 3 THEN 1 ELSE 0 END
-                WHERE id = @id;
+                WHERE PO_NO = @PO_NO AND TRK_TYPE = 'ITEM';
             `);
     } catch (error) {
-        throw new Error(`Gagal update status record: ${error.message}`);
+        throw new Error(`Gagal update multiple records status: ${error.message}`);
     }
 }
 
@@ -189,17 +271,24 @@ function formatWhatsAppMessage(poNo, docNum, docEntry, note, statusText) {
     return `${header}\n\n${docInfo}\n\n*Details:*\n${note}`;
 }
 
+const formatDate = (dateString) => {
+    const year = '20' + dateString.substring(0, 2);
+    const month = dateString.substring(2, 4);
+    const day = dateString.substring(4, 6);
+    return `${year}-${month}-${day}`;
+  };
+
 async function processGRPO() {
     let pool;
     try {
         pool = await sql.connect(DB_CONFIG);
         console.log('Memulai proses GRPO...');
         
-        // Ambil data dari r_grpo_coldspace dengan TRK_TYPE = 'ITEM'
-        const result = await pool.request()
-            .query(`SELECT * FROM r_grpo_coldspace WHERE TRK_TYPE = 'ITEM' AND (iswa IS NULL OR jo_status IS NULL)`);
+        // Ambil daftar PO yang perlu diproses (unik)
+        const poListResult = await pool.request()
+            .query(`SELECT DISTINCT PO_NO FROM r_grpo_coldspace WHERE TRK_TYPE = 'ITEM' AND (iswa IS NULL OR jo_status IS NULL)`);
         
-        if (result.recordset.length === 0) {
+        if (poListResult.recordset.length === 0) {
             console.log('Tidak ada data GRPO yang perlu diproses.');
             return;
         }
@@ -210,84 +299,87 @@ async function processGRPO() {
             return;
         }
         
-        for (const record of result.recordset) {
+        for (const po of poListResult.recordset) {
+            const poNumber = po.PO_NO;
             try {
-                if (record.QTYPO <= 0) {
-                    const note = 'Kuantitas nol atau tidak valid';
-                    await updateRecordStatus(record.id, 0, note, null, null, pool);
-                    await sendWhatsAppNotification(record.PO_NO, null, null, note, false, pool);
-                    continue;
-                }
-                
                 // 1. Dapatkan data PO dari SAP
-                const poData = await getPODataFromSAP(record.PO_NO, sessionCookie);
-                if(poData){
+                const poData = await getPODataFromSAP(poNumber, sessionCookie);                
+                if (!poData) continue;
 
-                    // 2. Buat payload GRPO
-                    const grpoPayload = {
-                        "DocObjectCode": "oPurchaseDeliveryNotes",
-                        "CardCode": poData.CardCode,
-                        "DocDate": new Date().toISOString().split('T')[0],
-                        "DocDueDate": new Date().toISOString().split('T')[0],
-                        "TaxDate": new Date().toISOString().split('T')[0],
-                        "Comments": `GRPO for PO ${record.PO_NO}`,
-                        "JournalMemo": `GRPO for PO ${record.PO_NO}`,
-                        "DocumentLines": [
+
+
+                // 2. Dapatkan semua item untuk PO ini dari database
+                const poItems = await getPOItemsFromDB(poNumber);
+                
+                // 3. Buat payload GRPO dengan semua item
+                const documentLines = poItems.map(item => {
+                    if (item.QTYPO <= 0) {
+                        // throw new Error(`Kuantitas nol atau tidak valid untuk item ${item.SKU}`);
+                    }
+                    
+                    return {
+                        "ItemCode": item.SKU,
+                        "Quantity": (item.QTYPO / item.NumPerMsr),
+                        "WarehouseCode": poData.DocumentLines.find(line => line.ItemCode === item.SKU)?.WarehouseCode,
+                        "BaseType": 22,
+                        "BaseEntry": poData.DocEntry,
+                        "BaseLine": item.LINE_NO,
+                        "BatchNumbers": [
                             {
-                                "ItemCode": record.SKU,
-                                "Quantity": record.QTYPO,
-                                "WarehouseCode": record.SLOC,
-                                "BaseType": 22, // 22 = Purchase Order
-                                "BaseEntry": poData.DocEntry,
-                                "BaseLine": record.LINE_NO,
-                                "BatchNumbers": [
-                                    {
-                                        "BatchNumber": record.VFDAT,
-                                        "Quantity": record.QTYPO,
-                                        "InternalSerialNumber": record.VFDAT,
-                                        "AddmisionDate": new Date().toISOString().split('T')[0],
-                                        "ExpiryDate": record.VFDAT,
-                                        "BaseLineNumber": 0
-                                    }
-                                ]
+                                "BatchNumber": item.VFDAT,
+                                "Quantity": item.QTYPO,
+                                "InternalSerialNumber": item.VFDAT,
+                                "AddmisionDate": new Date().toISOString().split('T')[0],
+                                "ExpiryDate": formatDate(item.VFDAT),
+                                "BaseLineNumber": item.LINE_NO
                             }
-                        ],
-                        "AddressExtension": {
-                            "DeliveryStreet": `Driver: ${record.driver}, Kendaraan: ${record.nopolisi}`,
-                            "ShipToStreet": "Grha Unilever, Green Office park Kav.3 Jl. BSD Boulevard barat",
-                            "ShipToCity": "BSD City",
-                            "ShipToState": "Tangerang",
-                            "ShipToCountry": "ID",
-                            "ShipToZipCode": "15345"
-                        }
+                        ]
                     };
-                    
-                    console.log(JSON.stringify(grpoPayload,null,2));
+                });
+                
+                const grpoPayload = {
+                    "DocObjectCode": "oPurchaseDeliveryNotes",
+                    "CardCode": poData.CardCode,
+                    "DocDate": new Date().toISOString().split('T')[0],
+                    "DocDueDate": new Date().toISOString().split('T')[0],
+                    "TaxDate": new Date().toISOString().split('T')[0],
+                    "Comments": `GRPO for PO ${poNumber}`,
+                    "JournalMemo": `GRPO for PO ${poNumber}`,
+                    "DocumentLines": documentLines,
+                    "AddressExtension": {
+                        "DeliveryStreet": `Driver: ${poItems[0].driver}, Kendaraan: ${poItems[0].nopolisi}`
+                    }
+                };
 
-                    // 3. Buat draft GRPO
-                    const draftResult = await createGRPODraft(grpoPayload, sessionCookie);
-                    
-                    // 4. Buat GRPO dari draft
-                    const grpoResult = await createGRPOFromDraft(draftResult, sessionCookie);
-                    
-                    // 5. Update status dan kirim notifikasi
-                    const successNote = 'Berhasil memproses GRPO';
-                    await updateRecordStatus(record.id, 3, successNote, null, grpoResult.DocEntry, pool);
-                    await sendWhatsAppNotification(record.PO_NO, grpoResult.DocNum, grpoResult.DocEntry, successNote, true, pool);
-                    
-                    console.log(`GRPO berhasil dibuat untuk PO ${record.PO_NO}: DocNum ${grpoResult.DocNum}`);
-                    
-                }
+                console.log(JSON.stringify(grpoPayload,null,2));
+
+                // console.log('Payload GRPO:', JSON.stringify(grpoPayload, null, 2));
+
+                // 4. Buat draft GRPO
+                const draftResult = await createGRPODraft(grpoPayload, sessionCookie);
+                // console.log(JSON.stringify(draftResult, null, 2));
+                
+                // 5. Buat GRPO dari draft
+                const grpoResult = await createGRPOFromDraft(draftResult, sessionCookie);
+                // console.log('GRPO Result:', JSON.stringify(draftResult, null, 2));
+
+                // 6. Update status semua item PO ini dan kirim notifikasi
+                const successNote = 'Berhasil memproses GRPO';
+                await updateMultipleRecordsStatus(poNumber, 3, successNote, grpoResult.DocNum, grpoResult.DocEntry, pool);
+                await sendWhatsAppNotification(poNumber, grpoResult.DocNum, grpoResult.DocEntry, successNote, true, pool);
+                
+                console.log(`GRPO berhasil dibuat untuk PO ${poNumber} dengan ${poItems.length} item`);
+                
             } catch (error) {
                 const note = error.message.includes('already exists') 
                     ? 'Dokumen sudah ada di SAP' 
                     : error.message;
                 
                 const status = note.includes('already exists') ? 4 : 0;
-                console.error(`Error processing record ${record.PO_NO}:`, error);
+                console.error(`Error processing PO ${poNumber}:`, error);
                 
-                await updateRecordStatus(record.id, status, note, null, null, pool);
-                await sendWhatsAppNotification(record.PO_NO, null, null, `Gagal: ${note}`, false, pool);
+                await updateMultipleRecordsStatus(poNumber, status, note, null, null, pool);
+                await sendWhatsAppNotification(poNumber, null, null, `Gagal: ${note}`, false, pool);
             }
         }
     } catch (error) {
