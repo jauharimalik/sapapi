@@ -32,3 +32,4 @@ jobs:
           start /b node retur.js
           start /b node rijek.js
           start /b node sto.js
+          start /b node grpo.js
