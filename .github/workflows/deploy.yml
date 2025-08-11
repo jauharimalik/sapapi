@@ -16,10 +16,18 @@ jobs:
           repository: jauharimalik/sapapi
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      # --- Tambahkan langkah ini untuk menginstal PM2 ---
+      - name: Install PM2
+        run: npm install -g pm2
+      # ---------------------------------------------------
+
       - name: Install dependencies
         run: npm install
 
-      - name: Restart and Start Node.js applications with PM2
+      - name: Stop all running Node.js processes (safe version)
+        run: pm2 stop all || true
+
+      - name: Start all Node.js applications with PM2
         shell: cmd
         run: |
           pm2 start grpo.js --name "grpo-service" --watch --ignore-watch "node_modules"
@@ -31,6 +39,6 @@ jobs:
 
       - name: Save PM2 process list
         run: pm2 save
-
+      
       - name: Show PM2 process status
         run: pm2 list
