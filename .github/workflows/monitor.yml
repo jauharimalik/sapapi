@@ -5,6 +5,8 @@ on:
   schedule:
     # Menjalankan setiap 2 menit
     - cron: '*/2 * * * *'
+  # --- Tambahkan pemicu manual ini ---
+  workflow_dispatch:
 
 jobs:
   monitor:
