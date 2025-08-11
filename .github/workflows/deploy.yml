@@ -15,21 +15,22 @@ jobs:
         with:
           repository: jauharimalik/sapapi
           token: ${{ secrets.GITHUB_TOKEN }}
-          # set-safe-directory: true sudah otomatis di v4
-
-      - name: Stop all running Node.js processes
-        continue-on-error: true
-        run: taskkill /F /IM node.exe /T
 
       - name: Install dependencies
         run: npm install
 
-      - name: Start all Node.js applications
+      - name: Restart and Start Node.js applications with PM2
         shell: cmd
         run: |
-          start /b node server.js
-          start /b node guling.js
-          start /b node retur.js
-          start /b node rijek.js
-          start /b node sto.js
-          start /b node grpo.js
+          pm2 start grpo.js --name "grpo-service" --watch --ignore-watch "node_modules"
+          pm2 start guling.js --name "guling-service" --watch --ignore-watch "node_modules"
+          pm2 start retur.js --name "retur-service" --watch --ignore-watch "node_modules"
+          pm2 start rijek.js --name "rijek-service" --watch --ignore-watch "node_modules"
+          pm2 start sto.js --name "sto-service" --watch --ignore-watch "node_modules"
+          pm2 start server.js --name "server-service" --watch --ignore-watch "node_modules"
+
+      - name: Save PM2 process list
+        run: pm2 save
+
+      - name: Show PM2 process status
+        run: pm2 list

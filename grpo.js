@@ -262,7 +262,7 @@ async function processGRPO() {
                         }
                     };
                     
-                    console.log(grpoPayload);
+                    console.log(JSON.stringify(grpoPayload,null,2));
 
                     // 3. Buat draft GRPO
                     const draftResult = await createGRPODraft(grpoPayload, sessionCookie);
@@ -272,7 +272,7 @@ async function processGRPO() {
                     
                     // 5. Update status dan kirim notifikasi
                     const successNote = 'Berhasil memproses GRPO';
-                    await updateRecordStatus(record.id, 3, successNote, grpoResult.DocNum, grpoResult.DocEntry, pool);
+                    await updateRecordStatus(record.id, 3, successNote, null, grpoResult.DocEntry, pool);
                     await sendWhatsAppNotification(record.PO_NO, grpoResult.DocNum, grpoResult.DocEntry, successNote, true, pool);
                     
                     console.log(`GRPO berhasil dibuat untuk PO ${record.PO_NO}: DocNum ${grpoResult.DocNum}`);
