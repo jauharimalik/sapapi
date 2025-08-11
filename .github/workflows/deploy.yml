@@ -15,21 +15,24 @@ jobs:
         with:
           repository: jauharimalik/sapapi
           token: ${{ secrets.GITHUB_TOKEN }}
-
+      
+      # Menambahkan lokasi PM2 ke PATH untuk sesi ini
+      - name: Add npm global to PATH
+        run: echo "C:\Users\PROGRAM-002\AppData\Roaming\npm" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+        shell: powershell
+        
       - name: Install PM2
         run: npm install -g pm2
-
+      
       - name: Install dependencies
         run: npm install
 
       # Menghentikan semua proses PM2 secara aman di Windows
-      # Menghindari error jika tidak ada proses yang berjalan
       - name: Stop all running Node.js processes (safe version)
         run: pm2 stop all
         continue-on-error: true
 
       - name: Start all Node.js applications with PM2
-        shell: cmd
         run: |
           pm2 start grpo.js --name "grpo-service" --watch --ignore-watch "node_modules"
           pm2 start guling.js --name "guling-service" --watch --ignore-watch "node_modules"
