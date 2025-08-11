@@ -390,7 +390,7 @@ const createReturnsPayload = async (record, batchData, deliveryNote) => {
 };
 
 const postReturnsToSAP = async (payload, sessionCookie,record=null,pool) => {
-    console.log(payload);
+    
     try {
         const response = await axios.post(
             `${SAP_CONFIG.BASE_URL}/Returns`,
