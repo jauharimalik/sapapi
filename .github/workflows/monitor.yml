@@ -12,10 +12,9 @@ jobs:
     runs-on: self-hosted
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          submodules: false
-          clean: true
+        # Ganti actions/checkout@v4 menjadi actions/checkout@v2
+        uses: actions/checkout@v2
+        # Hapus opsi submodules dan clean karena v2 tidak mendukungnya
       - name: Add npm global to PATH
         run: echo "C:\Users\PROGRAM-002\AppData\Roaming\npm" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
         shell: powershell
