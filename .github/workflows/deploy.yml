@@ -17,6 +17,7 @@ jobs:
           repository: jauharimalik/sapapi
           token: ${{ secrets.GITHUB_TOKEN }}
           submodules: false
+          clean: true
       
       - name: Add npm global to PATH
         run: echo "C:\Users\PROGRAM-002\AppData\Roaming\npm" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
