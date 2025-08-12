@@ -6,55 +6,122 @@
     <title>Dashboard PM2 Service</title>
 
     <link href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <style>
+        :root {
+            --primary-color: #1a73e8;
+            --primary-dark: #0d47a1;
+            --secondary-color: #f5f5f5;
+            --success-color: #43a047;
+            --error-color: #f44336;
+            --warning-color: #ffb300;
+            --info-color: #2196f3;
+            --text-primary: #202124;
+            --text-secondary: #5f6368;
+            --card-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            --card-shadow-hover: 0 8px 16px rgba(0,0,0,0.2);
+        }
+
         body {
             font-family: 'Roboto', sans-serif;
-            background-color: #f5f5f5;
+            background-color: #f8f9fa;
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
         }
 
         .header {
-            background-color: #0d47a1;
+            background-color: var(--primary-dark);
             color: white;
-            padding: 20px;
+            padding: 16px 20px;
             text-align: center;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
             position: sticky;
             top: 0;
             z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .header h1 {
             margin: 0;
-            font-weight: 300;
+            font-weight: 500;
+            font-size: 1.5rem;
         }
 
         .main-container {
-            padding: 20px;
-            max-width: 1200px;
-            margin: auto;
+            padding: 24px;
+            max-width: 1400px;
+            margin: 0 auto;
         }
 
         .control-panel {
             display: flex;
-            justify-content: flex-end;
-            margin-bottom: 20px;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .search-container {
+            display: flex;
+            align-items: center;
+            background: white;
+            border-radius: 4px;
+            padding: 0 12px;
+            box-shadow: var(--card-shadow);
+            flex-grow: 1;
+            max-width: 400px;
+        }
+
+        .search-container i {
+            color: var(--text-secondary);
+            margin-right: 8px;
+        }
+
+        #search-input {
+            border: none;
+            padding: 12px 0;
+            flex-grow: 1;
+            outline: none;
+            font-size: 0.9rem;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
         }
 
         .mdc-card {
-            margin-bottom: 16px;
+            border-radius: 8px;
+            overflow: hidden;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: var(--card-shadow);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
         }
 
         .mdc-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            box-shadow: var(--card-shadow-hover);
         }
 
         .mdc-card__primary-action {
             display: flex;
-            align-items: center;
             padding: 16px;
+            flex-grow: 1;
         }
 
         .status-indicator {
@@ -67,45 +134,177 @@
             border-radius: 50%;
             color: white;
             font-size: 24px;
+            flex-shrink: 0;
         }
 
-        .status-indicator.online { background-color: #43a047; } /* Hijau */
-        .status-indicator.stopped { background-color: #f44336; } /* Merah */
-        .status-indicator.errored { background-color: #ffb300; } /* Kuning */
-        .status-indicator.default { background-color: #757575; } /* Abu-abu */
+        .status-indicator.online { background-color: var(--success-color); }
+        .status-indicator.stopped { background-color: var(--error-color); }
+        .status-indicator.errored { background-color: var(--warning-color); }
+        .status-indicator.default { background-color: var(--text-secondary); }
 
         .service-details {
             flex-grow: 1;
+            overflow: hidden;
         }
 
         .service-details h3 {
-            margin: 0;
+            margin: 0 0 8px 0;
             font-weight: 500;
+            font-size: 1.1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .service-details p {
-            margin: 4px 0;
-            color: #757575;
-            font-size: 0.9rem;
+        .service-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .meta-item i {
+            font-size: 1rem;
+            margin-right: 4px;
+        }
+
+        .progress-container {
+            margin-top: 8px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .mdc-linear-progress {
+            height: 8px;
+            border-radius: 4px;
+        }
+
+        .card-actions {
+            display: flex;
+            justify-content: flex-end;
+            padding: 8px;
+            border-top: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .action-button {
+            margin-left: 8px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            grid-column: 1 / -1;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        .empty-state h3 {
+            margin: 0 0 8px 0;
+            color: var(--text-primary);
+        }
+
+        .empty-state p {
+            margin: 0;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 1.2rem;
+            }
+            
+            .main-container {
+                padding: 16px;
+            }
+            
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-panel {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-container {
+                max-width: none;
+            }
+        }
+
+        /* Animation for status change */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .status-updated {
+            animation: pulse 0.5s ease;
         }
     </style>
 </head>
 <body>
 
     <header class="header">
-        <h1>Dashboard PM2 Services</h1>
+        <h1>
+            <i class="material-icons" style="vertical-align: middle; margin-right: 8px;">dashboard</i>
+            PM2 Service Dashboard
+        </h1>
+        <div id="last-updated" style="font-size: 0.85rem; opacity: 0.9;"></div>
     </header>
 
     <main class="main-container">
         <div class="control-panel">
+            <div class="search-container">
+                <i class="material-icons">search</i>
+                <input id="search-input" type="text" placeholder="Cari layanan...">
+            </div>
+            <div class="filter-buttons">
+                <button id="filter-all" class="mdc-button mdc-button--outlined" data-filter="all">
+                    <span class="mdc-button__label">Semua</span>
+                </button>
+                <button id="filter-online" class="mdc-button mdc-button--outlined" data-filter="online">
+                    <span class="mdc-button__label">Online</span>
+                </button>
+                <button id="filter-stopped" class="mdc-button mdc-button--outlined" data-filter="stopped">
+                    <span class="mdc-button__label">Stopped</span>
+                </button>
+                <button id="filter-errored" class="mdc-button mdc-button--outlined" data-filter="errored">
+                    <span class="mdc-button__label">Errored</span>
+                </button>
+            </div>
             <button id="refresh-button" class="mdc-button mdc-button--raised">
+                <i class="material-icons mdc-button__icon" aria-hidden="true">refresh</i>
                 <span class="mdc-button__label">Refresh</span>
             </button>
         </div>
-        <div id="services-container">
-            <p>Memuat status layanan...</p>
+        
+        <div id="services-container" class="services-grid">
+            <div class="empty-state">
+                <i class="material-icons">hourglass_empty</i>
+                <h3>Memuat status layanan...</h3>
+                <p>Harap tunggu sebentar</p>
+            </div>
         </div>
-        <div id="loading-spinner" style="text-align: center; margin-top: 20px; display: none;">
+        
+        <div id="loading-spinner" style="text-align: center; margin: 40px 0; display: none;">
             <div class="mdc-circular-progress mdc-circular-progress--medium" role="progressbar" aria-label="Loading...">
                 <div class="mdc-circular-progress__determinate-container">
                     <svg class="mdc-circular-progress__svg" viewBox="22 22 44 44">
@@ -113,6 +312,7 @@
                     </svg>
                 </div>
             </div>
+            <p>Memperbarui data...</p>
         </div>
     </main>
 
@@ -125,86 +325,335 @@
             const container = document.getElementById('services-container');
             const refreshButton = document.getElementById('refresh-button');
             const loadingSpinner = document.getElementById('loading-spinner');
+            const searchInput = document.getElementById('search-input');
+            const filterButtons = document.querySelectorAll('.filter-buttons .mdc-button');
+            const lastUpdatedEl = document.getElementById('last-updated');
+            
             const statusFileUrl = 'https://jauharimalik.github.io/sapapi/pm2-status.json';
-
+            let servicesData = [];
+            let currentFilter = 'all';
+            let currentSearch = '';
+            
+            // Format waktu terakhir update
+            const formatTime = (date) => {
+                return date.toLocaleTimeString('id-ID', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+            };
+            
+            // Filter dan tampilkan layanan berdasarkan kriteria
+            const filterServices = () => {
+                const filtered = servicesData.filter(service => {
+                    // Filter berdasarkan status
+                    const statusMatch = currentFilter === 'all' || service.pm2_env.status === currentFilter;
+                    
+                    // Filter berdasarkan pencarian
+                    const searchMatch = service.name.toLowerCase().includes(currentSearch.toLowerCase());
+                    
+                    return statusMatch && searchMatch;
+                });
+                
+                displayServices(filtered);
+            };
+            
+            // Tampilkan layanan dalam grid
+            const displayServices = (services) => {
+                if (services.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="material-icons">search_off</i>
+                            <h3>Tidak ada layanan yang cocok</h3>
+                            <p>Coba ubah filter atau kata kunci pencarian</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = '';
+                
+                services.forEach(service => {
+                    const status = service.pm2_env.status;
+                    let statusClass = 'default';
+                    let icon = 'help_outline';
+                    let statusColor = '';
+                    
+                    if (status === 'online') {
+                        statusClass = 'online';
+                        icon = 'check_circle';
+                        statusColor = 'var(--success-color)';
+                    } else if (status === 'stopped') {
+                        statusClass = 'stopped';
+                        icon = 'block';
+                        statusColor = 'var(--error-color)';
+                    } else if (status === 'errored') {
+                        statusClass = 'errored';
+                        icon = 'error';
+                        statusColor = 'var(--warning-color)';
+                    }
+                    
+                    // Hitung penggunaan CPU (batasi maksimal 100%)
+                    const cpuUsage = Math.min(service.monit.cpu, 100);
+                    // Hitung penggunaan memori dalam MB
+                    const memoryUsage = (service.monit.memory / 1024 / 1024).toFixed(2);
+                    // Hitung persentase memori (asumsi 512MB sebagai maksimal untuk contoh)
+                    const memoryPercent = Math.min((service.monit.memory / (512 * 1024 * 1024)) * 100, 100);
+                    
+                    const serviceDiv = document.createElement('div');
+                    serviceDiv.className = 'mdc-card';
+                    serviceDiv.dataset.status = status;
+                    serviceDiv.dataset.name = service.name.toLowerCase();
+                    
+                    serviceDiv.innerHTML = `
+                        <div class="mdc-card__primary-action">
+                            <div class="status-indicator ${statusClass}">
+                                <i class="material-icons">${icon}</i>
+                            </div>
+                            <div class="service-details">
+                                <h3 class="mdc-typography--headline6">${service.name}</h3>
+                                <div class="service-meta">
+                                    <span class="meta-item">
+                                        <i class="material-icons">fingerprint</i>
+                                        ID: ${service.pm_id}
+                                    </span>
+                                    <span class="meta-item" style="color: ${statusColor}">
+                                        <i class="material-icons">circle</i>
+                                        ${status}
+                                    </span>
+                                    <span class="meta-item">
+                                        <i class="material-icons">update</i>
+                                        ${service.pm2_env.restart_time || 0}x restart
+                                    </span>
+                                </div>
+                                
+                                <div class="progress-container">
+                                    <div class="progress-label">
+                                        <span>CPU: ${cpuUsage}%</span>
+                                        <span>RAM: ${memoryUsage} MB</span>
+                                    </div>
+                                    <div role="progressbar" class="mdc-linear-progress mdc-linear-progress--buffer">
+                                        <div class="mdc-linear-progress__buffering-dots"></div>
+                                        <div class="mdc-linear-progress__buffer"></div>
+                                        <div class="mdc-linear-progress__bar mdc-linear-progress__primary-bar" style="transform: scaleX(${cpuUsage/100})">
+                                            <span class="mdc-linear-progress__bar-inner"></span>
+                                        </div>
+                                        <div class="mdc-linear-progress__bar mdc-linear-progress__secondary-bar" style="transform: scaleX(${memoryPercent/100})">
+                                            <span class="mdc-linear-progress__bar-inner"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-actions">
+                            <button class="mdc-button mdc-button--outlined action-button" data-action="restart" data-id="${service.pm_id}">
+                                <i class="material-icons mdc-button__icon" aria-hidden="true">replay</i>
+                                <span class="mdc-button__label">Restart</span>
+                            </button>
+                            ${status === 'online' ? `
+                            <button class="mdc-button mdc-button--outlined action-button" data-action="stop" data-id="${service.pm_id}">
+                                <i class="material-icons mdc-button__icon" aria-hidden="true">stop</i>
+                                <span class="mdc-button__label">Stop</span>
+                            </button>
+                            ` : `
+                            <button class="mdc-button mdc-button--outlined action-button" data-action="start" data-id="${service.pm_id}">
+                                <i class="material-icons mdc-button__icon" aria-hidden="true">play_arrow</i>
+                                <span class="mdc-button__label">Start</span>
+                            </button>
+                            `}
+                        </div>
+                    `;
+                    
+                    container.appendChild(serviceDiv);
+                });
+                
+                // Inisialisasi komponen MDC untuk elemen yang baru dibuat
+                mdc.autoInit();
+            };
+            
+            // Ambil data dari API
             const fetchData = () => {
-                container.innerHTML = ''; // Hapus konten lama
-                loadingSpinner.style.display = 'block'; // Tampilkan loading spinner
-
-                fetch(statusFileUrl)
+                container.innerHTML = '<div class="empty-state"><i class="material-icons">hourglass_empty</i><h3>Memuat status layanan...</h3><p>Harap tunggu sebentar</p></div>';
+                loadingSpinner.style.display = 'block';
+                
+                // Tambahkan timestamp untuk menghindari cache
+                const url = `${statusFileUrl}?t=${new Date().getTime()}`;
+                
+                fetch(url)
                     .then(response => {
                         if (!response.ok) {
                             if (response.status === 404) {
                                 throw new Error('File pm2-status.json tidak ditemukan. Mohon periksa repository GitHub.');
                             }
-                            throw new Error('Terjadi masalah pada jaringan. Kode: ' + response.status);
+                            throw new Error(`Terjadi masalah pada jaringan. Kode: ${response.status}`);
                         }
                         return response.json();
                     })
                     .then(data => {
-                        loadingSpinner.style.display = 'none'; // Sembunyikan loading spinner
-                        container.innerHTML = '';
+                        loadingSpinner.style.display = 'none';
+                        servicesData = data;
+                        
+                        // Update waktu terakhir refresh
+                        const now = new Date();
+                        lastUpdatedEl.textContent = `Terakhir diperbarui: ${formatTime(now)}`;
                         
                         if (data.length === 0) {
-                            container.innerHTML = '<p>Tidak ada layanan PM2 yang sedang berjalan.</p>';
-                            return;
-                        }
-
-                        data.forEach(service => {
-                            const serviceDiv = document.createElement('div');
-                            serviceDiv.className = 'mdc-card';
-                            
-                            const status = service.pm2_env.status;
-                            let statusClass = 'default';
-                            let icon = 'help_outline';
-
-                            if (status === 'online') {
-                                statusClass = 'online';
-                                icon = 'check_circle_outline';
-                            } else if (status === 'stopped') {
-                                statusClass = 'stopped';
-                                icon = 'block';
-                            } else if (status === 'errored') {
-                                statusClass = 'errored';
-                                icon = 'error_outline';
-                            }
-
-                            serviceDiv.innerHTML = `
-                                <div class="mdc-card__primary-action">
-                                    <div class="status-indicator ${statusClass}">
-                                        <i class="material-icons">${icon}</i>
-                                    </div>
-                                    <div class="service-details">
-                                        <h3 class="mdc-typography--headline6">${service.name}</h3>
-                                        <p>Status: <strong>${status}</strong></p>
-                                        <p>ID: ${service.pm_id}</p>
-                                        <p>CPU: ${service.monit.cpu}%</p>
-                                        <p>Memori: ${(service.monit.memory / 1024 / 1024).toFixed(2)} MB</p>
-                                    </div>
+                            container.innerHTML = `
+                                <div class="empty-state">
+                                    <i class="material-icons">warning</i>
+                                    <h3>Tidak ada layanan PM2 yang sedang berjalan</h3>
+                                    <p>Coba mulai layanan melalui terminal server</p>
                                 </div>
                             `;
-                            container.appendChild(serviceDiv);
-                        });
+                            return;
+                        }
+                        
+                        filterServices();
                     })
                     .catch(error => {
                         console.error('Error fetching data:', error);
                         loadingSpinner.style.display = 'none';
                         container.innerHTML = `
-                            <div class="mdc-card mdc-card--outlined">
-                                <div class="mdc-card__primary-action" style="color: #c62828;">
-                                    <i class="material-icons" style="margin-right: 16px;">warning</i>
-                                    <p>${error.message}</p>
-                                </div>
+                            <div class="empty-state">
+                                <i class="material-icons" style="color: var(--error-color)">error</i>
+                                <h3>Gagal memuat data</h3>
+                                <p>${error.message}</p>
+                                <button id="retry-button" class="mdc-button mdc-button--raised" style="margin-top: 16px;">
+                                    <i class="material-icons mdc-button__icon" aria-hidden="true">refresh</i>
+                                    <span class="mdc-button__label">Coba Lagi</span>
+                                </button>
                             </div>
                         `;
+                        
+                        // Tambahkan event listener untuk tombol retry
+                        const retryButton = document.getElementById('retry-button');
+                        if (retryButton) {
+                            retryButton.addEventListener('click', fetchData);
+                        }
                     });
             };
-
-            // Tambahkan event listener untuk tombol refresh
-            refreshButton.addEventListener('click', fetchData);
-
-            // Panggil fetchData pertama kali saat halaman dimuat
+            
+            // Event listeners
+            refreshButton.addEventListener('click', () => {
+                fetchData();
+                
+                // Animasi tombol refresh
+                refreshButton.querySelector('.material-icons').style.transform = 'rotate(360deg)';
+                refreshButton.querySelector('.material-icons').style.transition = 'transform 0.5s ease';
+                
+                setTimeout(() => {
+                    refreshButton.querySelector('.material-icons').style.transform = 'rotate(0deg)';
+                }, 500);
+            });
+            
+            searchInput.addEventListener('input', (e) => {
+                currentSearch = e.target.value;
+                filterServices();
+            });
+            
+            filterButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    currentFilter = button.dataset.filter;
+                    
+                    // Update tampilan tombol filter
+                    filterButtons.forEach(btn => {
+                        btn.classList.remove('mdc-button--raised');
+                        btn.classList.add('mdc-button--outlined');
+                    });
+                    
+                    button.classList.remove('mdc-button--outlined');
+                    button.classList.add('mdc-button--raised');
+                    
+                    filterServices();
+                });
+            });
+            
+            // Delegasi event untuk tombol aksi
+            container.addEventListener('click', (e) => {
+                const actionButton = e.target.closest('.action-button');
+                if (!actionButton) return;
+                
+                const action = actionButton.dataset.action;
+                const serviceId = actionButton.dataset.id;
+                
+                // Tampilkan konfirmasi untuk aksi penting
+                if (action === 'stop' || action === 'restart') {
+                    if (!confirm(`Anda yakin ingin ${action} layanan ini?`)) {
+                        return;
+                    }
+                }
+                
+                // Simulasikan aksi (pada implementasi nyata, ini akan memanggil API)
+                console.log(`Aksi ${action} pada layanan ID ${serviceId}`);
+                
+                // Tampilkan feedback visual
+                const card = actionButton.closest('.mdc-card');
+                card.classList.add('status-updated');
+                setTimeout(() => {
+                    card.classList.remove('status-updated');
+                }, 500);
+                
+                // Pada implementasi nyata, setelah API berhasil, panggil fetchData() lagi
+                // Untuk contoh ini, kita hanya mengubah status visual sementara
+                if (action === 'start') {
+                    card.querySelector('.status-indicator').className = 'status-indicator online';
+                    card.querySelector('.status-indicator i').textContent = 'check_circle';
+                    card.querySelector('.meta-item:nth-child(2)').innerHTML = 
+                        '<i class="material-icons">circle</i> online';
+                    card.querySelector('.meta-item:nth-child(2)').style.color = 'var(--success-color)';
+                    
+                    // Update tombol aksi
+                    const actionsDiv = card.querySelector('.card-actions');
+                    actionsDiv.innerHTML = `
+                        <button class="mdc-button mdc-button--outlined action-button" data-action="restart" data-id="${serviceId}">
+                            <i class="material-icons mdc-button__icon" aria-hidden="true">replay</i>
+                            <span class="mdc-button__label">Restart</span>
+                        </button>
+                        <button class="mdc-button mdc-button--outlined action-button" data-action="stop" data-id="${serviceId}">
+                            <i class="material-icons mdc-button__icon" aria-hidden="true">stop</i>
+                            <span class="mdc-button__label">Stop</span>
+                        </button>
+                    `;
+                } else if (action === 'stop') {
+                    card.querySelector('.status-indicator').className = 'status-indicator stopped';
+                    card.querySelector('.status-indicator i').textContent = 'block';
+                    card.querySelector('.meta-item:nth-child(2)').innerHTML = 
+                        '<i class="material-icons">circle</i> stopped';
+                    card.querySelector('.meta-item:nth-child(2)').style.color = 'var(--error-color)';
+                    
+                    // Update tombol aksi
+                    const actionsDiv = card.querySelector('.card-actions');
+                    actionsDiv.innerHTML = `
+                        <button class="mdc-button mdc-button--outlined action-button" data-action="restart" data-id="${serviceId}">
+                            <i class="material-icons mdc-button__icon" aria-hidden="true">replay</i>
+                            <span class="mdc-button__label">Restart</span>
+                        </button>
+                        <button class="mdc-button mdc-button--outlined action-button" data-action="start" data-id="${serviceId}">
+                            <i class="material-icons mdc-button__icon" aria-hidden="true">play_arrow</i>
+                            <span class="mdc-button__label">Start</span>
+                        </button>
+                    `;
+                } else if (action === 'restart') {
+                    // Animasi restart
+                    const statusIndicator = card.querySelector('.status-indicator');
+                    statusIndicator.innerHTML = '<i class="material-icons">autorenew</i>';
+                    statusIndicator.style.animation = 'spin 1s linear infinite';
+                    
+                    setTimeout(() => {
+                        statusIndicator.style.animation = '';
+                        statusIndicator.className = 'status-indicator online';
+                        statusIndicator.innerHTML = '<i class="material-icons">check_circle</i>';
+                    }, 1000);
+                }
+                
+                mdc.autoInit(); // Re-inisialisasi komponen MDC
+            });
+            
+            // Panggil pertama kali saat halaman dimuat
             fetchData();
+            
+            // Auto-refresh setiap 30 detik
+            setInterval(fetchData, 30000);
         });
     </script>
 </body>

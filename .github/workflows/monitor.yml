@@ -14,7 +14,6 @@ jobs:
       - name: Checkout repository
         # Ganti actions/checkout@v4 menjadi actions/checkout@v2
         uses: actions/checkout@v2
-        # Hapus opsi submodules dan clean karena v2 tidak mendukungnya
       - name: Add npm global to PATH
         run: echo "C:\Users\PROGRAM-002\AppData\Roaming\npm" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
         shell: powershell
@@ -28,4 +27,5 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git add pm2-status.json
           git diff-index --quiet HEAD || git commit -m "Update PM2 service status"
-          git push
+          # Perbaikan: Tambahkan token ke URL repository untuk otorisasi
+          git push https://${{ secrets.GITHUB_TOKEN }}@github.com/jauharimalik/sapapi.git
