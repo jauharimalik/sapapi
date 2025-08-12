@@ -11,10 +11,21 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('services-container');
+    
+    // URL ini mengambil data dari repository "sapapi"
     const statusFileUrl = 'https://jauharimalik.github.io/sapapi/pm2-status.json';
 
     fetch(statusFileUrl)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                // Periksa status respons HTTP.
+                if (response.status === 404) {
+                    throw new Error('File pm2-status.json not found. Check GitHub Pages settings for sapapi repository.');
+                }
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
         .then(data => {
             container.innerHTML = '';
             if (data.length === 0) {
@@ -37,8 +48,8 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         })
         .catch(error => {
-            console.error('There was a problem fetching the data:', error);
-            container.innerHTML = '<p>Error loading service status.</p>';
+            console.error('Error fetching data:', error);
+            container.innerHTML = `<p>${error.message}</p>`;
         });
 });
 </script>
