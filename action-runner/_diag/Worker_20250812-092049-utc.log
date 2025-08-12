@@ -1,0 +1,4092 @@
+[2025-08-12 09:20:49Z INFO HostContext] No proxy settings were found based on environmental variables (http_proxy/https_proxy/HTTP_PROXY/HTTPS_PROXY)
+[2025-08-12 09:20:49Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:49Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:49Z INFO HostContext] Well known config file 'Credentials': 'C:\laragon\www\sapapi\action-runner\.credentials'
+[2025-08-12 09:20:49Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:49Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:49Z INFO HostContext] Well known config file 'Runner': 'C:\laragon\www\sapapi\action-runner\.runner'
+[2025-08-12 09:20:49Z INFO Worker] Version: 2.327.1
+[2025-08-12 09:20:49Z INFO Worker] Commit: 9513afd82fbc900d13362cdd4fcdab0538f5124e
+[2025-08-12 09:20:49Z INFO Worker] Culture: en-US
+[2025-08-12 09:20:49Z INFO Worker] UI Culture: en-US
+[2025-08-12 09:20:49Z INFO Worker] Waiting to receive the job message from the channel.
+[2025-08-12 09:20:49Z INFO ProcessChannel] Receiving message of length 21594, with hash '6da44870bba9907e0c2158d963e215d0df9223916214a210619655ea9e09c07f'
+[2025-08-12 09:20:49Z INFO Worker] Message received.
+[2025-08-12 09:20:50Z INFO Worker] Job message:
+ {
+  "fileTable": [
+    ".github/workflows/deploy.yml"
+  ],
+  "mask": [
+    {
+      "type": "regex",
+      "value": "***"
+    },
+    {
+      "type": "regex",
+      "value": "***"
+    },
+    {
+      "type": "regex",
+      "value": "***"
+    },
+    {
+      "type": "regex",
+      "value": "***"
+    },
+    {
+      "type": "regex",
+      "value": "***"
+    },
+    {
+      "type": "regex",
+      "value": "***"
+    },
+    {
+      "type": "regex",
+      "value": "***"
+    },
+    {
+      "type": "regex",
+      "value": "***"
+    },
+    {
+      "type": "regex",
+      "value": "***"
+    },
+    {
+      "type": "regex",
+      "value": "***"
+    },
+    {
+      "type": "regex",
+      "value": "***"
+    },
+    {
+      "type": "regex",
+      "value": "***"
+    },
+    {
+      "type": "regex",
+      "value": "***"
+    },
+    {
+      "type": "regex",
+      "value": "***"
+    },
+    {
+      "type": "regex",
+      "value": "***"
+    },
+    {
+      "type": "regex",
+      "value": "***"
+    },
+    {
+      "type": "regex",
+      "value": "***"
+    },
+    {
+      "type": "regex",
+      "value": "***"
+    }
+  ],
+  "steps": [
+    {
+      "type": "action",
+      "reference": {
+        "type": "repository",
+        "name": "actions/checkout",
+        "ref": "v4",
+        "repositoryType": "GitHub"
+      },
+      "displayNameToken": {
+        "type": 0,
+        "file": 1,
+        "line": 13,
+        "col": 15,
+        "lit": "Checkout repository"
+      },
+      "contextName": "__actions_checkout",
+      "inputs": {
+        "type": 2,
+        "file": 1,
+        "line": 16,
+        "col": 11,
+        "map": [
+          {
+            "key": {
+              "type": 0,
+              "file": 1,
+              "line": 16,
+              "col": 11,
+              "lit": "repository"
+            },
+            "value": {
+              "type": 0,
+              "file": 1,
+              "line": 16,
+              "col": 23,
+              "lit": "jauharimalik/sapapi"
+            }
+          },
+          {
+            "key": {
+              "type": 0,
+              "file": 1,
+              "line": 17,
+              "col": 11,
+              "lit": "token"
+            },
+            "value": {
+              "type": 3,
+              "file": 1,
+              "line": 17,
+              "col": 18,
+              "expr": "secrets.GITHUB_TOKEN"
+            }
+          }
+        ]
+      },
+      "condition": "success()",
+      "id": "3fd2cfcd-8114-4b26-80ec-e975f6bd9601",
+      "name": "__actions_checkout"
+    },
+    {
+      "type": "action",
+      "reference": {
+        "type": "script"
+      },
+      "displayNameToken": {
+        "type": 0,
+        "file": 1,
+        "line": 19,
+        "col": 15,
+        "lit": "Add npm global to PATH"
+      },
+      "contextName": "__run",
+      "inputs": {
+        "type": 2,
+        "map": [
+          {
+            "key": "script",
+            "value": {
+              "type": 0,
+              "file": 1,
+              "line": 20,
+              "col": 14,
+              "lit": "echo \"C:\\Users\\PROGRAM-002\\AppData\\Roaming\\npm\" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8"
+            }
+          },
+          {
+            "key": "shell",
+            "value": {
+              "type": 0,
+              "file": 1,
+              "line": 21,
+              "col": 16,
+              "lit": "powershell"
+            }
+          }
+        ]
+      },
+      "condition": "success()",
+      "id": "836fab20-5de5-411d-97f1-7309b53c1201",
+      "name": "__run"
+    },
+    {
+      "type": "action",
+      "reference": {
+        "type": "script"
+      },
+      "displayNameToken": {
+        "type": 0,
+        "file": 1,
+        "line": 23,
+        "col": 15,
+        "lit": "Install PM2 and dependencies"
+      },
+      "contextName": "__run_2",
+      "inputs": {
+        "type": 2,
+        "map": [
+          {
+            "key": "script",
+            "value": {
+              "type": 0,
+              "file": 1,
+              "line": 24,
+              "col": 14,
+              "lit": "npm install -g pm2\nnpm install\n"
+            }
+          }
+        ]
+      },
+      "condition": "success()",
+      "id": "16b9b8d1-a39e-4097-ab50-bdf283496cdb",
+      "name": "__run_2"
+    },
+    {
+      "type": "action",
+      "reference": {
+        "type": "script"
+      },
+      "displayNameToken": {
+        "type": 0,
+        "file": 1,
+        "line": 28,
+        "col": 15,
+        "lit": "Delete existing PM2 processes"
+      },
+      "contextName": "__run_3",
+      "inputs": {
+        "type": 2,
+        "map": [
+          {
+            "key": "script",
+            "value": {
+              "type": 0,
+              "file": 1,
+              "line": 29,
+              "col": 14,
+              "lit": "pm2 delete all"
+            }
+          }
+        ]
+      },
+      "condition": "success()",
+      "continueOnError": {
+        "type": 5,
+        "file": 1,
+        "line": 30,
+        "col": 28,
+        "bool": true
+      },
+      "id": "8c5ce035-9601-4156-a921-b2ebc60c3493",
+      "name": "__run_3"
+    },
+    {
+      "type": "action",
+      "reference": {
+        "type": "script"
+      },
+      "displayNameToken": {
+        "type": 0,
+        "file": 1,
+        "line": 32,
+        "col": 15,
+        "lit": "Start all Node.js applications with PM2"
+      },
+      "contextName": "__run_4",
+      "inputs": {
+        "type": 2,
+        "map": [
+          {
+            "key": "script",
+            "value": {
+              "type": 0,
+              "file": 1,
+              "line": 33,
+              "col": 14,
+              "lit": "pm2 start prod.js --name \"prod-service\" --watch --ignore-watch \"node_modules\"\npm2 start grpo.js --name \"grpo-service\" --watch --ignore-watch \"node_modules\"\npm2 start guling.js --name \"guling-service\" --watch --ignore-watch \"node_modules\"\npm2 start retur.js --name \"retur-service\" --watch --ignore-watch \"node_modules\"\npm2 start rijek.js --name \"rijek-service\" --watch --ignore-watch \"node_modules\"\npm2 start sto.js --name \"sto-service\" --watch --ignore-watch \"node_modules\"\npm2 start server.js --name \"server-service\" --watch --ignore-watch \"node_modules\"\n"
+            }
+          },
+          {
+            "key": "shell",
+            "value": {
+              "type": 0,
+              "file": 1,
+              "line": 41,
+              "col": 16,
+              "lit": "powershell"
+            }
+          }
+        ]
+      },
+      "condition": "success()",
+      "id": "6461dec8-c542-40e2-9b51-b933b472b203",
+      "name": "__run_4"
+    },
+    {
+      "type": "action",
+      "reference": {
+        "type": "script"
+      },
+      "displayNameToken": {
+        "type": 0,
+        "file": 1,
+        "line": 43,
+        "col": 15,
+        "lit": "Save PM2 process list"
+      },
+      "contextName": "__run_5",
+      "inputs": {
+        "type": 2,
+        "map": [
+          {
+            "key": "script",
+            "value": {
+              "type": 0,
+              "file": 1,
+              "line": 44,
+              "col": 14,
+              "lit": "pm2 save"
+            }
+          }
+        ]
+      },
+      "condition": "success()",
+      "id": "da5f932b-5806-4873-9288-2f7e48767c52",
+      "name": "__run_5"
+    },
+    {
+      "type": "action",
+      "reference": {
+        "type": "script"
+      },
+      "displayNameToken": {
+        "type": 0,
+        "file": 1,
+        "line": 46,
+        "col": 15,
+        "lit": "Show PM2 process status"
+      },
+      "contextName": "__run_6",
+      "inputs": {
+        "type": 2,
+        "map": [
+          {
+            "key": "script",
+            "value": {
+              "type": 0,
+              "file": 1,
+              "line": 47,
+              "col": 14,
+              "lit": "pm2 list"
+            }
+          }
+        ]
+      },
+      "condition": "success()",
+      "id": "10f9013e-cf97-4674-b499-d4437d72a61c",
+      "name": "__run_6"
+    }
+  ],
+  "variables": {
+    "Actions.EnableHttpRedirects": {
+      "value": "true"
+    },
+    "DistributedTask.AddWarningToNode12Action": {
+      "value": "true"
+    },
+    "DistributedTask.AddWarningToNode16Action": {
+      "value": "true"
+    },
+    "DistributedTask.AllowRunnerContainerHooks": {
+      "value": "true"
+    },
+    "DistributedTask.DeprecateStepOutputCommands": {
+      "value": "true"
+    },
+    "DistributedTask.DetailUntarFailure": {
+      "value": "true"
+    },
+    "DistributedTask.EnableCompositeActions": {
+      "value": "true"
+    },
+    "DistributedTask.EnableJobServerQueueTelemetry": {
+      "value": "true"
+    },
+    "DistributedTask.EnhancedAnnotations": {
+      "value": "true"
+    },
+    "DistributedTask.ForceGithubJavascriptActionsToNode16": {
+      "value": "true"
+    },
+    "DistributedTask.ForceGithubJavascriptActionsToNode20": {
+      "value": "true"
+    },
+    "DistributedTask.LogTemplateErrorsAsDebugMessages": {
+      "value": "true"
+    },
+    "DistributedTask.MarkJobAsFailedOnWorkerCrash": {
+      "value": "true"
+    },
+    "DistributedTask.NewActionMetadata": {
+      "value": "true"
+    },
+    "DistributedTask.UploadStepSummary": {
+      "value": "true"
+    },
+    "DistributedTask.UseActionArchiveCache": {
+      "value": "true"
+    },
+    "DistributedTask.UseWhich2": {
+      "value": "true"
+    },
+    "RunService.FixEmbeddedIssues": {
+      "value": "true"
+    },
+    "actions_add_check_run_id_to_job_context": {
+      "value": "false"
+    },
+    "actions_display_helpful_actions_download_errors": {
+      "value": "true"
+    },
+    "actions_skip_retry_complete_job_upon_known_errors": {
+      "value": "true"
+    },
+    "actions_uses_cache_service_v2": {
+      "value": "true"
+    },
+    "github_token": {
+      "value": "***",
+      "isSecret": true
+    },
+    "system.from_run_service": {
+      "value": "true"
+    },
+    "system.github.job": {
+      "value": "deploy"
+    },
+    "system.github.launch_endpoint": {
+      "value": "https://launch.actions.githubusercontent.com"
+    },
+    "system.github.results_endpoint": {
+      "value": "https://results-receiver.actions.githubusercontent.com/"
+    },
+    "system.github.results_upload_with_sdk": {
+      "value": "true"
+    },
+    "system.github.token": {
+      "value": "***",
+      "isSecret": true
+    },
+    "system.github.token.permissions": {
+      "value": "{\"Contents\":\"read\",\"Metadata\":\"read\",\"Packages\":\"read\"}"
+    },
+    "system.orchestrationId": {
+      "value": "2d115a08-ff56-40a8-9364-16042bd896f4.deploy.__default"
+    },
+    "system.phaseDisplayName": {
+      "value": "deploy"
+    },
+    "system.runner.lowdiskspacethreshold": {
+      "value": "100"
+    },
+    "system.runnerEnvironment": {
+      "value": "self-hosted"
+    },
+    "system.runnerGroupName": {
+      "value": "Default"
+    }
+  },
+  "messageType": "RunnerJobRequest",
+  "plan": {
+    "scopeIdentifier": "00000000-0000-0000-0000-000000000000",
+    "planType": "actions",
+    "version": 0,
+    "planId": "2d115a08-ff56-40a8-9364-16042bd896f4",
+    "planGroup": null,
+    "artifactUri": null,
+    "artifactLocation": null,
+    "definition": null,
+    "owner": null
+  },
+  "timeline": {
+    "id": "2d115a08-ff56-40a8-9364-16042bd896f4",
+    "changeId": 0,
+    "location": null
+  },
+  "jobId": "c0cc780a-0bf0-58ec-a3c0-f06d1556aa5e",
+  "jobDisplayName": "deploy",
+  "jobName": "__default",
+  "requestId": 0,
+  "lockedUntil": "0001-01-01T00:00:00",
+  "resources": {
+    "endpoints": [
+      {
+        "data": {
+          "ServerId": "",
+          "ServerName": "",
+          "CacheServerUrl": "https://artifactcache.actions.githubusercontent.com/OTqsuixwcDOeboiI5ELPh9vt0loVA9erSQMzHOLYofkfIDGeBX/",
+          "FeedStreamUrl": "wss://results-receiver.actions.githubusercontent.com/_ws/ingest.sock",
+          "ResultsServiceUrl": "https://results-receiver.actions.githubusercontent.com/",
+          "PipelinesServiceUrl": "https://pipelinesghubeus26.actions.githubusercontent.com/OTqsuixwcDOeboiI5ELPh9vt0loVA9erSQMzHOLYofkfIDGeBX/",
+          "GenerateIdTokenUrl": ""
+        },
+        "name": "SystemVssConnection",
+        "url": "https://run-actions-1-azure-eastus.actions.githubusercontent.com/22/",
+        "authorization": {
+          "parameters": {
+            "AccessToken": "***"
+          },
+          "scheme": "OAuth"
+        },
+        "isShared": false,
+        "isReady": true
+      }
+    ]
+  },
+  "contextData": {
+    "github": {
+      "t": 2,
+      "d": [
+        {
+          "k": "ref",
+          "v": "refs/heads/main"
+        },
+        {
+          "k": "sha",
+          "v": "b444521f89a12406b9f7750357d542a8450e9509"
+        },
+        {
+          "k": "repository",
+          "v": "jauharimalik/sapapi"
+        },
+        {
+          "k": "repository_owner",
+          "v": "jauharimalik"
+        },
+        {
+          "k": "repository_owner_id",
+          "v": "9219344"
+        },
+        {
+          "k": "repositoryUrl",
+          "v": "git://github.com/jauharimalik/sapapi.git"
+        },
+        {
+          "k": "run_id",
+          "v": "16904598370"
+        },
+        {
+          "k": "run_number",
+          "v": "43"
+        },
+        {
+          "k": "retention_days",
+          "v": "90"
+        },
+        {
+          "k": "run_attempt",
+          "v": "1"
+        },
+        {
+          "k": "artifact_cache_size_limit",
+          "v": "10"
+        },
+        {
+          "k": "repository_visibility",
+          "v": "public"
+        },
+        {
+          "k": "actor_id",
+          "v": "9219344"
+        },
+        {
+          "k": "actor",
+          "v": "jauharimalik"
+        },
+        {
+          "k": "workflow",
+          "v": "Deploy to csxpk"
+        },
+        {
+          "k": "head_ref",
+          "v": ""
+        },
+        {
+          "k": "base_ref",
+          "v": ""
+        },
+        {
+          "k": "event_name",
+          "v": "push"
+        },
+        {
+          "k": "server_url",
+          "v": "https://github.com"
+        },
+        {
+          "k": "api_url",
+          "v": "https://api.github.com"
+        },
+        {
+          "k": "graphql_url",
+          "v": "https://api.github.com/graphql"
+        },
+        {
+          "k": "ref_name",
+          "v": "main"
+        },
+        {
+          "k": "ref_protected",
+          "v": false
+        },
+        {
+          "k": "ref_type",
+          "v": "branch"
+        },
+        {
+          "k": "secret_source",
+          "v": "Actions"
+        },
+        {
+          "k": "event",
+          "v": {
+            "t": 2,
+            "d": [
+              {
+                "k": "after",
+                "v": "b444521f89a12406b9f7750357d542a8450e9509"
+              },
+              {
+                "k": "base_ref",
+                "v": null
+              },
+              {
+                "k": "before",
+                "v": "7682b115059bf29d274b50d2d07b7e860945872d"
+              },
+              {
+                "k": "commits",
+                "v": {
+                  "t": 1,
+                  "a": [
+                    {
+                      "t": 2,
+                      "d": [
+                        {
+                          "k": "author",
+                          "v": {
+                            "t": 2,
+                            "d": [
+                              {
+                                "k": "email",
+                                "v": "jauharimalikupil@gmail.com"
+                              },
+                              {
+                                "k": "name",
+                                "v": "unknown"
+                              },
+                              {
+                                "k": "username",
+                                "v": "jauharimalik"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "k": "committer",
+                          "v": {
+                            "t": 2,
+                            "d": [
+                              {
+                                "k": "email",
+                                "v": "jauharimalikupil@gmail.com"
+                              },
+                              {
+                                "k": "name",
+                                "v": "unknown"
+                              },
+                              {
+                                "k": "username",
+                                "v": "jauharimalik"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "k": "distinct",
+                          "v": true
+                        },
+                        {
+                          "k": "id",
+                          "v": "b444521f89a12406b9f7750357d542a8450e9509"
+                        },
+                        {
+                          "k": "message",
+                          "v": "selesai assembly"
+                        },
+                        {
+                          "k": "timestamp",
+                          "v": "2025-08-12T16:20:32+07:00"
+                        },
+                        {
+                          "k": "tree_id",
+                          "v": "ac6051ac1fcbfabfe2b4cf96ffef3d7c43e43156"
+                        },
+                        {
+                          "k": "url",
+                          "v": "https://github.com/jauharimalik/sapapi/commit/b444521f89a12406b9f7750357d542a8450e9509"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "k": "compare",
+                "v": "https://github.com/jauharimalik/sapapi/compare/7682b115059b...b444521f89a1"
+              },
+              {
+                "k": "created",
+                "v": false
+              },
+              {
+                "k": "deleted",
+                "v": false
+              },
+              {
+                "k": "forced",
+                "v": false
+              },
+              {
+                "k": "head_commit",
+                "v": {
+                  "t": 2,
+                  "d": [
+                    {
+                      "k": "author",
+                      "v": {
+                        "t": 2,
+                        "d": [
+                          {
+                            "k": "email",
+                            "v": "jauharimalikupil@gmail.com"
+                          },
+                          {
+                            "k": "name",
+                            "v": "unknown"
+                          },
+                          {
+                            "k": "username",
+                            "v": "jauharimalik"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "k": "committer",
+                      "v": {
+                        "t": 2,
+                        "d": [
+                          {
+                            "k": "email",
+                            "v": "jauharimalikupil@gmail.com"
+                          },
+                          {
+                            "k": "name",
+                            "v": "unknown"
+                          },
+                          {
+                            "k": "username",
+                            "v": "jauharimalik"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "k": "distinct",
+                      "v": true
+                    },
+                    {
+                      "k": "id",
+                      "v": "b444521f89a12406b9f7750357d542a8450e9509"
+                    },
+                    {
+                      "k": "message",
+                      "v": "selesai assembly"
+                    },
+                    {
+                      "k": "timestamp",
+                      "v": "2025-08-12T16:20:32+07:00"
+                    },
+                    {
+                      "k": "tree_id",
+                      "v": "ac6051ac1fcbfabfe2b4cf96ffef3d7c43e43156"
+                    },
+                    {
+                      "k": "url",
+                      "v": "https://github.com/jauharimalik/sapapi/commit/b444521f89a12406b9f7750357d542a8450e9509"
+                    }
+                  ]
+                }
+              },
+              {
+                "k": "pusher",
+                "v": {
+                  "t": 2,
+                  "d": [
+                    {
+                      "k": "email",
+                      "v": "jauharimalikupil@gmail.com"
+                    },
+                    {
+                      "k": "name",
+                      "v": "jauharimalik"
+                    }
+                  ]
+                }
+              },
+              {
+                "k": "ref",
+                "v": "refs/heads/main"
+              },
+              {
+                "k": "repository",
+                "v": {
+                  "t": 2,
+                  "d": [
+                    {
+                      "k": "allow_forking",
+                      "v": true
+                    },
+                    {
+                      "k": "archive_url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi/{archive_format}{/ref}"
+                    },
+                    {
+                      "k": "archived",
+                      "v": false
+                    },
+                    {
+                      "k": "assignees_url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi/assignees{/user}"
+                    },
+                    {
+                      "k": "blobs_url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi/git/blobs{/sha}"
+                    },
+                    {
+                      "k": "branches_url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi/branches{/branch}"
+                    },
+                    {
+                      "k": "clone_url",
+                      "v": "https://github.com/jauharimalik/sapapi.git"
+                    },
+                    {
+                      "k": "collaborators_url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi/collaborators{/collaborator}"
+                    },
+                    {
+                      "k": "comments_url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi/comments{/number}"
+                    },
+                    {
+                      "k": "commits_url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi/commits{/sha}"
+                    },
+                    {
+                      "k": "compare_url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi/compare/{base}...{head}"
+                    },
+                    {
+                      "k": "contents_url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi/contents/{+path}"
+                    },
+                    {
+                      "k": "contributors_url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi/contributors"
+                    },
+                    {
+                      "k": "created_at",
+                      "v": 1754292236.0
+                    },
+                    {
+                      "k": "default_branch",
+                      "v": "main"
+                    },
+                    {
+                      "k": "deployments_url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi/deployments"
+                    },
+                    {
+                      "k": "description",
+                      "v": null
+                    },
+                    {
+                      "k": "disabled",
+                      "v": false
+                    },
+                    {
+                      "k": "downloads_url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi/downloads"
+                    },
+                    {
+                      "k": "events_url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi/events"
+                    },
+                    {
+                      "k": "fork",
+                      "v": false
+                    },
+                    {
+                      "k": "forks",
+                      "v": 0.0
+                    },
+                    {
+                      "k": "forks_count",
+                      "v": 0.0
+                    },
+                    {
+                      "k": "forks_url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi/forks"
+                    },
+                    {
+                      "k": "full_name",
+                      "v": "jauharimalik/sapapi"
+                    },
+                    {
+                      "k": "git_commits_url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi/git/commits{/sha}"
+                    },
+                    {
+                      "k": "git_refs_url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi/git/refs{/sha}"
+                    },
+                    {
+                      "k": "git_tags_url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi/git/tags{/sha}"
+                    },
+                    {
+                      "k": "git_url",
+                      "v": "git://github.com/jauharimalik/sapapi.git"
+                    },
+                    {
+                      "k": "has_discussions",
+                      "v": false
+                    },
+                    {
+                      "k": "has_downloads",
+                      "v": true
+                    },
+                    {
+                      "k": "has_issues",
+                      "v": true
+                    },
+                    {
+                      "k": "has_pages",
+                      "v": false
+                    },
+                    {
+                      "k": "has_projects",
+                      "v": true
+                    },
+                    {
+                      "k": "has_wiki",
+                      "v": true
+                    },
+                    {
+                      "k": "homepage",
+                      "v": null
+                    },
+                    {
+                      "k": "hooks_url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi/hooks"
+                    },
+                    {
+                      "k": "html_url",
+                      "v": "https://github.com/jauharimalik/sapapi"
+                    },
+                    {
+                      "k": "id",
+                      "v": 1031688394.0
+                    },
+                    {
+                      "k": "is_template",
+                      "v": false
+                    },
+                    {
+                      "k": "issue_comment_url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi/issues/comments{/number}"
+                    },
+                    {
+                      "k": "issue_events_url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi/issues/events{/number}"
+                    },
+                    {
+                      "k": "issues_url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi/issues{/number}"
+                    },
+                    {
+                      "k": "keys_url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi/keys{/key_id}"
+                    },
+                    {
+                      "k": "labels_url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi/labels{/name}"
+                    },
+                    {
+                      "k": "language",
+                      "v": "JavaScript"
+                    },
+                    {
+                      "k": "languages_url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi/languages"
+                    },
+                    {
+                      "k": "license",
+                      "v": null
+                    },
+                    {
+                      "k": "master_branch",
+                      "v": "main"
+                    },
+                    {
+                      "k": "merges_url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi/merges"
+                    },
+                    {
+                      "k": "milestones_url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi/milestones{/number}"
+                    },
+                    {
+                      "k": "mirror_url",
+                      "v": null
+                    },
+                    {
+                      "k": "name",
+                      "v": "sapapi"
+                    },
+                    {
+                      "k": "node_id",
+                      "v": "R_kgDOPX5Qyg"
+                    },
+                    {
+                      "k": "notifications_url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi/notifications{?since,all,participating}"
+                    },
+                    {
+                      "k": "open_issues",
+                      "v": 0.0
+                    },
+                    {
+                      "k": "open_issues_count",
+                      "v": 0.0
+                    },
+                    {
+                      "k": "owner",
+                      "v": {
+                        "t": 2,
+                        "d": [
+                          {
+                            "k": "avatar_url",
+                            "v": "https://avatars.githubusercontent.com/u/9219344?v=4"
+                          },
+                          {
+                            "k": "email",
+                            "v": "jauharimalikupil@gmail.com"
+                          },
+                          {
+                            "k": "events_url",
+                            "v": "https://api.github.com/users/jauharimalik/events{/privacy}"
+                          },
+                          {
+                            "k": "followers_url",
+                            "v": "https://api.github.com/users/jauharimalik/followers"
+                          },
+                          {
+                            "k": "following_url",
+                            "v": "https://api.github.com/users/jauharimalik/following{/other_user}"
+                          },
+                          {
+                            "k": "gists_url",
+                            "v": "https://api.github.com/users/jauharimalik/gists{/gist_id}"
+                          },
+                          {
+                            "k": "gravatar_id",
+                            "v": ""
+                          },
+                          {
+                            "k": "html_url",
+                            "v": "https://github.com/jauharimalik"
+                          },
+                          {
+                            "k": "id",
+                            "v": 9219344.0
+                          },
+                          {
+                            "k": "login",
+                            "v": "jauharimalik"
+                          },
+                          {
+                            "k": "name",
+                            "v": "jauharimalik"
+                          },
+                          {
+                            "k": "node_id",
+                            "v": "MDQ6VXNlcjkyMTkzNDQ="
+                          },
+                          {
+                            "k": "organizations_url",
+                            "v": "https://api.github.com/users/jauharimalik/orgs"
+                          },
+                          {
+                            "k": "received_events_url",
+                            "v": "https://api.github.com/users/jauharimalik/received_events"
+                          },
+                          {
+                            "k": "repos_url",
+                            "v": "https://api.github.com/users/jauharimalik/repos"
+                          },
+                          {
+                            "k": "site_admin",
+                            "v": false
+                          },
+                          {
+                            "k": "starred_url",
+                            "v": "https://api.github.com/users/jauharimalik/starred{/owner}{/repo}"
+                          },
+                          {
+                            "k": "subscriptions_url",
+                            "v": "https://api.github.com/users/jauharimalik/subscriptions"
+                          },
+                          {
+                            "k": "type",
+                            "v": "User"
+                          },
+                          {
+                            "k": "url",
+                            "v": "https://api.github.com/users/jauharimalik"
+                          },
+                          {
+                            "k": "user_view_type",
+                            "v": "public"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "k": "private",
+                      "v": false
+                    },
+                    {
+                      "k": "pulls_url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi/pulls{/number}"
+                    },
+                    {
+                      "k": "pushed_at",
+                      "v": 1754990444.0
+                    },
+                    {
+                      "k": "releases_url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi/releases{/id}"
+                    },
+                    {
+                      "k": "size",
+                      "v": 177363.0
+                    },
+                    {
+                      "k": "ssh_url",
+                      "v": "git@github.com:jauharimalik/sapapi.git"
+                    },
+                    {
+                      "k": "stargazers",
+                      "v": 0.0
+                    },
+                    {
+                      "k": "stargazers_count",
+                      "v": 0.0
+                    },
+                    {
+                      "k": "stargazers_url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi/stargazers"
+                    },
+                    {
+                      "k": "statuses_url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi/statuses/{sha}"
+                    },
+                    {
+                      "k": "subscribers_url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi/subscribers"
+                    },
+                    {
+                      "k": "subscription_url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi/subscription"
+                    },
+                    {
+                      "k": "svn_url",
+                      "v": "https://github.com/jauharimalik/sapapi"
+                    },
+                    {
+                      "k": "tags_url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi/tags"
+                    },
+                    {
+                      "k": "teams_url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi/teams"
+                    },
+                    {
+                      "k": "topics",
+                      "v": {
+                        "t": 1
+                      }
+                    },
+                    {
+                      "k": "trees_url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi/git/trees{/sha}"
+                    },
+                    {
+                      "k": "updated_at",
+                      "v": "2025-08-12T08:00:56Z"
+                    },
+                    {
+                      "k": "url",
+                      "v": "https://api.github.com/repos/jauharimalik/sapapi"
+                    },
+                    {
+                      "k": "visibility",
+                      "v": "public"
+                    },
+                    {
+                      "k": "watchers",
+                      "v": 0.0
+                    },
+                    {
+                      "k": "watchers_count",
+                      "v": 0.0
+                    },
+                    {
+                      "k": "web_commit_signoff_required",
+                      "v": false
+                    }
+                  ]
+                }
+              },
+              {
+                "k": "sender",
+                "v": {
+                  "t": 2,
+                  "d": [
+                    {
+                      "k": "avatar_url",
+                      "v": "https://avatars.githubusercontent.com/u/9219344?v=4"
+                    },
+                    {
+                      "k": "events_url",
+                      "v": "https://api.github.com/users/jauharimalik/events{/privacy}"
+                    },
+                    {
+                      "k": "followers_url",
+                      "v": "https://api.github.com/users/jauharimalik/followers"
+                    },
+                    {
+                      "k": "following_url",
+                      "v": "https://api.github.com/users/jauharimalik/following{/other_user}"
+                    },
+                    {
+                      "k": "gists_url",
+                      "v": "https://api.github.com/users/jauharimalik/gists{/gist_id}"
+                    },
+                    {
+                      "k": "gravatar_id",
+                      "v": ""
+                    },
+                    {
+                      "k": "html_url",
+                      "v": "https://github.com/jauharimalik"
+                    },
+                    {
+                      "k": "id",
+                      "v": 9219344.0
+                    },
+                    {
+                      "k": "login",
+                      "v": "jauharimalik"
+                    },
+                    {
+                      "k": "node_id",
+                      "v": "MDQ6VXNlcjkyMTkzNDQ="
+                    },
+                    {
+                      "k": "organizations_url",
+                      "v": "https://api.github.com/users/jauharimalik/orgs"
+                    },
+                    {
+                      "k": "received_events_url",
+                      "v": "https://api.github.com/users/jauharimalik/received_events"
+                    },
+                    {
+                      "k": "repos_url",
+                      "v": "https://api.github.com/users/jauharimalik/repos"
+                    },
+                    {
+                      "k": "site_admin",
+                      "v": false
+                    },
+                    {
+                      "k": "starred_url",
+                      "v": "https://api.github.com/users/jauharimalik/starred{/owner}{/repo}"
+                    },
+                    {
+                      "k": "subscriptions_url",
+                      "v": "https://api.github.com/users/jauharimalik/subscriptions"
+                    },
+                    {
+                      "k": "type",
+                      "v": "User"
+                    },
+                    {
+                      "k": "url",
+                      "v": "https://api.github.com/users/jauharimalik"
+                    },
+                    {
+                      "k": "user_view_type",
+                      "v": "public"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "k": "workflow_ref",
+          "v": "jauharimalik/sapapi/.github/workflows/deploy.yml@refs/heads/main"
+        },
+        {
+          "k": "workflow_sha",
+          "v": "b444521f89a12406b9f7750357d542a8450e9509"
+        },
+        {
+          "k": "repository_id",
+          "v": "1031688394"
+        },
+        {
+          "k": "triggering_actor",
+          "v": "jauharimalik"
+        }
+      ]
+    },
+    "inputs": {
+      "t": 2
+    },
+    "matrix": null,
+    "needs": {
+      "t": 2
+    },
+    "strategy": {
+      "t": 2,
+      "d": [
+        {
+          "k": "fail-fast",
+          "v": true
+        },
+        {
+          "k": "job-index",
+          "v": 0.0
+        },
+        {
+          "k": "job-total",
+          "v": 1.0
+        },
+        {
+          "k": "max-parallel",
+          "v": 1.0
+        }
+      ]
+    },
+    "vars": {
+      "t": 2
+    }
+  },
+  "billingOwnerId": "U_kgDOAIytEA"
+}
+[2025-08-12 09:20:50Z INFO JobRunner] Job ID c0cc780a-0bf0-58ec-a3c0-f06d1556aa5e
+[2025-08-12 09:20:50Z INFO ConfigurationStore] currentAssemblyLocation: C:\laragon\www\sapapi\action-runner\bin\Runner.Worker.dll
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:50Z INFO ConfigurationStore] binPath: C:\laragon\www\sapapi\action-runner\bin
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:50Z INFO ConfigurationStore] RootFolder: C:\laragon\www\sapapi\action-runner
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:50Z INFO HostContext] Well known config file 'Runner': 'C:\laragon\www\sapapi\action-runner\.runner'
+[2025-08-12 09:20:50Z INFO ConfigurationStore] ConfigFilePath: C:\laragon\www\sapapi\action-runner\.runner
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:50Z INFO HostContext] Well known config file 'MigratedRunner': 'C:\laragon\www\sapapi\action-runner\.runner_migrated'
+[2025-08-12 09:20:50Z INFO ConfigurationStore] MigratedConfigFilePath: C:\laragon\www\sapapi\action-runner\.runner_migrated
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:50Z INFO HostContext] Well known config file 'Credentials': 'C:\laragon\www\sapapi\action-runner\.credentials'
+[2025-08-12 09:20:50Z INFO ConfigurationStore] CredFilePath: C:\laragon\www\sapapi\action-runner\.credentials
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:50Z INFO HostContext] Well known config file 'MigratedCredentials': 'C:\laragon\www\sapapi\action-runner\.credentials_migrated'
+[2025-08-12 09:20:50Z INFO ConfigurationStore] MigratedCredFilePath: C:\laragon\www\sapapi\action-runner\.credentials_migrated
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:50Z INFO HostContext] Well known config file 'Service': 'C:\laragon\www\sapapi\action-runner\.service'
+[2025-08-12 09:20:50Z INFO ConfigurationStore] ServiceConfigFilePath: C:\laragon\www\sapapi\action-runner\.service
+[2025-08-12 09:20:50Z INFO ConfigurationStore] Read setting file: 386 chars
+[2025-08-12 09:20:50Z INFO JobRunner] Initializing launch client
+[2025-08-12 09:20:50Z INFO JobServerQueue] Initializing results client
+[2025-08-12 09:20:50Z INFO ResultServer] Creating websocket client ...wss://results-receiver.actions.githubusercontent.com/_ws/ingest.sock
+[2025-08-12 09:20:50Z INFO ResultServer] Attempting to start websocket client with delay 00:00:00.
+[2025-08-12 09:20:50Z INFO JobServerQueue] Start process web console line queue.
+[2025-08-12 09:20:50Z INFO JobServerQueue] Start process file upload queue.
+[2025-08-12 09:20:50Z INFO JobServerQueue] Start results file upload queue.
+[2025-08-12 09:20:50Z INFO JobServerQueue] Starting results-based upload queue...
+[2025-08-12 09:20:50Z INFO JobServerQueue] Start process timeline update queue.
+[2025-08-12 09:20:50Z INFO ExecutionContext] Initializing Job context
+[2025-08-12 09:20:50Z INFO ExecutionContext] Initialize GitHub context
+[2025-08-12 09:20:50Z INFO ExecutionContext] Initialize Env context
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Diag': 'C:\laragon\www\sapapi\action-runner\_diag'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Diag': 'C:\laragon\www\sapapi\action-runner\_diag'
+[2025-08-12 09:20:50Z INFO JobRunner] Starting the job execution context.
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:20:50Z INFO JobRunner] Validating directory permissions for: 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Tools': 'C:\laragon\www\sapapi\action-runner\_work\_tool'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Temp': 'C:\laragon\www\sapapi\action-runner\_work\_temp'
+[2025-08-12 09:20:50Z INFO JobRunner] Getting job extension.
+[2025-08-12 09:20:50Z INFO JobRunner] Initialize job. Getting all job steps.
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Diag': 'C:\laragon\www\sapapi\action-runner\_diag'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Diag': 'C:\laragon\www\sapapi\action-runner\_diag'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:50Z INFO HostContext] Well known config file 'Credentials': 'C:\laragon\www\sapapi\action-runner\.credentials'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:50Z INFO HostContext] Well known config file 'SetupInfo': 'C:\laragon\www\sapapi\action-runner\.setup_info'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:20:50Z INFO PipelineDirectoryManager] Loading tracking config if exists: C:\laragon\www\sapapi\action-runner\_work\_PipelineMapping\jauharimalik/sapapi\PipelineFolder.json
+[2025-08-12 09:20:50Z INFO PipelineDirectoryManager] Updating job run properties.
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:20:50Z INFO JobExtension] Downloading actions
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:20:50Z INFO HostContext] Well known directory 'Actions': 'C:\laragon\www\sapapi\action-runner\_work\_actions'
+[2025-08-12 09:20:50Z INFO Worker] Listening for cancel message from the channel.
+[2025-08-12 09:20:50Z INFO Worker] Waiting for the job to complete or for a cancel message from the channel.
+[2025-08-12 09:20:51Z INFO ResultServer] Successfully started websocket client.
+[2025-08-12 09:20:51Z INFO JobServerQueue] Try to append 1 batches web console lines for record '0c82685e-f9aa-4578-85fc-9b13b29dcd0c', success rate: 1/1.
+[2025-08-12 09:20:51Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:51Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:51Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:20:51Z INFO HostContext] Well known directory 'Actions': 'C:\laragon\www\sapapi\action-runner\_work\_actions'
+[2025-08-12 09:20:51Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:51Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:51Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:20:51Z INFO HostContext] Well known directory 'Actions': 'C:\laragon\www\sapapi\action-runner\_work\_actions'
+[2025-08-12 09:20:51Z INFO ActionManager] Save archive 'https://api.github.com/repos/actions/checkout/zipball/08eba0b27e820071cde6df949e0beb9ba4906955' into C:\laragon\www\sapapi\action-runner\_work\_actions\_temp_536cdfb4-f061-4687-9e78-93b5c5260c62\6d270c1b-39f2-4cd2-ac0f-3282ae0e1629.zip.
+[2025-08-12 09:20:51Z INFO JobServerQueue] Try to append 1 batches web console lines for record '0c82685e-f9aa-4578-85fc-9b13b29dcd0c', success rate: 1/1.
+[2025-08-12 09:20:51Z INFO JobServerQueue] Job timeline record has been updated for the first time.
+[2025-08-12 09:20:52Z INFO ActionManager] Request URL: https://api.github.com/repos/actions/checkout/zipball/08eba0b27e820071cde6df949e0beb9ba4906955 X-GitHub-Request-Id: 61CD:32E37A:3E27A:B65DB:689B0776 Http Status: OK
+[2025-08-12 09:20:53Z INFO ActionManager] Finished getting action repository.
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Actions': 'C:\laragon\www\sapapi\action-runner\_work\_actions'
+[2025-08-12 09:20:53Z INFO ActionManifestManager] Load schema file with definitions: [
+  "null",
+  "boolean",
+  "number",
+  "string",
+  "sequence",
+  "mapping",
+  "any",
+  "action-root",
+  "inputs",
+  "input",
+  "outputs",
+  "output-definition",
+  "runs",
+  "container-runs",
+  "container-runs-args",
+  "container-runs-env",
+  "node-runs",
+  "plugin-runs",
+  "composite-runs",
+  "composite-steps",
+  "composite-step",
+  "run-step",
+  "uses-step",
+  "container-runs-context",
+  "output-value",
+  "input-default-context",
+  "non-empty-string",
+  "string-steps-context",
+  "boolean-steps-context",
+  "step-env",
+  "step-if",
+  "step-with"
+]
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Actions': 'C:\laragon\www\sapapi\action-runner\_work\_actions'
+[2025-08-12 09:20:53Z INFO ActionManifestManager] Loaded action.yml file: {
+  "name": "Checkout",
+  "description": "Checkout a Git repository at a particular version",
+  "inputs": {
+    "type": 2,
+    "map": [
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 4,
+          "col": 3,
+          "lit": "repository"
+        },
+        "value": {
+          "type": 3,
+          "file": 2,
+          "line": 6,
+          "col": 14,
+          "expr": "github.repository"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 7,
+          "col": 3,
+          "lit": "ref"
+        },
+        "value": ""
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 12,
+          "col": 3,
+          "lit": "token"
+        },
+        "value": {
+          "type": 3,
+          "file": 2,
+          "line": 24,
+          "col": 14,
+          "expr": "github.token"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 25,
+          "col": 3,
+          "lit": "ssh-key"
+        },
+        "value": ""
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 37,
+          "col": 3,
+          "lit": "ssh-known-hosts"
+        },
+        "value": ""
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 42,
+          "col": 3,
+          "lit": "ssh-strict"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 47,
+          "col": 14,
+          "lit": "true"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 48,
+          "col": 3,
+          "lit": "ssh-user"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 51,
+          "col": 14,
+          "lit": "git"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 52,
+          "col": 3,
+          "lit": "persist-credentials"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 54,
+          "col": 14,
+          "lit": "true"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 55,
+          "col": 3,
+          "lit": "path"
+        },
+        "value": ""
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 57,
+          "col": 3,
+          "lit": "clean"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 59,
+          "col": 14,
+          "lit": "true"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 60,
+          "col": 3,
+          "lit": "filter"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 64,
+          "col": 14,
+          "lit": ""
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 65,
+          "col": 3,
+          "lit": "sparse-checkout"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 69,
+          "col": 14,
+          "lit": ""
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 70,
+          "col": 3,
+          "lit": "sparse-checkout-cone-mode"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 73,
+          "col": 14,
+          "lit": "true"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 74,
+          "col": 3,
+          "lit": "fetch-depth"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 76,
+          "col": 14,
+          "lit": "1"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 77,
+          "col": 3,
+          "lit": "fetch-tags"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 79,
+          "col": 14,
+          "lit": "false"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 80,
+          "col": 3,
+          "lit": "show-progress"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 82,
+          "col": 14,
+          "lit": "true"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 83,
+          "col": 3,
+          "lit": "lfs"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 85,
+          "col": 14,
+          "lit": "false"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 86,
+          "col": 3,
+          "lit": "submodules"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 94,
+          "col": 14,
+          "lit": "false"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 95,
+          "col": 3,
+          "lit": "set-safe-directory"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 97,
+          "col": 14,
+          "lit": "true"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 98,
+          "col": 3,
+          "lit": "github-server-url"
+        },
+        "value": ""
+      }
+    ]
+  },
+  "execution": {
+    "executionType": "nodeJS",
+    "hasPre": false,
+    "hasPost": true,
+    "script": "dist/index.js",
+    "pre": null,
+    "post": "dist/index.js",
+    "nodeVersion": "node20",
+    "cleanupCondition": "always()",
+    "initCondition": "always()"
+  },
+  "deprecated": null
+}
+[2025-08-12 09:20:53Z INFO ActionManager] Action node.js file: dist/index.js, no more preparation.
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Actions': 'C:\laragon\www\sapapi\action-runner\_work\_actions'
+[2025-08-12 09:20:53Z INFO ActionManager] Load action that reference repository from 'C:\laragon\www\sapapi\action-runner\_work\_actions\actions\checkout\v4'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Actions': 'C:\laragon\www\sapapi\action-runner\_work\_actions'
+[2025-08-12 09:20:53Z INFO ActionManifestManager] Loaded action.yml file: {
+  "name": "Checkout",
+  "description": "Checkout a Git repository at a particular version",
+  "inputs": {
+    "type": 2,
+    "map": [
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 4,
+          "col": 3,
+          "lit": "repository"
+        },
+        "value": {
+          "type": 3,
+          "file": 2,
+          "line": 6,
+          "col": 14,
+          "expr": "github.repository"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 7,
+          "col": 3,
+          "lit": "ref"
+        },
+        "value": ""
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 12,
+          "col": 3,
+          "lit": "token"
+        },
+        "value": {
+          "type": 3,
+          "file": 2,
+          "line": 24,
+          "col": 14,
+          "expr": "github.token"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 25,
+          "col": 3,
+          "lit": "ssh-key"
+        },
+        "value": ""
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 37,
+          "col": 3,
+          "lit": "ssh-known-hosts"
+        },
+        "value": ""
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 42,
+          "col": 3,
+          "lit": "ssh-strict"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 47,
+          "col": 14,
+          "lit": "true"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 48,
+          "col": 3,
+          "lit": "ssh-user"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 51,
+          "col": 14,
+          "lit": "git"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 52,
+          "col": 3,
+          "lit": "persist-credentials"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 54,
+          "col": 14,
+          "lit": "true"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 55,
+          "col": 3,
+          "lit": "path"
+        },
+        "value": ""
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 57,
+          "col": 3,
+          "lit": "clean"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 59,
+          "col": 14,
+          "lit": "true"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 60,
+          "col": 3,
+          "lit": "filter"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 64,
+          "col": 14,
+          "lit": ""
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 65,
+          "col": 3,
+          "lit": "sparse-checkout"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 69,
+          "col": 14,
+          "lit": ""
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 70,
+          "col": 3,
+          "lit": "sparse-checkout-cone-mode"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 73,
+          "col": 14,
+          "lit": "true"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 74,
+          "col": 3,
+          "lit": "fetch-depth"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 76,
+          "col": 14,
+          "lit": "1"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 77,
+          "col": 3,
+          "lit": "fetch-tags"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 79,
+          "col": 14,
+          "lit": "false"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 80,
+          "col": 3,
+          "lit": "show-progress"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 82,
+          "col": 14,
+          "lit": "true"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 83,
+          "col": 3,
+          "lit": "lfs"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 85,
+          "col": 14,
+          "lit": "false"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 86,
+          "col": 3,
+          "lit": "submodules"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 94,
+          "col": 14,
+          "lit": "false"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 95,
+          "col": 3,
+          "lit": "set-safe-directory"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 97,
+          "col": 14,
+          "lit": "true"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 98,
+          "col": 3,
+          "lit": "github-server-url"
+        },
+        "value": ""
+      }
+    ]
+  },
+  "execution": {
+    "executionType": "nodeJS",
+    "hasPre": false,
+    "hasPost": true,
+    "script": "dist/index.js",
+    "pre": null,
+    "post": "dist/index.js",
+    "nodeVersion": "node20",
+    "cleanupCondition": "always()",
+    "initCondition": "always()"
+  },
+  "deprecated": null
+}
+[2025-08-12 09:20:53Z INFO ActionManager] Action pre node.js file: N/A.
+[2025-08-12 09:20:53Z INFO ActionManager] Action node.js file: dist/index.js.
+[2025-08-12 09:20:53Z INFO ActionManager] Action post node.js file: dist/index.js.
+[2025-08-12 09:20:53Z INFO JobExtension] Adding .
+[2025-08-12 09:20:53Z INFO JobExtension] Adding .
+[2025-08-12 09:20:53Z INFO JobExtension] Adding .
+[2025-08-12 09:20:53Z INFO JobExtension] Adding .
+[2025-08-12 09:20:53Z INFO JobExtension] Adding .
+[2025-08-12 09:20:53Z INFO JobExtension] Adding .
+[2025-08-12 09:20:53Z INFO JobExtension] Adding .
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Diag': 'C:\laragon\www\sapapi\action-runner\_diag'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Diag': 'C:\laragon\www\sapapi\action-runner\_diag'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Diag': 'C:\laragon\www\sapapi\action-runner\_diag'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Diag': 'C:\laragon\www\sapapi\action-runner\_diag'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Diag': 'C:\laragon\www\sapapi\action-runner\_diag'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Diag': 'C:\laragon\www\sapapi\action-runner\_diag'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Diag': 'C:\laragon\www\sapapi\action-runner\_diag'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Diag': 'C:\laragon\www\sapapi\action-runner\_diag'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Diag': 'C:\laragon\www\sapapi\action-runner\_diag'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Diag': 'C:\laragon\www\sapapi\action-runner\_diag'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Diag': 'C:\laragon\www\sapapi\action-runner\_diag'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Diag': 'C:\laragon\www\sapapi\action-runner\_diag'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Diag': 'C:\laragon\www\sapapi\action-runner\_diag'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Diag': 'C:\laragon\www\sapapi\action-runner\_diag'
+[2025-08-12 09:20:53Z INFO JobExtension] Total accessible running process: 395.
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:20:53Z INFO JobExtension] Start checking service connectivity in background.
+[2025-08-12 09:20:53Z INFO ExecutionContext] Publish step telemetry for current step {
+  "action": "setup_job",
+  "type": "runner",
+  "stage": "Pre",
+  "stepId": "0c82685e-f9aa-4578-85fc-9b13b29dcd0c",
+  "result": "succeeded",
+  "errorMessages": [],
+  "executionTimeInSeconds": 4,
+  "startTime": "2025-08-12T09:20:50.3026404Z",
+  "finishTime": "2025-08-12T09:20:53.4398632Z"
+}.
+[2025-08-12 09:20:53Z INFO JobRunner] Total job steps: 7.
+[2025-08-12 09:20:53Z INFO JobRunner] Run all job steps.
+[2025-08-12 09:20:53Z INFO StepsRunner] Processing step: DisplayName='Checkout repository'
+[2025-08-12 09:20:53Z INFO StepsRunner] Evaluating: success()
+[2025-08-12 09:20:53Z INFO StepsRunner] Result: true
+[2025-08-12 09:20:53Z INFO StepsRunner] Starting the step.
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:20:53Z INFO JobServerQueue] Try to append 1 batches web console lines for record '0c82685e-f9aa-4578-85fc-9b13b29dcd0c', success rate: 1/1.
+[2025-08-12 09:20:53Z INFO StepsRunner] Which2: 'chcp'
+[2025-08-12 09:20:53Z INFO StepsRunner] Location: 'C:\Windows\system32\chcp.COM'
+[2025-08-12 09:20:53Z INFO ProcessInvokerWrapper] Starting process:
+[2025-08-12 09:20:53Z INFO ProcessInvokerWrapper]   File name: 'C:\Windows\system32\chcp.COM'
+[2025-08-12 09:20:53Z INFO ProcessInvokerWrapper]   Arguments: '65001'
+[2025-08-12 09:20:53Z INFO ProcessInvokerWrapper]   Working directory: 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:20:53Z INFO ProcessInvokerWrapper]   Require exit code zero: 'False'
+[2025-08-12 09:20:53Z INFO ProcessInvokerWrapper]   Encoding web name:  ; code page: ''
+[2025-08-12 09:20:53Z INFO ProcessInvokerWrapper]   Force kill process on cancellation: 'False'
+[2025-08-12 09:20:53Z INFO ProcessInvokerWrapper]   Redirected STDIN: 'False'
+[2025-08-12 09:20:53Z INFO ProcessInvokerWrapper]   Persist current code page: 'True'
+[2025-08-12 09:20:53Z INFO ProcessInvokerWrapper]   Keep redirected STDIN open: 'False'
+[2025-08-12 09:20:53Z INFO ProcessInvokerWrapper]   High priority process: 'False'
+[2025-08-12 09:20:53Z INFO ProcessInvokerWrapper] Process started with process id 39100, waiting for process exit.
+[2025-08-12 09:20:53Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
+[2025-08-12 09:20:53Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
+[2025-08-12 09:20:53Z INFO ProcessInvokerWrapper] Finished process 39100 with exit code 0, and elapsed time 00:00:00.0113949.
+[2025-08-12 09:20:53Z INFO StepsRunner] Successfully returned to code page 65001 (UTF8)
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Actions': 'C:\laragon\www\sapapi\action-runner\_work\_actions'
+[2025-08-12 09:20:53Z INFO ActionManager] Load action that reference repository from 'C:\laragon\www\sapapi\action-runner\_work\_actions\actions\checkout\v4'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Actions': 'C:\laragon\www\sapapi\action-runner\_work\_actions'
+[2025-08-12 09:20:53Z INFO ActionManifestManager] Loaded action.yml file: {
+  "name": "Checkout",
+  "description": "Checkout a Git repository at a particular version",
+  "inputs": {
+    "type": 2,
+    "map": [
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 4,
+          "col": 3,
+          "lit": "repository"
+        },
+        "value": {
+          "type": 3,
+          "file": 2,
+          "line": 6,
+          "col": 14,
+          "expr": "github.repository"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 7,
+          "col": 3,
+          "lit": "ref"
+        },
+        "value": ""
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 12,
+          "col": 3,
+          "lit": "token"
+        },
+        "value": {
+          "type": 3,
+          "file": 2,
+          "line": 24,
+          "col": 14,
+          "expr": "github.token"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 25,
+          "col": 3,
+          "lit": "ssh-key"
+        },
+        "value": ""
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 37,
+          "col": 3,
+          "lit": "ssh-known-hosts"
+        },
+        "value": ""
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 42,
+          "col": 3,
+          "lit": "ssh-strict"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 47,
+          "col": 14,
+          "lit": "true"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 48,
+          "col": 3,
+          "lit": "ssh-user"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 51,
+          "col": 14,
+          "lit": "git"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 52,
+          "col": 3,
+          "lit": "persist-credentials"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 54,
+          "col": 14,
+          "lit": "true"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 55,
+          "col": 3,
+          "lit": "path"
+        },
+        "value": ""
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 57,
+          "col": 3,
+          "lit": "clean"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 59,
+          "col": 14,
+          "lit": "true"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 60,
+          "col": 3,
+          "lit": "filter"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 64,
+          "col": 14,
+          "lit": ""
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 65,
+          "col": 3,
+          "lit": "sparse-checkout"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 69,
+          "col": 14,
+          "lit": ""
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 70,
+          "col": 3,
+          "lit": "sparse-checkout-cone-mode"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 73,
+          "col": 14,
+          "lit": "true"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 74,
+          "col": 3,
+          "lit": "fetch-depth"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 76,
+          "col": 14,
+          "lit": "1"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 77,
+          "col": 3,
+          "lit": "fetch-tags"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 79,
+          "col": 14,
+          "lit": "false"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 80,
+          "col": 3,
+          "lit": "show-progress"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 82,
+          "col": 14,
+          "lit": "true"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 83,
+          "col": 3,
+          "lit": "lfs"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 85,
+          "col": 14,
+          "lit": "false"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 86,
+          "col": 3,
+          "lit": "submodules"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 94,
+          "col": 14,
+          "lit": "false"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 95,
+          "col": 3,
+          "lit": "set-safe-directory"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 97,
+          "col": 14,
+          "lit": "true"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 98,
+          "col": 3,
+          "lit": "github-server-url"
+        },
+        "value": ""
+      }
+    ]
+  },
+  "execution": {
+    "executionType": "nodeJS",
+    "hasPre": false,
+    "hasPost": true,
+    "script": "dist/index.js",
+    "pre": null,
+    "post": "dist/index.js",
+    "nodeVersion": "node20",
+    "cleanupCondition": "always()",
+    "initCondition": "always()"
+  },
+  "deprecated": null
+}
+[2025-08-12 09:20:53Z INFO ActionManager] Action pre node.js file: N/A.
+[2025-08-12 09:20:53Z INFO ActionManager] Action node.js file: dist/index.js.
+[2025-08-12 09:20:53Z INFO ActionManager] Action post node.js file: dist/index.js.
+[2025-08-12 09:20:53Z INFO ExecutionContext] Reserve record order 9 to 16 for post job actions.
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Diag': 'C:\laragon\www\sapapi\action-runner\_diag'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Diag': 'C:\laragon\www\sapapi\action-runner\_diag'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Temp': 'C:\laragon\www\sapapi\action-runner\_work\_temp'
+[2025-08-12 09:20:53Z INFO ExecutionContext] Write event payload to C:\laragon\www\sapapi\action-runner\_work\_temp\_github_workflow\event.json
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Temp': 'C:\laragon\www\sapapi\action-runner\_work\_temp'
+[2025-08-12 09:20:53Z INFO ExtensionManager] Getting extensions for interface: 'GitHub.Runner.Worker.IFileCommandExtension'
+[2025-08-12 09:20:53Z INFO ExtensionManager] Creating instance: GitHub.Runner.Worker.AddPathFileCommand, Runner.Worker
+[2025-08-12 09:20:53Z INFO ExtensionManager] Creating instance: GitHub.Runner.Worker.SetEnvFileCommand, Runner.Worker
+[2025-08-12 09:20:53Z INFO ExtensionManager] Creating instance: GitHub.Runner.Worker.CreateStepSummaryCommand, Runner.Worker
+[2025-08-12 09:20:53Z INFO ExtensionManager] Creating instance: GitHub.Runner.Worker.SaveStateFileCommand, Runner.Worker
+[2025-08-12 09:20:53Z INFO ExtensionManager] Creating instance: GitHub.Runner.Worker.SetOutputFileCommand, Runner.Worker
+[2025-08-12 09:20:53Z INFO ActionManifestManager] Input 'ref': default value evaluate result: ""
+[2025-08-12 09:20:53Z INFO ActionManifestManager] Input 'ssh-key': default value evaluate result: ""
+[2025-08-12 09:20:53Z INFO ActionManifestManager] Input 'ssh-known-hosts': default value evaluate result: ""
+[2025-08-12 09:20:53Z INFO ActionManifestManager] Input 'ssh-strict': default value evaluate result: {
+  "type": 0,
+  "file": 2,
+  "line": 47,
+  "col": 14,
+  "lit": "true"
+}
+[2025-08-12 09:20:53Z INFO ActionManifestManager] Input 'ssh-user': default value evaluate result: {
+  "type": 0,
+  "file": 2,
+  "line": 51,
+  "col": 14,
+  "lit": "git"
+}
+[2025-08-12 09:20:53Z INFO ActionManifestManager] Input 'persist-credentials': default value evaluate result: {
+  "type": 0,
+  "file": 2,
+  "line": 54,
+  "col": 14,
+  "lit": "true"
+}
+[2025-08-12 09:20:53Z INFO ActionManifestManager] Input 'path': default value evaluate result: ""
+[2025-08-12 09:20:53Z INFO ActionManifestManager] Input 'clean': default value evaluate result: {
+  "type": 0,
+  "file": 2,
+  "line": 59,
+  "col": 14,
+  "lit": "true"
+}
+[2025-08-12 09:20:53Z INFO ActionManifestManager] Input 'filter': default value evaluate result: {
+  "type": 0,
+  "file": 2,
+  "line": 64,
+  "col": 14,
+  "lit": ""
+}
+[2025-08-12 09:20:53Z INFO ActionManifestManager] Input 'sparse-checkout': default value evaluate result: {
+  "type": 0,
+  "file": 2,
+  "line": 69,
+  "col": 14,
+  "lit": ""
+}
+[2025-08-12 09:20:53Z INFO ActionManifestManager] Input 'sparse-checkout-cone-mode': default value evaluate result: {
+  "type": 0,
+  "file": 2,
+  "line": 73,
+  "col": 14,
+  "lit": "true"
+}
+[2025-08-12 09:20:53Z INFO ActionManifestManager] Input 'fetch-depth': default value evaluate result: {
+  "type": 0,
+  "file": 2,
+  "line": 76,
+  "col": 14,
+  "lit": "1"
+}
+[2025-08-12 09:20:53Z INFO ActionManifestManager] Input 'fetch-tags': default value evaluate result: {
+  "type": 0,
+  "file": 2,
+  "line": 79,
+  "col": 14,
+  "lit": "false"
+}
+[2025-08-12 09:20:53Z INFO ActionManifestManager] Input 'show-progress': default value evaluate result: {
+  "type": 0,
+  "file": 2,
+  "line": 82,
+  "col": 14,
+  "lit": "true"
+}
+[2025-08-12 09:20:53Z INFO ActionManifestManager] Input 'lfs': default value evaluate result: {
+  "type": 0,
+  "file": 2,
+  "line": 85,
+  "col": 14,
+  "lit": "false"
+}
+[2025-08-12 09:20:53Z INFO ActionManifestManager] Input 'submodules': default value evaluate result: {
+  "type": 0,
+  "file": 2,
+  "line": 94,
+  "col": 14,
+  "lit": "false"
+}
+[2025-08-12 09:20:53Z INFO ActionManifestManager] Input 'set-safe-directory': default value evaluate result: {
+  "type": 0,
+  "file": 2,
+  "line": 97,
+  "col": 14,
+  "lit": "true"
+}
+[2025-08-12 09:20:53Z INFO ActionManifestManager] Input 'github-server-url': default value evaluate result: ""
+[2025-08-12 09:20:53Z INFO ExtensionManager] Getting extensions for interface: 'GitHub.Runner.Worker.IActionCommandExtension'
+[2025-08-12 09:20:53Z INFO ExtensionManager] Creating instance: GitHub.Runner.Worker.InternalPluginSetRepoPathCommandExtension, Runner.Worker
+[2025-08-12 09:20:53Z INFO ExtensionManager] Creating instance: GitHub.Runner.Worker.SetEnvCommandExtension, Runner.Worker
+[2025-08-12 09:20:53Z INFO ExtensionManager] Creating instance: GitHub.Runner.Worker.SetOutputCommandExtension, Runner.Worker
+[2025-08-12 09:20:53Z INFO ExtensionManager] Creating instance: GitHub.Runner.Worker.SaveStateCommandExtension, Runner.Worker
+[2025-08-12 09:20:53Z INFO ExtensionManager] Creating instance: GitHub.Runner.Worker.AddPathCommandExtension, Runner.Worker
+[2025-08-12 09:20:53Z INFO ExtensionManager] Creating instance: GitHub.Runner.Worker.AddMaskCommandExtension, Runner.Worker
+[2025-08-12 09:20:53Z INFO ExtensionManager] Creating instance: GitHub.Runner.Worker.AddMatcherCommandExtension, Runner.Worker
+[2025-08-12 09:20:53Z INFO ExtensionManager] Creating instance: GitHub.Runner.Worker.RemoveMatcherCommandExtension, Runner.Worker
+[2025-08-12 09:20:53Z INFO ExtensionManager] Creating instance: GitHub.Runner.Worker.WarningCommandExtension, Runner.Worker
+[2025-08-12 09:20:53Z INFO ExtensionManager] Creating instance: GitHub.Runner.Worker.ErrorCommandExtension, Runner.Worker
+[2025-08-12 09:20:53Z INFO ExtensionManager] Creating instance: GitHub.Runner.Worker.NoticeCommandExtension, Runner.Worker
+[2025-08-12 09:20:53Z INFO ExtensionManager] Creating instance: GitHub.Runner.Worker.DebugCommandExtension, Runner.Worker
+[2025-08-12 09:20:53Z INFO ExtensionManager] Creating instance: GitHub.Runner.Worker.GroupCommandExtension, Runner.Worker
+[2025-08-12 09:20:53Z INFO ExtensionManager] Creating instance: GitHub.Runner.Worker.EndGroupCommandExtension, Runner.Worker
+[2025-08-12 09:20:53Z INFO ExtensionManager] Creating instance: GitHub.Runner.Worker.EchoCommandExtension, Runner.Worker
+[2025-08-12 09:20:53Z INFO ActionCommandManager] Register action command extension for command internal-set-repo-path
+[2025-08-12 09:20:53Z INFO ActionCommandManager] Register action command extension for command set-env
+[2025-08-12 09:20:53Z INFO ActionCommandManager] Register action command extension for command set-output
+[2025-08-12 09:20:53Z INFO ActionCommandManager] Register action command extension for command save-state
+[2025-08-12 09:20:53Z INFO ActionCommandManager] Register action command extension for command add-path
+[2025-08-12 09:20:53Z INFO ActionCommandManager] Register action command extension for command add-mask
+[2025-08-12 09:20:53Z INFO ActionCommandManager] Register action command extension for command add-matcher
+[2025-08-12 09:20:53Z INFO ActionCommandManager] Register action command extension for command remove-matcher
+[2025-08-12 09:20:53Z INFO ActionCommandManager] Register action command extension for command warning
+[2025-08-12 09:20:53Z INFO ActionCommandManager] Register action command extension for command error
+[2025-08-12 09:20:53Z INFO ActionCommandManager] Register action command extension for command notice
+[2025-08-12 09:20:53Z INFO ActionCommandManager] Register action command extension for command debug
+[2025-08-12 09:20:53Z INFO ActionCommandManager] Register action command extension for command group
+[2025-08-12 09:20:53Z INFO ActionCommandManager] Register action command extension for command endgroup
+[2025-08-12 09:20:53Z INFO ActionCommandManager] Register action command extension for command echo
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:20:53Z INFO HostContext] Well known directory 'Externals': 'C:\laragon\www\sapapi\action-runner\externals'
+[2025-08-12 09:20:53Z INFO ProcessInvokerWrapper] Starting process:
+[2025-08-12 09:20:53Z INFO ProcessInvokerWrapper]   File name: 'C:\laragon\www\sapapi\action-runner\externals\node20\bin\node.exe'
+[2025-08-12 09:20:53Z INFO ProcessInvokerWrapper]   Arguments: '"C:\laragon\www\sapapi\action-runner\_work\_actions\actions\checkout\v4\dist/index.js"'
+[2025-08-12 09:20:53Z INFO ProcessInvokerWrapper]   Working directory: 'C:\laragon\www\sapapi\action-runner\_work\sapapi\sapapi'
+[2025-08-12 09:20:53Z INFO ProcessInvokerWrapper]   Require exit code zero: 'False'
+[2025-08-12 09:20:53Z INFO ProcessInvokerWrapper]   Encoding web name: utf-8 ; code page: '65001'
+[2025-08-12 09:20:53Z INFO ProcessInvokerWrapper]   Force kill process on cancellation: 'False'
+[2025-08-12 09:20:53Z INFO ProcessInvokerWrapper]   Redirected STDIN: 'False'
+[2025-08-12 09:20:53Z INFO ProcessInvokerWrapper]   Persist current code page: 'True'
+[2025-08-12 09:20:53Z INFO ProcessInvokerWrapper]   Keep redirected STDIN open: 'False'
+[2025-08-12 09:20:53Z INFO ProcessInvokerWrapper]   High priority process: 'False'
+[2025-08-12 09:20:53Z INFO ProcessInvokerWrapper] Process started with process id 30284, waiting for process exit.
+[2025-08-12 09:20:53Z INFO JobServerQueue] Try to append 1 batches web console lines for record '3fd2cfcd-8114-4b26-80ec-e975f6bd9601', success rate: 1/1.
+[2025-08-12 09:20:54Z INFO AddMaskCommandExtension] Add new secret mask with length of 76
+[2025-08-12 09:20:54Z INFO JobServerQueue] Try to append 1 batches web console lines for record '3fd2cfcd-8114-4b26-80ec-e975f6bd9601', success rate: 1/1.
+[2025-08-12 09:20:54Z INFO JobServerQueue] Got a step log file to send to results service.
+[2025-08-12 09:20:54Z INFO JobServerQueue] Starting upload of step log file to results service ResultsLog, C:\laragon\www\sapapi\action-runner\_diag\blocks\2d115a08-ff56-40a8-9364-16042bd896f4_0c82685e-f9aa-4578-85fc-9b13b29dcd0c.1
+[2025-08-12 09:20:54Z INFO JobServerQueue] Try to upload 1 log files or attachments, success rate: 1/1.
+[2025-08-12 09:20:56Z INFO JobServerQueue] Try to append 1 batches web console lines for record '3fd2cfcd-8114-4b26-80ec-e975f6bd9601', success rate: 1/1.
+[2025-08-12 09:20:56Z INFO JobServerQueue] Try to append 1 batches web console lines for record '3fd2cfcd-8114-4b26-80ec-e975f6bd9601', success rate: 1/1.
+[2025-08-12 09:20:57Z INFO JobServerQueue] Tried to upload 1 file(s) to results, success rate: 1/1.
+[2025-08-12 09:20:59Z INFO JobServerQueue] Try to append 1 batches web console lines for record '3fd2cfcd-8114-4b26-80ec-e975f6bd9601', success rate: 1/1.
+[2025-08-12 09:21:03Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:21:03Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:21:03Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:21:03Z INFO JobServerQueue] Try to append 1 batches web console lines for record '3fd2cfcd-8114-4b26-80ec-e975f6bd9601', success rate: 1/1.
+[2025-08-12 09:21:04Z INFO JobServerQueue] Try to append 1 batches web console lines for record '3fd2cfcd-8114-4b26-80ec-e975f6bd9601', success rate: 1/1.
+[2025-08-12 09:21:04Z INFO JobServerQueue] Try to append 1 batches web console lines for record '3fd2cfcd-8114-4b26-80ec-e975f6bd9601', success rate: 1/1.
+[2025-08-12 09:21:04Z INFO JobServerQueue] Try to append 1 batches web console lines for record '3fd2cfcd-8114-4b26-80ec-e975f6bd9601', success rate: 1/1.
+[2025-08-12 09:21:05Z INFO JobServerQueue] Try to append 1 batches web console lines for record '3fd2cfcd-8114-4b26-80ec-e975f6bd9601', success rate: 1/1.
+[2025-08-12 09:21:06Z INFO JobServerQueue] Try to append 1 batches web console lines for record '3fd2cfcd-8114-4b26-80ec-e975f6bd9601', success rate: 1/1.
+[2025-08-12 09:21:09Z INFO JobServerQueue] Try to append 1 batches web console lines for record '3fd2cfcd-8114-4b26-80ec-e975f6bd9601', success rate: 1/1.
+[2025-08-12 09:21:09Z INFO JobServerQueue] Try to append 1 batches web console lines for record '3fd2cfcd-8114-4b26-80ec-e975f6bd9601', success rate: 1/1.
+[2025-08-12 09:21:13Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:21:13Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:21:13Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:21:23Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:21:23Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:21:23Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:21:33Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:21:33Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:21:33Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:21:43Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:21:43Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:21:43Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:21:53Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:21:53Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:21:53Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:21:54Z INFO JobServerQueue] Stop aggressive process web console line queue.
+[2025-08-12 09:22:03Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:22:03Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:22:03Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:22:13Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:22:13Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:22:13Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:22:23Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:22:23Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:22:23Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:22:33Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:22:33Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:22:33Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:22:43Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:22:43Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:22:43Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:22:53Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:22:53Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:22:53Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:23:03Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:23:03Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:23:03Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:23:13Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:23:13Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:23:13Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:23:23Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:23:23Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:23:23Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:23:33Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:23:33Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:23:33Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:23:43Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:23:43Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:23:43Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:23:53Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:23:53Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:23:53Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:23:58Z INFO JobServerQueue] Try to append 1 batches web console lines for record '3fd2cfcd-8114-4b26-80ec-e975f6bd9601', success rate: 1/1.
+[2025-08-12 09:23:59Z INFO JobServerQueue] Try to append 1 batches web console lines for record '3fd2cfcd-8114-4b26-80ec-e975f6bd9601', success rate: 1/1.
+[2025-08-12 09:24:00Z INFO JobServerQueue] Try to append 1 batches web console lines for record '3fd2cfcd-8114-4b26-80ec-e975f6bd9601', success rate: 1/1.
+[2025-08-12 09:24:01Z INFO JobServerQueue] Try to append 1 batches web console lines for record '3fd2cfcd-8114-4b26-80ec-e975f6bd9601', success rate: 1/1.
+[2025-08-12 09:24:02Z INFO JobServerQueue] Try to append 1 batches web console lines for record '3fd2cfcd-8114-4b26-80ec-e975f6bd9601', success rate: 1/1.
+[2025-08-12 09:24:03Z INFO JobServerQueue] Try to append 1 batches web console lines for record '3fd2cfcd-8114-4b26-80ec-e975f6bd9601', success rate: 1/1.
+[2025-08-12 09:24:03Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:03Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:03Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:04Z INFO JobServerQueue] Try to append 1 batches web console lines for record '3fd2cfcd-8114-4b26-80ec-e975f6bd9601', success rate: 1/1.
+[2025-08-12 09:24:04Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
+[2025-08-12 09:24:04Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
+[2025-08-12 09:24:04Z INFO ProcessInvokerWrapper] Finished process 30284 with exit code 0, and elapsed time 00:03:11.0450942.
+[2025-08-12 09:24:04Z INFO JobServerQueue] Try to append 1 batches web console lines for record '3fd2cfcd-8114-4b26-80ec-e975f6bd9601', success rate: 1/1.
+[2025-08-12 09:24:04Z INFO CreateStepSummaryCommand] Step Summary file (C:\laragon\www\sapapi\action-runner\_work\_temp\_runner_file_commands\step_summary_0aad3560-78db-4a85-bd35-c0634a27abcd) is empty; skipping attachment upload
+[2025-08-12 09:24:04Z INFO StepsRunner] Step result: 
+[2025-08-12 09:24:04Z INFO ExecutionContext] Publish step telemetry for current step {
+  "action": "actions/checkout",
+  "ref": "v4",
+  "type": "node20",
+  "stage": "Main",
+  "stepId": "3fd2cfcd-8114-4b26-80ec-e975f6bd9601",
+  "stepContextName": "__actions_checkout",
+  "hasPreStep": false,
+  "hasPostStep": true,
+  "result": "succeeded",
+  "errorMessages": [
+    "no submodule mapping found in .gitmodules for path 'action-runner/_work/sapapi/sapapi'",
+    "Unable to clean or reset the repository. The repository will be recreated instead."
+  ],
+  "executionTimeInSeconds": 192,
+  "startTime": "2025-08-12T09:20:53.4609614Z",
+  "finishTime": "2025-08-12T09:24:04.600545Z"
+}.
+[2025-08-12 09:24:04Z INFO StepsRunner] No need for updating job result with current step result 'Succeeded'.
+[2025-08-12 09:24:04Z INFO StepsRunner] Current state: job state = ''
+[2025-08-12 09:24:04Z INFO StepsRunner] Processing step: DisplayName='Add npm global to PATH'
+[2025-08-12 09:24:04Z INFO StepsRunner] Evaluating: success()
+[2025-08-12 09:24:04Z INFO StepsRunner] Result: true
+[2025-08-12 09:24:04Z INFO StepsRunner] Starting the step.
+[2025-08-12 09:24:04Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:04Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:04Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:04Z INFO StepsRunner] Which2: 'chcp'
+[2025-08-12 09:24:04Z INFO StepsRunner] Location: 'C:\Windows\system32\chcp.COM'
+[2025-08-12 09:24:04Z INFO ProcessInvokerWrapper] Starting process:
+[2025-08-12 09:24:04Z INFO ProcessInvokerWrapper]   File name: 'C:\Windows\system32\chcp.COM'
+[2025-08-12 09:24:04Z INFO ProcessInvokerWrapper]   Arguments: '65001'
+[2025-08-12 09:24:04Z INFO ProcessInvokerWrapper]   Working directory: 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:04Z INFO ProcessInvokerWrapper]   Require exit code zero: 'False'
+[2025-08-12 09:24:04Z INFO ProcessInvokerWrapper]   Encoding web name:  ; code page: ''
+[2025-08-12 09:24:04Z INFO ProcessInvokerWrapper]   Force kill process on cancellation: 'False'
+[2025-08-12 09:24:04Z INFO ProcessInvokerWrapper]   Redirected STDIN: 'False'
+[2025-08-12 09:24:04Z INFO ProcessInvokerWrapper]   Persist current code page: 'True'
+[2025-08-12 09:24:04Z INFO ProcessInvokerWrapper]   Keep redirected STDIN open: 'False'
+[2025-08-12 09:24:04Z INFO ProcessInvokerWrapper]   High priority process: 'False'
+[2025-08-12 09:24:04Z INFO ProcessInvokerWrapper] Process started with process id 15536, waiting for process exit.
+[2025-08-12 09:24:04Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
+[2025-08-12 09:24:04Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
+[2025-08-12 09:24:04Z INFO ProcessInvokerWrapper] Finished process 15536 with exit code 0, and elapsed time 00:00:00.0534533.
+[2025-08-12 09:24:04Z INFO StepsRunner] Successfully returned to code page 65001 (UTF8)
+[2025-08-12 09:24:04Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:04Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:04Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:04Z INFO HostContext] Well known directory 'Temp': 'C:\laragon\www\sapapi\action-runner\_work\_temp'
+[2025-08-12 09:24:04Z INFO ExecutionContext] Write event payload to C:\laragon\www\sapapi\action-runner\_work\_temp\_github_workflow\event.json
+[2025-08-12 09:24:04Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:04Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:04Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:04Z INFO HostContext] Well known directory 'Temp': 'C:\laragon\www\sapapi\action-runner\_work\_temp'
+[2025-08-12 09:24:04Z INFO ExtensionManager] Getting extensions for interface: 'GitHub.Runner.Worker.IFileCommandExtension'
+[2025-08-12 09:24:04Z INFO ExtensionManager] Getting extensions for interface: 'GitHub.Runner.Worker.IActionCommandExtension'
+[2025-08-12 09:24:04Z INFO ActionCommandManager] Register action command extension for command internal-set-repo-path
+[2025-08-12 09:24:04Z INFO ActionCommandManager] Register action command extension for command set-env
+[2025-08-12 09:24:04Z INFO ActionCommandManager] Register action command extension for command set-output
+[2025-08-12 09:24:04Z INFO ActionCommandManager] Register action command extension for command save-state
+[2025-08-12 09:24:04Z INFO ActionCommandManager] Register action command extension for command add-path
+[2025-08-12 09:24:04Z INFO ActionCommandManager] Register action command extension for command add-mask
+[2025-08-12 09:24:04Z INFO ActionCommandManager] Register action command extension for command add-matcher
+[2025-08-12 09:24:04Z INFO ActionCommandManager] Register action command extension for command remove-matcher
+[2025-08-12 09:24:04Z INFO ActionCommandManager] Register action command extension for command warning
+[2025-08-12 09:24:04Z INFO ActionCommandManager] Register action command extension for command error
+[2025-08-12 09:24:04Z INFO ActionCommandManager] Register action command extension for command notice
+[2025-08-12 09:24:04Z INFO ActionCommandManager] Register action command extension for command debug
+[2025-08-12 09:24:04Z INFO ActionCommandManager] Register action command extension for command group
+[2025-08-12 09:24:04Z INFO ActionCommandManager] Register action command extension for command endgroup
+[2025-08-12 09:24:04Z INFO ActionCommandManager] Register action command extension for command echo
+[2025-08-12 09:24:04Z INFO ScriptHandler] Which2: 'powershell'
+[2025-08-12 09:24:04Z INFO ScriptHandler] Location: 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.EXE'
+[2025-08-12 09:24:04Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:04Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:04Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:04Z INFO HostContext] Well known directory 'Temp': 'C:\laragon\www\sapapi\action-runner\_work\_temp'
+[2025-08-12 09:24:04Z INFO ScriptHandler] Which2: 'powershell'
+[2025-08-12 09:24:04Z INFO ScriptHandler] Location: 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.EXE'
+[2025-08-12 09:24:04Z INFO ProcessInvokerWrapper] Starting process:
+[2025-08-12 09:24:04Z INFO ProcessInvokerWrapper]   File name: 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.EXE'
+[2025-08-12 09:24:04Z INFO ProcessInvokerWrapper]   Arguments: '-command ". 'C:\laragon\www\sapapi\action-runner\_work\_temp\45539225-66f0-4fb3-bfa3-b2acb604aade.ps1'"'
+[2025-08-12 09:24:04Z INFO ProcessInvokerWrapper]   Working directory: 'C:\laragon\www\sapapi\action-runner\_work\sapapi\sapapi'
+[2025-08-12 09:24:04Z INFO ProcessInvokerWrapper]   Require exit code zero: 'False'
+[2025-08-12 09:24:04Z INFO ProcessInvokerWrapper]   Encoding web name:  ; code page: ''
+[2025-08-12 09:24:04Z INFO ProcessInvokerWrapper]   Force kill process on cancellation: 'False'
+[2025-08-12 09:24:04Z INFO ProcessInvokerWrapper]   Redirected STDIN: 'False'
+[2025-08-12 09:24:04Z INFO ProcessInvokerWrapper]   Persist current code page: 'True'
+[2025-08-12 09:24:04Z INFO ProcessInvokerWrapper]   Keep redirected STDIN open: 'False'
+[2025-08-12 09:24:04Z INFO ProcessInvokerWrapper]   High priority process: 'False'
+[2025-08-12 09:24:04Z INFO ProcessInvokerWrapper] Process started with process id 39672, waiting for process exit.
+[2025-08-12 09:24:05Z INFO JobServerQueue] Got a step log file to send to results service.
+[2025-08-12 09:24:05Z INFO JobServerQueue] Starting upload of step log file to results service ResultsLog, C:\laragon\www\sapapi\action-runner\_diag\blocks\2d115a08-ff56-40a8-9364-16042bd896f4_3fd2cfcd-8114-4b26-80ec-e975f6bd9601.1
+[2025-08-12 09:24:05Z INFO JobServerQueue] Try to upload 1 log files or attachments, success rate: 1/1.
+[2025-08-12 09:24:05Z INFO JobServerQueue] Try to append 1 batches web console lines for record '836fab20-5de5-411d-97f1-7309b53c1201', success rate: 1/1.
+[2025-08-12 09:24:05Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
+[2025-08-12 09:24:05Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
+[2025-08-12 09:24:05Z INFO ProcessInvokerWrapper] Finished process 39672 with exit code 0, and elapsed time 00:00:00.8810106.
+[2025-08-12 09:24:05Z INFO CreateStepSummaryCommand] Step Summary file (C:\laragon\www\sapapi\action-runner\_work\_temp\_runner_file_commands\step_summary_3418c4d9-d7b4-4c93-9f45-ec953caece8f) is empty; skipping attachment upload
+[2025-08-12 09:24:05Z INFO StepsRunner] Step result: 
+[2025-08-12 09:24:05Z INFO ExecutionContext] Publish step telemetry for current step {
+  "action": "powershell",
+  "type": "run",
+  "stage": "Main",
+  "stepId": "836fab20-5de5-411d-97f1-7309b53c1201",
+  "stepContextName": "__run",
+  "result": "succeeded",
+  "errorMessages": [],
+  "executionTimeInSeconds": 1,
+  "startTime": "2025-08-12T09:24:04.6060709Z",
+  "finishTime": "2025-08-12T09:24:05.5784557Z"
+}.
+[2025-08-12 09:24:05Z INFO StepsRunner] No need for updating job result with current step result 'Succeeded'.
+[2025-08-12 09:24:05Z INFO StepsRunner] Current state: job state = ''
+[2025-08-12 09:24:05Z INFO StepsRunner] Processing step: DisplayName='Install PM2 and dependencies'
+[2025-08-12 09:24:05Z INFO StepsRunner] Evaluating: success()
+[2025-08-12 09:24:05Z INFO StepsRunner] Result: true
+[2025-08-12 09:24:05Z INFO StepsRunner] Starting the step.
+[2025-08-12 09:24:05Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:05Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:05Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:05Z INFO StepsRunner] Which2: 'chcp'
+[2025-08-12 09:24:05Z INFO StepsRunner] Location: 'C:\Windows\system32\chcp.COM'
+[2025-08-12 09:24:05Z INFO ProcessInvokerWrapper] Starting process:
+[2025-08-12 09:24:05Z INFO ProcessInvokerWrapper]   File name: 'C:\Windows\system32\chcp.COM'
+[2025-08-12 09:24:05Z INFO ProcessInvokerWrapper]   Arguments: '65001'
+[2025-08-12 09:24:05Z INFO ProcessInvokerWrapper]   Working directory: 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:05Z INFO ProcessInvokerWrapper]   Require exit code zero: 'False'
+[2025-08-12 09:24:05Z INFO ProcessInvokerWrapper]   Encoding web name:  ; code page: ''
+[2025-08-12 09:24:05Z INFO ProcessInvokerWrapper]   Force kill process on cancellation: 'False'
+[2025-08-12 09:24:05Z INFO ProcessInvokerWrapper]   Redirected STDIN: 'False'
+[2025-08-12 09:24:05Z INFO ProcessInvokerWrapper]   Persist current code page: 'True'
+[2025-08-12 09:24:05Z INFO ProcessInvokerWrapper]   Keep redirected STDIN open: 'False'
+[2025-08-12 09:24:05Z INFO ProcessInvokerWrapper]   High priority process: 'False'
+[2025-08-12 09:24:05Z INFO ProcessInvokerWrapper] Process started with process id 26628, waiting for process exit.
+[2025-08-12 09:24:06Z INFO JobServerQueue] Try to upload 1 log files or attachments, success rate: 1/1.
+[2025-08-12 09:24:06Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
+[2025-08-12 09:24:06Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
+[2025-08-12 09:24:06Z INFO ProcessInvokerWrapper] Finished process 26628 with exit code 0, and elapsed time 00:00:00.6370257.
+[2025-08-12 09:24:06Z INFO StepsRunner] Successfully returned to code page 65001 (UTF8)
+[2025-08-12 09:24:06Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:06Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:06Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:06Z INFO HostContext] Well known directory 'Temp': 'C:\laragon\www\sapapi\action-runner\_work\_temp'
+[2025-08-12 09:24:06Z INFO ExecutionContext] Write event payload to C:\laragon\www\sapapi\action-runner\_work\_temp\_github_workflow\event.json
+[2025-08-12 09:24:06Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:06Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:06Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:06Z INFO HostContext] Well known directory 'Temp': 'C:\laragon\www\sapapi\action-runner\_work\_temp'
+[2025-08-12 09:24:06Z INFO ExtensionManager] Getting extensions for interface: 'GitHub.Runner.Worker.IFileCommandExtension'
+[2025-08-12 09:24:06Z INFO ExtensionManager] Getting extensions for interface: 'GitHub.Runner.Worker.IActionCommandExtension'
+[2025-08-12 09:24:06Z INFO ActionCommandManager] Register action command extension for command internal-set-repo-path
+[2025-08-12 09:24:06Z INFO ActionCommandManager] Register action command extension for command set-env
+[2025-08-12 09:24:06Z INFO ActionCommandManager] Register action command extension for command set-output
+[2025-08-12 09:24:06Z INFO ActionCommandManager] Register action command extension for command save-state
+[2025-08-12 09:24:06Z INFO ActionCommandManager] Register action command extension for command add-path
+[2025-08-12 09:24:06Z INFO ActionCommandManager] Register action command extension for command add-mask
+[2025-08-12 09:24:06Z INFO ActionCommandManager] Register action command extension for command add-matcher
+[2025-08-12 09:24:06Z INFO ActionCommandManager] Register action command extension for command remove-matcher
+[2025-08-12 09:24:06Z INFO ActionCommandManager] Register action command extension for command warning
+[2025-08-12 09:24:06Z INFO ActionCommandManager] Register action command extension for command error
+[2025-08-12 09:24:06Z INFO ActionCommandManager] Register action command extension for command notice
+[2025-08-12 09:24:06Z INFO ActionCommandManager] Register action command extension for command debug
+[2025-08-12 09:24:06Z INFO ActionCommandManager] Register action command extension for command group
+[2025-08-12 09:24:06Z INFO ActionCommandManager] Register action command extension for command endgroup
+[2025-08-12 09:24:06Z INFO ActionCommandManager] Register action command extension for command echo
+[2025-08-12 09:24:06Z INFO ScriptHandler] Which2: 'pwsh'
+[2025-08-12 09:24:06Z INFO ScriptHandler] pwsh: command not found. Make sure 'pwsh' is installed and its location included in the 'Path' environment variable.
+[2025-08-12 09:24:06Z INFO ScriptHandler] Defaulting to powershell
+[2025-08-12 09:24:06Z INFO ScriptHandler] Which2: 'powershell'
+[2025-08-12 09:24:06Z INFO ScriptHandler] Location: 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.EXE'
+[2025-08-12 09:24:06Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:06Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:06Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:06Z INFO HostContext] Well known directory 'Temp': 'C:\laragon\www\sapapi\action-runner\_work\_temp'
+[2025-08-12 09:24:06Z INFO ScriptHandler] Which2: 'pwsh'
+[2025-08-12 09:24:06Z INFO ScriptHandler] pwsh: command not found. Make sure 'pwsh' is installed and its location included in the 'Path' environment variable.
+[2025-08-12 09:24:06Z INFO ScriptHandler] Defaulting to powershell
+[2025-08-12 09:24:06Z INFO ScriptHandler] Which2: 'powershell'
+[2025-08-12 09:24:06Z INFO ScriptHandler] Location: 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.EXE'
+[2025-08-12 09:24:06Z INFO ProcessInvokerWrapper] Starting process:
+[2025-08-12 09:24:06Z INFO ProcessInvokerWrapper]   File name: 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.EXE'
+[2025-08-12 09:24:06Z INFO ProcessInvokerWrapper]   Arguments: '-command ". 'C:\laragon\www\sapapi\action-runner\_work\_temp\85af775b-bc94-4f50-96dd-c704bb7e46ab.ps1'"'
+[2025-08-12 09:24:06Z INFO ProcessInvokerWrapper]   Working directory: 'C:\laragon\www\sapapi\action-runner\_work\sapapi\sapapi'
+[2025-08-12 09:24:06Z INFO ProcessInvokerWrapper]   Require exit code zero: 'False'
+[2025-08-12 09:24:06Z INFO ProcessInvokerWrapper]   Encoding web name:  ; code page: ''
+[2025-08-12 09:24:06Z INFO ProcessInvokerWrapper]   Force kill process on cancellation: 'False'
+[2025-08-12 09:24:06Z INFO ProcessInvokerWrapper]   Redirected STDIN: 'False'
+[2025-08-12 09:24:06Z INFO ProcessInvokerWrapper]   Persist current code page: 'True'
+[2025-08-12 09:24:06Z INFO ProcessInvokerWrapper]   Keep redirected STDIN open: 'False'
+[2025-08-12 09:24:06Z INFO ProcessInvokerWrapper]   High priority process: 'False'
+[2025-08-12 09:24:06Z INFO ProcessInvokerWrapper] Process started with process id 37520, waiting for process exit.
+[2025-08-12 09:24:06Z INFO JobServerQueue] Try to append 1 batches web console lines for record '16b9b8d1-a39e-4097-ab50-bdf283496cdb', success rate: 1/1.
+[2025-08-12 09:24:09Z INFO JobServerQueue] Tried to upload 1 file(s) to results, success rate: 1/1.
+[2025-08-12 09:24:10Z INFO JobServerQueue] Got a step log file to send to results service.
+[2025-08-12 09:24:10Z INFO JobServerQueue] Starting upload of step log file to results service ResultsLog, C:\laragon\www\sapapi\action-runner\_diag\blocks\2d115a08-ff56-40a8-9364-16042bd896f4_836fab20-5de5-411d-97f1-7309b53c1201.1
+[2025-08-12 09:24:11Z INFO JobServerQueue] Tried to upload 1 file(s) to results, success rate: 1/1.
+[2025-08-12 09:24:13Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:13Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:13Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:15Z INFO JobServerQueue] Try to append 1 batches web console lines for record '16b9b8d1-a39e-4097-ab50-bdf283496cdb', success rate: 1/1.
+[2025-08-12 09:24:16Z INFO JobServerQueue] Try to append 1 batches web console lines for record '16b9b8d1-a39e-4097-ab50-bdf283496cdb', success rate: 1/1.
+[2025-08-12 09:24:20Z INFO JobServerQueue] Try to append 1 batches web console lines for record '16b9b8d1-a39e-4097-ab50-bdf283496cdb', success rate: 1/1.
+[2025-08-12 09:24:23Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:23Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:23Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:33Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
+[2025-08-12 09:24:33Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
+[2025-08-12 09:24:33Z INFO ProcessInvokerWrapper] Finished process 37520 with exit code 0, and elapsed time 00:00:27.0015771.
+[2025-08-12 09:24:33Z INFO CreateStepSummaryCommand] Step Summary file (C:\laragon\www\sapapi\action-runner\_work\_temp\_runner_file_commands\step_summary_c62328c5-c1fe-40c0-8ef1-6d05db729f3a) is empty; skipping attachment upload
+[2025-08-12 09:24:33Z INFO StepsRunner] Step result: 
+[2025-08-12 09:24:33Z INFO ExecutionContext] Publish step telemetry for current step {
+  "action": "powershell",
+  "type": "run",
+  "stage": "Main",
+  "stepId": "16b9b8d1-a39e-4097-ab50-bdf283496cdb",
+  "stepContextName": "__run_2",
+  "result": "succeeded",
+  "errorMessages": [],
+  "executionTimeInSeconds": 28,
+  "startTime": "2025-08-12T09:24:05.5800173Z",
+  "finishTime": "2025-08-12T09:24:33.2582073Z"
+}.
+[2025-08-12 09:24:33Z INFO StepsRunner] No need for updating job result with current step result 'Succeeded'.
+[2025-08-12 09:24:33Z INFO StepsRunner] Current state: job state = ''
+[2025-08-12 09:24:33Z INFO StepsRunner] Processing step: DisplayName='Delete existing PM2 processes'
+[2025-08-12 09:24:33Z INFO StepsRunner] Evaluating: success()
+[2025-08-12 09:24:33Z INFO StepsRunner] Result: true
+[2025-08-12 09:24:33Z INFO StepsRunner] Starting the step.
+[2025-08-12 09:24:33Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:33Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:33Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:33Z INFO StepsRunner] Which2: 'chcp'
+[2025-08-12 09:24:33Z INFO StepsRunner] Location: 'C:\Windows\system32\chcp.COM'
+[2025-08-12 09:24:33Z INFO ProcessInvokerWrapper] Starting process:
+[2025-08-12 09:24:33Z INFO ProcessInvokerWrapper]   File name: 'C:\Windows\system32\chcp.COM'
+[2025-08-12 09:24:33Z INFO ProcessInvokerWrapper]   Arguments: '65001'
+[2025-08-12 09:24:33Z INFO ProcessInvokerWrapper]   Working directory: 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:33Z INFO ProcessInvokerWrapper]   Require exit code zero: 'False'
+[2025-08-12 09:24:33Z INFO ProcessInvokerWrapper]   Encoding web name:  ; code page: ''
+[2025-08-12 09:24:33Z INFO ProcessInvokerWrapper]   Force kill process on cancellation: 'False'
+[2025-08-12 09:24:33Z INFO ProcessInvokerWrapper]   Redirected STDIN: 'False'
+[2025-08-12 09:24:33Z INFO ProcessInvokerWrapper]   Persist current code page: 'True'
+[2025-08-12 09:24:33Z INFO ProcessInvokerWrapper]   Keep redirected STDIN open: 'False'
+[2025-08-12 09:24:33Z INFO ProcessInvokerWrapper]   High priority process: 'False'
+[2025-08-12 09:24:33Z INFO ProcessInvokerWrapper] Process started with process id 20940, waiting for process exit.
+[2025-08-12 09:24:33Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
+[2025-08-12 09:24:33Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
+[2025-08-12 09:24:33Z INFO ProcessInvokerWrapper] Finished process 20940 with exit code 0, and elapsed time 00:00:00.0078053.
+[2025-08-12 09:24:33Z INFO StepsRunner] Successfully returned to code page 65001 (UTF8)
+[2025-08-12 09:24:33Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:33Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:33Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:33Z INFO HostContext] Well known directory 'Temp': 'C:\laragon\www\sapapi\action-runner\_work\_temp'
+[2025-08-12 09:24:33Z INFO ExecutionContext] Write event payload to C:\laragon\www\sapapi\action-runner\_work\_temp\_github_workflow\event.json
+[2025-08-12 09:24:33Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:33Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:33Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:33Z INFO HostContext] Well known directory 'Temp': 'C:\laragon\www\sapapi\action-runner\_work\_temp'
+[2025-08-12 09:24:33Z INFO ExtensionManager] Getting extensions for interface: 'GitHub.Runner.Worker.IFileCommandExtension'
+[2025-08-12 09:24:33Z INFO ExtensionManager] Getting extensions for interface: 'GitHub.Runner.Worker.IActionCommandExtension'
+[2025-08-12 09:24:33Z INFO ActionCommandManager] Register action command extension for command internal-set-repo-path
+[2025-08-12 09:24:33Z INFO ActionCommandManager] Register action command extension for command set-env
+[2025-08-12 09:24:33Z INFO ActionCommandManager] Register action command extension for command set-output
+[2025-08-12 09:24:33Z INFO ActionCommandManager] Register action command extension for command save-state
+[2025-08-12 09:24:33Z INFO ActionCommandManager] Register action command extension for command add-path
+[2025-08-12 09:24:33Z INFO ActionCommandManager] Register action command extension for command add-mask
+[2025-08-12 09:24:33Z INFO ActionCommandManager] Register action command extension for command add-matcher
+[2025-08-12 09:24:33Z INFO ActionCommandManager] Register action command extension for command remove-matcher
+[2025-08-12 09:24:33Z INFO ActionCommandManager] Register action command extension for command warning
+[2025-08-12 09:24:33Z INFO ActionCommandManager] Register action command extension for command error
+[2025-08-12 09:24:33Z INFO ActionCommandManager] Register action command extension for command notice
+[2025-08-12 09:24:33Z INFO ActionCommandManager] Register action command extension for command debug
+[2025-08-12 09:24:33Z INFO ActionCommandManager] Register action command extension for command group
+[2025-08-12 09:24:33Z INFO ActionCommandManager] Register action command extension for command endgroup
+[2025-08-12 09:24:33Z INFO ActionCommandManager] Register action command extension for command echo
+[2025-08-12 09:24:33Z INFO ScriptHandler] Which2: 'pwsh'
+[2025-08-12 09:24:33Z INFO ScriptHandler] pwsh: command not found. Make sure 'pwsh' is installed and its location included in the 'Path' environment variable.
+[2025-08-12 09:24:33Z INFO ScriptHandler] Defaulting to powershell
+[2025-08-12 09:24:33Z INFO ScriptHandler] Which2: 'powershell'
+[2025-08-12 09:24:33Z INFO ScriptHandler] Location: 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.EXE'
+[2025-08-12 09:24:33Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:33Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:33Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:33Z INFO HostContext] Well known directory 'Temp': 'C:\laragon\www\sapapi\action-runner\_work\_temp'
+[2025-08-12 09:24:33Z INFO ScriptHandler] Which2: 'pwsh'
+[2025-08-12 09:24:33Z INFO ScriptHandler] pwsh: command not found. Make sure 'pwsh' is installed and its location included in the 'Path' environment variable.
+[2025-08-12 09:24:33Z INFO ScriptHandler] Defaulting to powershell
+[2025-08-12 09:24:33Z INFO ScriptHandler] Which2: 'powershell'
+[2025-08-12 09:24:33Z INFO JobServerQueue] Try to upload 1 log files or attachments, success rate: 1/1.
+[2025-08-12 09:24:33Z INFO ScriptHandler] Location: 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.EXE'
+[2025-08-12 09:24:33Z INFO ProcessInvokerWrapper] Starting process:
+[2025-08-12 09:24:33Z INFO ProcessInvokerWrapper]   File name: 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.EXE'
+[2025-08-12 09:24:33Z INFO ProcessInvokerWrapper]   Arguments: '-command ". 'C:\laragon\www\sapapi\action-runner\_work\_temp\ad6224ed-6a74-40a5-824a-153933a9f93b.ps1'"'
+[2025-08-12 09:24:33Z INFO ProcessInvokerWrapper]   Working directory: 'C:\laragon\www\sapapi\action-runner\_work\sapapi\sapapi'
+[2025-08-12 09:24:33Z INFO ProcessInvokerWrapper]   Require exit code zero: 'False'
+[2025-08-12 09:24:33Z INFO ProcessInvokerWrapper]   Encoding web name:  ; code page: ''
+[2025-08-12 09:24:33Z INFO ProcessInvokerWrapper]   Force kill process on cancellation: 'False'
+[2025-08-12 09:24:33Z INFO ProcessInvokerWrapper]   Redirected STDIN: 'False'
+[2025-08-12 09:24:33Z INFO ProcessInvokerWrapper]   Persist current code page: 'True'
+[2025-08-12 09:24:33Z INFO ProcessInvokerWrapper]   Keep redirected STDIN open: 'False'
+[2025-08-12 09:24:33Z INFO ProcessInvokerWrapper]   High priority process: 'False'
+[2025-08-12 09:24:33Z INFO ProcessInvokerWrapper] Process started with process id 2576, waiting for process exit.
+[2025-08-12 09:24:33Z INFO JobServerQueue] Try to append 1 batches web console lines for record '16b9b8d1-a39e-4097-ab50-bdf283496cdb', success rate: 1/1.
+[2025-08-12 09:24:33Z INFO JobServerQueue] Try to append 1 batches web console lines for record '8c5ce035-9601-4156-a921-b2ebc60c3493', success rate: 1/1.
+[2025-08-12 09:24:33Z INFO JobServerQueue] Got a step log file to send to results service.
+[2025-08-12 09:24:33Z INFO JobServerQueue] Starting upload of step log file to results service ResultsLog, C:\laragon\www\sapapi\action-runner\_diag\blocks\2d115a08-ff56-40a8-9364-16042bd896f4_16b9b8d1-a39e-4097-ab50-bdf283496cdb.1
+[2025-08-12 09:24:33Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:33Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:33Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:34Z INFO JobServerQueue] Try to append 1 batches web console lines for record '8c5ce035-9601-4156-a921-b2ebc60c3493', success rate: 1/1.
+[2025-08-12 09:24:35Z INFO JobServerQueue] Try to append 1 batches web console lines for record '8c5ce035-9601-4156-a921-b2ebc60c3493', success rate: 1/1.
+[2025-08-12 09:24:35Z INFO JobServerQueue] Tried to upload 1 file(s) to results, success rate: 1/1.
+[2025-08-12 09:24:36Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
+[2025-08-12 09:24:36Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
+[2025-08-12 09:24:36Z INFO ProcessInvokerWrapper] Finished process 2576 with exit code 0, and elapsed time 00:00:02.8068079.
+[2025-08-12 09:24:36Z INFO CreateStepSummaryCommand] Step Summary file (C:\laragon\www\sapapi\action-runner\_work\_temp\_runner_file_commands\step_summary_4d1247eb-313a-415b-90ba-e9e217266939) is empty; skipping attachment upload
+[2025-08-12 09:24:36Z INFO StepsRunner] Step result: 
+[2025-08-12 09:24:36Z INFO ExecutionContext] Publish step telemetry for current step {
+  "action": "powershell",
+  "type": "run",
+  "stage": "Main",
+  "stepId": "8c5ce035-9601-4156-a921-b2ebc60c3493",
+  "stepContextName": "__run_3",
+  "result": "succeeded",
+  "errorMessages": [],
+  "executionTimeInSeconds": 3,
+  "startTime": "2025-08-12T09:24:33.259264Z",
+  "finishTime": "2025-08-12T09:24:36.1029842Z"
+}.
+[2025-08-12 09:24:36Z INFO StepsRunner] No need for updating job result with current step result 'Succeeded'.
+[2025-08-12 09:24:36Z INFO StepsRunner] Current state: job state = ''
+[2025-08-12 09:24:36Z INFO StepsRunner] Processing step: DisplayName='Start all Node.js applications with PM2'
+[2025-08-12 09:24:36Z INFO StepsRunner] Evaluating: success()
+[2025-08-12 09:24:36Z INFO StepsRunner] Result: true
+[2025-08-12 09:24:36Z INFO StepsRunner] Starting the step.
+[2025-08-12 09:24:36Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:36Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:36Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:36Z INFO StepsRunner] Which2: 'chcp'
+[2025-08-12 09:24:36Z INFO StepsRunner] Location: 'C:\Windows\system32\chcp.COM'
+[2025-08-12 09:24:36Z INFO ProcessInvokerWrapper] Starting process:
+[2025-08-12 09:24:36Z INFO ProcessInvokerWrapper]   File name: 'C:\Windows\system32\chcp.COM'
+[2025-08-12 09:24:36Z INFO ProcessInvokerWrapper]   Arguments: '65001'
+[2025-08-12 09:24:36Z INFO ProcessInvokerWrapper]   Working directory: 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:36Z INFO ProcessInvokerWrapper]   Require exit code zero: 'False'
+[2025-08-12 09:24:36Z INFO ProcessInvokerWrapper]   Encoding web name:  ; code page: ''
+[2025-08-12 09:24:36Z INFO ProcessInvokerWrapper]   Force kill process on cancellation: 'False'
+[2025-08-12 09:24:36Z INFO ProcessInvokerWrapper]   Redirected STDIN: 'False'
+[2025-08-12 09:24:36Z INFO ProcessInvokerWrapper]   Persist current code page: 'True'
+[2025-08-12 09:24:36Z INFO ProcessInvokerWrapper]   Keep redirected STDIN open: 'False'
+[2025-08-12 09:24:36Z INFO ProcessInvokerWrapper]   High priority process: 'False'
+[2025-08-12 09:24:36Z INFO ProcessInvokerWrapper] Process started with process id 34260, waiting for process exit.
+[2025-08-12 09:24:36Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
+[2025-08-12 09:24:36Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
+[2025-08-12 09:24:36Z INFO ProcessInvokerWrapper] Finished process 34260 with exit code 0, and elapsed time 00:00:00.0070511.
+[2025-08-12 09:24:36Z INFO StepsRunner] Successfully returned to code page 65001 (UTF8)
+[2025-08-12 09:24:36Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:36Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:36Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:36Z INFO HostContext] Well known directory 'Temp': 'C:\laragon\www\sapapi\action-runner\_work\_temp'
+[2025-08-12 09:24:36Z INFO ExecutionContext] Write event payload to C:\laragon\www\sapapi\action-runner\_work\_temp\_github_workflow\event.json
+[2025-08-12 09:24:36Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:36Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:36Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:36Z INFO HostContext] Well known directory 'Temp': 'C:\laragon\www\sapapi\action-runner\_work\_temp'
+[2025-08-12 09:24:36Z INFO ExtensionManager] Getting extensions for interface: 'GitHub.Runner.Worker.IFileCommandExtension'
+[2025-08-12 09:24:36Z INFO ExtensionManager] Getting extensions for interface: 'GitHub.Runner.Worker.IActionCommandExtension'
+[2025-08-12 09:24:36Z INFO ActionCommandManager] Register action command extension for command internal-set-repo-path
+[2025-08-12 09:24:36Z INFO ActionCommandManager] Register action command extension for command set-env
+[2025-08-12 09:24:36Z INFO ActionCommandManager] Register action command extension for command set-output
+[2025-08-12 09:24:36Z INFO ActionCommandManager] Register action command extension for command save-state
+[2025-08-12 09:24:36Z INFO ActionCommandManager] Register action command extension for command add-path
+[2025-08-12 09:24:36Z INFO ActionCommandManager] Register action command extension for command add-mask
+[2025-08-12 09:24:36Z INFO ActionCommandManager] Register action command extension for command add-matcher
+[2025-08-12 09:24:36Z INFO ActionCommandManager] Register action command extension for command remove-matcher
+[2025-08-12 09:24:36Z INFO ActionCommandManager] Register action command extension for command warning
+[2025-08-12 09:24:36Z INFO ActionCommandManager] Register action command extension for command error
+[2025-08-12 09:24:36Z INFO ActionCommandManager] Register action command extension for command notice
+[2025-08-12 09:24:36Z INFO ActionCommandManager] Register action command extension for command debug
+[2025-08-12 09:24:36Z INFO ActionCommandManager] Register action command extension for command group
+[2025-08-12 09:24:36Z INFO ActionCommandManager] Register action command extension for command endgroup
+[2025-08-12 09:24:36Z INFO ActionCommandManager] Register action command extension for command echo
+[2025-08-12 09:24:36Z INFO ScriptHandler] Which2: 'powershell'
+[2025-08-12 09:24:36Z INFO ScriptHandler] Location: 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.EXE'
+[2025-08-12 09:24:36Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:36Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:36Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:36Z INFO HostContext] Well known directory 'Temp': 'C:\laragon\www\sapapi\action-runner\_work\_temp'
+[2025-08-12 09:24:36Z INFO ScriptHandler] Which2: 'powershell'
+[2025-08-12 09:24:36Z INFO ScriptHandler] Location: 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.EXE'
+[2025-08-12 09:24:36Z INFO ProcessInvokerWrapper] Starting process:
+[2025-08-12 09:24:36Z INFO ProcessInvokerWrapper]   File name: 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.EXE'
+[2025-08-12 09:24:36Z INFO ProcessInvokerWrapper]   Arguments: '-command ". 'C:\laragon\www\sapapi\action-runner\_work\_temp\01aab4b9-829a-4433-8157-a2ca6fab36e0.ps1'"'
+[2025-08-12 09:24:36Z INFO ProcessInvokerWrapper]   Working directory: 'C:\laragon\www\sapapi\action-runner\_work\sapapi\sapapi'
+[2025-08-12 09:24:36Z INFO ProcessInvokerWrapper]   Require exit code zero: 'False'
+[2025-08-12 09:24:36Z INFO ProcessInvokerWrapper]   Encoding web name:  ; code page: ''
+[2025-08-12 09:24:36Z INFO ProcessInvokerWrapper]   Force kill process on cancellation: 'False'
+[2025-08-12 09:24:36Z INFO ProcessInvokerWrapper]   Redirected STDIN: 'False'
+[2025-08-12 09:24:36Z INFO ProcessInvokerWrapper]   Persist current code page: 'True'
+[2025-08-12 09:24:36Z INFO ProcessInvokerWrapper]   Keep redirected STDIN open: 'False'
+[2025-08-12 09:24:36Z INFO ProcessInvokerWrapper]   High priority process: 'False'
+[2025-08-12 09:24:36Z INFO ProcessInvokerWrapper] Process started with process id 33112, waiting for process exit.
+[2025-08-12 09:24:36Z INFO JobServerQueue] Try to upload 1 log files or attachments, success rate: 1/1.
+[2025-08-12 09:24:36Z INFO JobServerQueue] Try to append 1 batches web console lines for record '8c5ce035-9601-4156-a921-b2ebc60c3493', success rate: 1/1.
+[2025-08-12 09:24:36Z INFO JobServerQueue] Try to append 1 batches web console lines for record '6461dec8-c542-40e2-9b51-b933b472b203', success rate: 1/1.
+[2025-08-12 09:24:36Z INFO JobServerQueue] Got a step log file to send to results service.
+[2025-08-12 09:24:36Z INFO JobServerQueue] Starting upload of step log file to results service ResultsLog, C:\laragon\www\sapapi\action-runner\_diag\blocks\2d115a08-ff56-40a8-9364-16042bd896f4_8c5ce035-9601-4156-a921-b2ebc60c3493.1
+[2025-08-12 09:24:36Z INFO JobServerQueue] Try to append 1 batches web console lines for record '6461dec8-c542-40e2-9b51-b933b472b203', success rate: 1/1.
+[2025-08-12 09:24:37Z INFO JobServerQueue] Try to append 1 batches web console lines for record '6461dec8-c542-40e2-9b51-b933b472b203', success rate: 1/1.
+[2025-08-12 09:24:38Z INFO JobServerQueue] Tried to upload 1 file(s) to results, success rate: 1/1.
+[2025-08-12 09:24:38Z INFO JobServerQueue] Try to append 1 batches web console lines for record '6461dec8-c542-40e2-9b51-b933b472b203', success rate: 1/1.
+[2025-08-12 09:24:38Z INFO JobServerQueue] Try to append 1 batches web console lines for record '6461dec8-c542-40e2-9b51-b933b472b203', success rate: 1/1.
+[2025-08-12 09:24:39Z INFO JobServerQueue] Try to append 1 batches web console lines for record '6461dec8-c542-40e2-9b51-b933b472b203', success rate: 1/1.
+[2025-08-12 09:24:40Z INFO JobServerQueue] Try to append 1 batches web console lines for record '6461dec8-c542-40e2-9b51-b933b472b203', success rate: 1/1.
+[2025-08-12 09:24:40Z INFO JobServerQueue] Try to append 1 batches web console lines for record '6461dec8-c542-40e2-9b51-b933b472b203', success rate: 1/1.
+[2025-08-12 09:24:41Z INFO JobServerQueue] Try to append 1 batches web console lines for record '6461dec8-c542-40e2-9b51-b933b472b203', success rate: 1/1.
+[2025-08-12 09:24:41Z INFO JobServerQueue] Try to append 1 batches web console lines for record '6461dec8-c542-40e2-9b51-b933b472b203', success rate: 1/1.
+[2025-08-12 09:24:42Z INFO JobServerQueue] Try to append 1 batches web console lines for record '6461dec8-c542-40e2-9b51-b933b472b203', success rate: 1/1.
+[2025-08-12 09:24:42Z INFO JobServerQueue] Try to append 1 batches web console lines for record '6461dec8-c542-40e2-9b51-b933b472b203', success rate: 1/1.
+[2025-08-12 09:24:43Z INFO JobServerQueue] Try to append 1 batches web console lines for record '6461dec8-c542-40e2-9b51-b933b472b203', success rate: 1/1.
+[2025-08-12 09:24:43Z INFO JobServerQueue] Try to append 1 batches web console lines for record '6461dec8-c542-40e2-9b51-b933b472b203', success rate: 1/1.
+[2025-08-12 09:24:43Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:43Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:43Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:44Z INFO JobServerQueue] Try to append 1 batches web console lines for record '6461dec8-c542-40e2-9b51-b933b472b203', success rate: 1/1.
+[2025-08-12 09:24:44Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
+[2025-08-12 09:24:44Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
+[2025-08-12 09:24:44Z INFO ProcessInvokerWrapper] Finished process 33112 with exit code 0, and elapsed time 00:00:08.5122267.
+[2025-08-12 09:24:44Z INFO CreateStepSummaryCommand] Step Summary file (C:\laragon\www\sapapi\action-runner\_work\_temp\_runner_file_commands\step_summary_b4da7628-9952-4e78-8d30-7fc1ed499b7f) is empty; skipping attachment upload
+[2025-08-12 09:24:44Z INFO StepsRunner] Step result: 
+[2025-08-12 09:24:44Z INFO ExecutionContext] Publish step telemetry for current step {
+  "action": "powershell",
+  "type": "run",
+  "stage": "Main",
+  "stepId": "6461dec8-c542-40e2-9b51-b933b472b203",
+  "stepContextName": "__run_4",
+  "result": "succeeded",
+  "errorMessages": [],
+  "executionTimeInSeconds": 9,
+  "startTime": "2025-08-12T09:24:36.1042573Z",
+  "finishTime": "2025-08-12T09:24:44.6444444Z"
+}.
+[2025-08-12 09:24:44Z INFO StepsRunner] No need for updating job result with current step result 'Succeeded'.
+[2025-08-12 09:24:44Z INFO StepsRunner] Current state: job state = ''
+[2025-08-12 09:24:44Z INFO StepsRunner] Processing step: DisplayName='Save PM2 process list'
+[2025-08-12 09:24:44Z INFO StepsRunner] Evaluating: success()
+[2025-08-12 09:24:44Z INFO StepsRunner] Result: true
+[2025-08-12 09:24:44Z INFO StepsRunner] Starting the step.
+[2025-08-12 09:24:44Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:44Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:44Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:44Z INFO StepsRunner] Which2: 'chcp'
+[2025-08-12 09:24:44Z INFO StepsRunner] Location: 'C:\Windows\system32\chcp.COM'
+[2025-08-12 09:24:44Z INFO ProcessInvokerWrapper] Starting process:
+[2025-08-12 09:24:44Z INFO ProcessInvokerWrapper]   File name: 'C:\Windows\system32\chcp.COM'
+[2025-08-12 09:24:44Z INFO ProcessInvokerWrapper]   Arguments: '65001'
+[2025-08-12 09:24:44Z INFO ProcessInvokerWrapper]   Working directory: 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:44Z INFO ProcessInvokerWrapper]   Require exit code zero: 'False'
+[2025-08-12 09:24:44Z INFO ProcessInvokerWrapper]   Encoding web name:  ; code page: ''
+[2025-08-12 09:24:44Z INFO ProcessInvokerWrapper]   Force kill process on cancellation: 'False'
+[2025-08-12 09:24:44Z INFO ProcessInvokerWrapper]   Redirected STDIN: 'False'
+[2025-08-12 09:24:44Z INFO ProcessInvokerWrapper]   Persist current code page: 'True'
+[2025-08-12 09:24:44Z INFO ProcessInvokerWrapper]   Keep redirected STDIN open: 'False'
+[2025-08-12 09:24:44Z INFO ProcessInvokerWrapper]   High priority process: 'False'
+[2025-08-12 09:24:44Z INFO ProcessInvokerWrapper] Process started with process id 26692, waiting for process exit.
+[2025-08-12 09:24:44Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
+[2025-08-12 09:24:44Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
+[2025-08-12 09:24:44Z INFO ProcessInvokerWrapper] Finished process 26692 with exit code 0, and elapsed time 00:00:00.0073930.
+[2025-08-12 09:24:44Z INFO StepsRunner] Successfully returned to code page 65001 (UTF8)
+[2025-08-12 09:24:44Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:44Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:44Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:44Z INFO HostContext] Well known directory 'Temp': 'C:\laragon\www\sapapi\action-runner\_work\_temp'
+[2025-08-12 09:24:44Z INFO ExecutionContext] Write event payload to C:\laragon\www\sapapi\action-runner\_work\_temp\_github_workflow\event.json
+[2025-08-12 09:24:44Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:44Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:44Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:44Z INFO HostContext] Well known directory 'Temp': 'C:\laragon\www\sapapi\action-runner\_work\_temp'
+[2025-08-12 09:24:44Z INFO ExtensionManager] Getting extensions for interface: 'GitHub.Runner.Worker.IFileCommandExtension'
+[2025-08-12 09:24:44Z INFO ExtensionManager] Getting extensions for interface: 'GitHub.Runner.Worker.IActionCommandExtension'
+[2025-08-12 09:24:44Z INFO ActionCommandManager] Register action command extension for command internal-set-repo-path
+[2025-08-12 09:24:44Z INFO ActionCommandManager] Register action command extension for command set-env
+[2025-08-12 09:24:44Z INFO ActionCommandManager] Register action command extension for command set-output
+[2025-08-12 09:24:44Z INFO ActionCommandManager] Register action command extension for command save-state
+[2025-08-12 09:24:44Z INFO ActionCommandManager] Register action command extension for command add-path
+[2025-08-12 09:24:44Z INFO ActionCommandManager] Register action command extension for command add-mask
+[2025-08-12 09:24:44Z INFO ActionCommandManager] Register action command extension for command add-matcher
+[2025-08-12 09:24:44Z INFO ActionCommandManager] Register action command extension for command remove-matcher
+[2025-08-12 09:24:44Z INFO ActionCommandManager] Register action command extension for command warning
+[2025-08-12 09:24:44Z INFO ActionCommandManager] Register action command extension for command error
+[2025-08-12 09:24:44Z INFO ActionCommandManager] Register action command extension for command notice
+[2025-08-12 09:24:44Z INFO ActionCommandManager] Register action command extension for command debug
+[2025-08-12 09:24:44Z INFO ActionCommandManager] Register action command extension for command group
+[2025-08-12 09:24:44Z INFO ActionCommandManager] Register action command extension for command endgroup
+[2025-08-12 09:24:44Z INFO ActionCommandManager] Register action command extension for command echo
+[2025-08-12 09:24:44Z INFO ScriptHandler] Which2: 'pwsh'
+[2025-08-12 09:24:44Z INFO ScriptHandler] pwsh: command not found. Make sure 'pwsh' is installed and its location included in the 'Path' environment variable.
+[2025-08-12 09:24:44Z INFO ScriptHandler] Defaulting to powershell
+[2025-08-12 09:24:44Z INFO ScriptHandler] Which2: 'powershell'
+[2025-08-12 09:24:44Z INFO ScriptHandler] Location: 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.EXE'
+[2025-08-12 09:24:44Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:44Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:44Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:44Z INFO HostContext] Well known directory 'Temp': 'C:\laragon\www\sapapi\action-runner\_work\_temp'
+[2025-08-12 09:24:44Z INFO ScriptHandler] Which2: 'pwsh'
+[2025-08-12 09:24:44Z INFO ScriptHandler] pwsh: command not found. Make sure 'pwsh' is installed and its location included in the 'Path' environment variable.
+[2025-08-12 09:24:44Z INFO ScriptHandler] Defaulting to powershell
+[2025-08-12 09:24:44Z INFO ScriptHandler] Which2: 'powershell'
+[2025-08-12 09:24:44Z INFO ScriptHandler] Location: 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.EXE'
+[2025-08-12 09:24:44Z INFO ProcessInvokerWrapper] Starting process:
+[2025-08-12 09:24:44Z INFO ProcessInvokerWrapper]   File name: 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.EXE'
+[2025-08-12 09:24:44Z INFO ProcessInvokerWrapper]   Arguments: '-command ". 'C:\laragon\www\sapapi\action-runner\_work\_temp\0a5b72f3-4427-4b7e-a9ba-2727b4db8fd4.ps1'"'
+[2025-08-12 09:24:44Z INFO ProcessInvokerWrapper]   Working directory: 'C:\laragon\www\sapapi\action-runner\_work\sapapi\sapapi'
+[2025-08-12 09:24:44Z INFO ProcessInvokerWrapper]   Require exit code zero: 'False'
+[2025-08-12 09:24:44Z INFO ProcessInvokerWrapper]   Encoding web name:  ; code page: ''
+[2025-08-12 09:24:44Z INFO ProcessInvokerWrapper]   Force kill process on cancellation: 'False'
+[2025-08-12 09:24:44Z INFO ProcessInvokerWrapper]   Redirected STDIN: 'False'
+[2025-08-12 09:24:44Z INFO ProcessInvokerWrapper]   Persist current code page: 'True'
+[2025-08-12 09:24:44Z INFO ProcessInvokerWrapper]   Keep redirected STDIN open: 'False'
+[2025-08-12 09:24:44Z INFO ProcessInvokerWrapper]   High priority process: 'False'
+[2025-08-12 09:24:44Z INFO ProcessInvokerWrapper] Process started with process id 20472, waiting for process exit.
+[2025-08-12 09:24:45Z INFO JobServerQueue] Try to append 1 batches web console lines for record '6461dec8-c542-40e2-9b51-b933b472b203', success rate: 1/1.
+[2025-08-12 09:24:45Z INFO JobServerQueue] Try to append 1 batches web console lines for record 'da5f932b-5806-4873-9288-2f7e48767c52', success rate: 1/1.
+[2025-08-12 09:24:45Z INFO JobServerQueue] Got a step log file to send to results service.
+[2025-08-12 09:24:45Z INFO JobServerQueue] Starting upload of step log file to results service ResultsLog, C:\laragon\www\sapapi\action-runner\_diag\blocks\2d115a08-ff56-40a8-9364-16042bd896f4_6461dec8-c542-40e2-9b51-b933b472b203.1
+[2025-08-12 09:24:45Z INFO JobServerQueue] Try to upload 1 log files or attachments, success rate: 1/1.
+[2025-08-12 09:24:45Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
+[2025-08-12 09:24:45Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
+[2025-08-12 09:24:45Z INFO ProcessInvokerWrapper] Finished process 20472 with exit code 0, and elapsed time 00:00:00.8568082.
+[2025-08-12 09:24:45Z INFO CreateStepSummaryCommand] Step Summary file (C:\laragon\www\sapapi\action-runner\_work\_temp\_runner_file_commands\step_summary_5818c14c-4e4a-4fa7-9c20-babe87cb500a) is empty; skipping attachment upload
+[2025-08-12 09:24:45Z INFO StepsRunner] Step result: 
+[2025-08-12 09:24:45Z INFO ExecutionContext] Publish step telemetry for current step {
+  "action": "powershell",
+  "type": "run",
+  "stage": "Main",
+  "stepId": "da5f932b-5806-4873-9288-2f7e48767c52",
+  "stepContextName": "__run_5",
+  "result": "succeeded",
+  "errorMessages": [],
+  "executionTimeInSeconds": 1,
+  "startTime": "2025-08-12T09:24:44.6457069Z",
+  "finishTime": "2025-08-12T09:24:45.5614082Z"
+}.
+[2025-08-12 09:24:45Z INFO StepsRunner] No need for updating job result with current step result 'Succeeded'.
+[2025-08-12 09:24:45Z INFO StepsRunner] Current state: job state = ''
+[2025-08-12 09:24:45Z INFO StepsRunner] Processing step: DisplayName='Show PM2 process status'
+[2025-08-12 09:24:45Z INFO StepsRunner] Evaluating: success()
+[2025-08-12 09:24:45Z INFO StepsRunner] Result: true
+[2025-08-12 09:24:45Z INFO StepsRunner] Starting the step.
+[2025-08-12 09:24:45Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:45Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:45Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:45Z INFO StepsRunner] Which2: 'chcp'
+[2025-08-12 09:24:45Z INFO StepsRunner] Location: 'C:\Windows\system32\chcp.COM'
+[2025-08-12 09:24:45Z INFO ProcessInvokerWrapper] Starting process:
+[2025-08-12 09:24:45Z INFO ProcessInvokerWrapper]   File name: 'C:\Windows\system32\chcp.COM'
+[2025-08-12 09:24:45Z INFO ProcessInvokerWrapper]   Arguments: '65001'
+[2025-08-12 09:24:45Z INFO ProcessInvokerWrapper]   Working directory: 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:45Z INFO ProcessInvokerWrapper]   Require exit code zero: 'False'
+[2025-08-12 09:24:45Z INFO ProcessInvokerWrapper]   Encoding web name:  ; code page: ''
+[2025-08-12 09:24:45Z INFO ProcessInvokerWrapper]   Force kill process on cancellation: 'False'
+[2025-08-12 09:24:45Z INFO ProcessInvokerWrapper]   Redirected STDIN: 'False'
+[2025-08-12 09:24:45Z INFO ProcessInvokerWrapper]   Persist current code page: 'True'
+[2025-08-12 09:24:45Z INFO ProcessInvokerWrapper]   Keep redirected STDIN open: 'False'
+[2025-08-12 09:24:45Z INFO ProcessInvokerWrapper]   High priority process: 'False'
+[2025-08-12 09:24:45Z INFO ProcessInvokerWrapper] Process started with process id 30756, waiting for process exit.
+[2025-08-12 09:24:45Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
+[2025-08-12 09:24:45Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
+[2025-08-12 09:24:45Z INFO ProcessInvokerWrapper] Finished process 30756 with exit code 0, and elapsed time 00:00:00.0073611.
+[2025-08-12 09:24:45Z INFO StepsRunner] Successfully returned to code page 65001 (UTF8)
+[2025-08-12 09:24:45Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:45Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:45Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:45Z INFO HostContext] Well known directory 'Temp': 'C:\laragon\www\sapapi\action-runner\_work\_temp'
+[2025-08-12 09:24:45Z INFO ExecutionContext] Write event payload to C:\laragon\www\sapapi\action-runner\_work\_temp\_github_workflow\event.json
+[2025-08-12 09:24:45Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:45Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:45Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:45Z INFO HostContext] Well known directory 'Temp': 'C:\laragon\www\sapapi\action-runner\_work\_temp'
+[2025-08-12 09:24:45Z INFO ExtensionManager] Getting extensions for interface: 'GitHub.Runner.Worker.IFileCommandExtension'
+[2025-08-12 09:24:45Z INFO ExtensionManager] Getting extensions for interface: 'GitHub.Runner.Worker.IActionCommandExtension'
+[2025-08-12 09:24:45Z INFO ActionCommandManager] Register action command extension for command internal-set-repo-path
+[2025-08-12 09:24:45Z INFO ActionCommandManager] Register action command extension for command set-env
+[2025-08-12 09:24:45Z INFO ActionCommandManager] Register action command extension for command set-output
+[2025-08-12 09:24:45Z INFO ActionCommandManager] Register action command extension for command save-state
+[2025-08-12 09:24:45Z INFO ActionCommandManager] Register action command extension for command add-path
+[2025-08-12 09:24:45Z INFO ActionCommandManager] Register action command extension for command add-mask
+[2025-08-12 09:24:45Z INFO ActionCommandManager] Register action command extension for command add-matcher
+[2025-08-12 09:24:45Z INFO ActionCommandManager] Register action command extension for command remove-matcher
+[2025-08-12 09:24:45Z INFO ActionCommandManager] Register action command extension for command warning
+[2025-08-12 09:24:45Z INFO ActionCommandManager] Register action command extension for command error
+[2025-08-12 09:24:45Z INFO ActionCommandManager] Register action command extension for command notice
+[2025-08-12 09:24:45Z INFO ActionCommandManager] Register action command extension for command debug
+[2025-08-12 09:24:45Z INFO ActionCommandManager] Register action command extension for command group
+[2025-08-12 09:24:45Z INFO ActionCommandManager] Register action command extension for command endgroup
+[2025-08-12 09:24:45Z INFO ActionCommandManager] Register action command extension for command echo
+[2025-08-12 09:24:45Z INFO ScriptHandler] Which2: 'pwsh'
+[2025-08-12 09:24:45Z INFO ScriptHandler] pwsh: command not found. Make sure 'pwsh' is installed and its location included in the 'Path' environment variable.
+[2025-08-12 09:24:45Z INFO ScriptHandler] Defaulting to powershell
+[2025-08-12 09:24:45Z INFO ScriptHandler] Which2: 'powershell'
+[2025-08-12 09:24:45Z INFO ScriptHandler] Location: 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.EXE'
+[2025-08-12 09:24:45Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:45Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:45Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:45Z INFO HostContext] Well known directory 'Temp': 'C:\laragon\www\sapapi\action-runner\_work\_temp'
+[2025-08-12 09:24:45Z INFO ScriptHandler] Which2: 'pwsh'
+[2025-08-12 09:24:45Z INFO JobServerQueue] Try to append 1 batches web console lines for record 'da5f932b-5806-4873-9288-2f7e48767c52', success rate: 1/1.
+[2025-08-12 09:24:45Z INFO JobServerQueue] Try to append 1 batches web console lines for record '10f9013e-cf97-4674-b499-d4437d72a61c', success rate: 1/1.
+[2025-08-12 09:24:45Z INFO ScriptHandler] pwsh: command not found. Make sure 'pwsh' is installed and its location included in the 'Path' environment variable.
+[2025-08-12 09:24:45Z INFO ScriptHandler] Defaulting to powershell
+[2025-08-12 09:24:45Z INFO ScriptHandler] Which2: 'powershell'
+[2025-08-12 09:24:45Z INFO ScriptHandler] Location: 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.EXE'
+[2025-08-12 09:24:45Z INFO ProcessInvokerWrapper] Starting process:
+[2025-08-12 09:24:45Z INFO ProcessInvokerWrapper]   File name: 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.EXE'
+[2025-08-12 09:24:45Z INFO ProcessInvokerWrapper]   Arguments: '-command ". 'C:\laragon\www\sapapi\action-runner\_work\_temp\b0c8e9ab-79d5-4a58-a0a0-e34929c5c581.ps1'"'
+[2025-08-12 09:24:45Z INFO ProcessInvokerWrapper]   Working directory: 'C:\laragon\www\sapapi\action-runner\_work\sapapi\sapapi'
+[2025-08-12 09:24:45Z INFO ProcessInvokerWrapper]   Require exit code zero: 'False'
+[2025-08-12 09:24:45Z INFO ProcessInvokerWrapper]   Encoding web name:  ; code page: ''
+[2025-08-12 09:24:45Z INFO ProcessInvokerWrapper]   Force kill process on cancellation: 'False'
+[2025-08-12 09:24:45Z INFO ProcessInvokerWrapper]   Redirected STDIN: 'False'
+[2025-08-12 09:24:45Z INFO ProcessInvokerWrapper]   Persist current code page: 'True'
+[2025-08-12 09:24:45Z INFO ProcessInvokerWrapper]   Keep redirected STDIN open: 'False'
+[2025-08-12 09:24:45Z INFO ProcessInvokerWrapper]   High priority process: 'False'
+[2025-08-12 09:24:45Z INFO ProcessInvokerWrapper] Process started with process id 39404, waiting for process exit.
+[2025-08-12 09:24:46Z INFO JobServerQueue] Try to append 1 batches web console lines for record '10f9013e-cf97-4674-b499-d4437d72a61c', success rate: 1/1.
+[2025-08-12 09:24:46Z INFO JobServerQueue] Try to upload 1 log files or attachments, success rate: 1/1.
+[2025-08-12 09:24:46Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
+[2025-08-12 09:24:46Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
+[2025-08-12 09:24:46Z INFO ProcessInvokerWrapper] Finished process 39404 with exit code 0, and elapsed time 00:00:01.0448530.
+[2025-08-12 09:24:46Z INFO CreateStepSummaryCommand] Step Summary file (C:\laragon\www\sapapi\action-runner\_work\_temp\_runner_file_commands\step_summary_639dbf0e-6df6-44da-a390-472700c0c4a0) is empty; skipping attachment upload
+[2025-08-12 09:24:46Z INFO StepsRunner] Step result: 
+[2025-08-12 09:24:46Z INFO ExecutionContext] Publish step telemetry for current step {
+  "action": "powershell",
+  "type": "run",
+  "stage": "Main",
+  "stepId": "10f9013e-cf97-4674-b499-d4437d72a61c",
+  "stepContextName": "__run_6",
+  "result": "succeeded",
+  "errorMessages": [],
+  "executionTimeInSeconds": 2,
+  "startTime": "2025-08-12T09:24:45.5631527Z",
+  "finishTime": "2025-08-12T09:24:46.6662214Z"
+}.
+[2025-08-12 09:24:46Z INFO StepsRunner] No need for updating job result with current step result 'Succeeded'.
+[2025-08-12 09:24:46Z INFO StepsRunner] Current state: job state = ''
+[2025-08-12 09:24:46Z INFO StepsRunner] Processing step: DisplayName='Post Checkout repository'
+[2025-08-12 09:24:46Z INFO StepsRunner] Evaluating: always()
+[2025-08-12 09:24:46Z INFO StepsRunner] Result: true
+[2025-08-12 09:24:46Z INFO StepsRunner] Starting the step.
+[2025-08-12 09:24:46Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:46Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:46Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:46Z INFO StepsRunner] Which2: 'chcp'
+[2025-08-12 09:24:46Z INFO StepsRunner] Location: 'C:\Windows\system32\chcp.COM'
+[2025-08-12 09:24:46Z INFO ProcessInvokerWrapper] Starting process:
+[2025-08-12 09:24:46Z INFO ProcessInvokerWrapper]   File name: 'C:\Windows\system32\chcp.COM'
+[2025-08-12 09:24:46Z INFO ProcessInvokerWrapper]   Arguments: '65001'
+[2025-08-12 09:24:46Z INFO ProcessInvokerWrapper]   Working directory: 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:46Z INFO ProcessInvokerWrapper]   Require exit code zero: 'False'
+[2025-08-12 09:24:46Z INFO ProcessInvokerWrapper]   Encoding web name:  ; code page: ''
+[2025-08-12 09:24:46Z INFO ProcessInvokerWrapper]   Force kill process on cancellation: 'False'
+[2025-08-12 09:24:46Z INFO ProcessInvokerWrapper]   Redirected STDIN: 'False'
+[2025-08-12 09:24:46Z INFO ProcessInvokerWrapper]   Persist current code page: 'True'
+[2025-08-12 09:24:46Z INFO ProcessInvokerWrapper]   Keep redirected STDIN open: 'False'
+[2025-08-12 09:24:46Z INFO ProcessInvokerWrapper]   High priority process: 'False'
+[2025-08-12 09:24:46Z INFO ProcessInvokerWrapper] Process started with process id 39196, waiting for process exit.
+[2025-08-12 09:24:46Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
+[2025-08-12 09:24:46Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
+[2025-08-12 09:24:46Z INFO ProcessInvokerWrapper] Finished process 39196 with exit code 0, and elapsed time 00:00:00.0063318.
+[2025-08-12 09:24:46Z INFO StepsRunner] Successfully returned to code page 65001 (UTF8)
+[2025-08-12 09:24:46Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:46Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:46Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:46Z INFO HostContext] Well known directory 'Actions': 'C:\laragon\www\sapapi\action-runner\_work\_actions'
+[2025-08-12 09:24:46Z INFO ActionManager] Load action that reference repository from 'C:\laragon\www\sapapi\action-runner\_work\_actions\actions\checkout\v4'
+[2025-08-12 09:24:46Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:46Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:46Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:46Z INFO HostContext] Well known directory 'Actions': 'C:\laragon\www\sapapi\action-runner\_work\_actions'
+[2025-08-12 09:24:46Z INFO ActionManifestManager] Loaded action.yml file: {
+  "name": "Checkout",
+  "description": "Checkout a Git repository at a particular version",
+  "inputs": {
+    "type": 2,
+    "map": [
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 4,
+          "col": 3,
+          "lit": "repository"
+        },
+        "value": {
+          "type": 3,
+          "file": 2,
+          "line": 6,
+          "col": 14,
+          "expr": "github.repository"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 7,
+          "col": 3,
+          "lit": "ref"
+        },
+        "value": ""
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 12,
+          "col": 3,
+          "lit": "token"
+        },
+        "value": {
+          "type": 3,
+          "file": 2,
+          "line": 24,
+          "col": 14,
+          "expr": "github.token"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 25,
+          "col": 3,
+          "lit": "ssh-key"
+        },
+        "value": ""
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 37,
+          "col": 3,
+          "lit": "ssh-known-hosts"
+        },
+        "value": ""
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 42,
+          "col": 3,
+          "lit": "ssh-strict"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 47,
+          "col": 14,
+          "lit": "true"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 48,
+          "col": 3,
+          "lit": "ssh-user"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 51,
+          "col": 14,
+          "lit": "git"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 52,
+          "col": 3,
+          "lit": "persist-credentials"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 54,
+          "col": 14,
+          "lit": "true"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 55,
+          "col": 3,
+          "lit": "path"
+        },
+        "value": ""
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 57,
+          "col": 3,
+          "lit": "clean"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 59,
+          "col": 14,
+          "lit": "true"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 60,
+          "col": 3,
+          "lit": "filter"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 64,
+          "col": 14,
+          "lit": ""
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 65,
+          "col": 3,
+          "lit": "sparse-checkout"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 69,
+          "col": 14,
+          "lit": ""
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 70,
+          "col": 3,
+          "lit": "sparse-checkout-cone-mode"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 73,
+          "col": 14,
+          "lit": "true"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 74,
+          "col": 3,
+          "lit": "fetch-depth"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 76,
+          "col": 14,
+          "lit": "1"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 77,
+          "col": 3,
+          "lit": "fetch-tags"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 79,
+          "col": 14,
+          "lit": "false"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 80,
+          "col": 3,
+          "lit": "show-progress"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 82,
+          "col": 14,
+          "lit": "true"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 83,
+          "col": 3,
+          "lit": "lfs"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 85,
+          "col": 14,
+          "lit": "false"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 86,
+          "col": 3,
+          "lit": "submodules"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 94,
+          "col": 14,
+          "lit": "false"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 95,
+          "col": 3,
+          "lit": "set-safe-directory"
+        },
+        "value": {
+          "type": 0,
+          "file": 2,
+          "line": 97,
+          "col": 14,
+          "lit": "true"
+        }
+      },
+      {
+        "key": {
+          "type": 0,
+          "file": 2,
+          "line": 98,
+          "col": 3,
+          "lit": "github-server-url"
+        },
+        "value": ""
+      }
+    ]
+  },
+  "execution": {
+    "executionType": "nodeJS",
+    "hasPre": false,
+    "hasPost": true,
+    "script": "dist/index.js",
+    "pre": null,
+    "post": "dist/index.js",
+    "nodeVersion": "node20",
+    "cleanupCondition": "always()",
+    "initCondition": "always()"
+  },
+  "deprecated": null
+}
+[2025-08-12 09:24:46Z INFO ActionManager] Action pre node.js file: N/A.
+[2025-08-12 09:24:46Z INFO ActionManager] Action node.js file: dist/index.js.
+[2025-08-12 09:24:46Z INFO ActionManager] Action post node.js file: dist/index.js.
+[2025-08-12 09:24:46Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:46Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:46Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:46Z INFO HostContext] Well known directory 'Temp': 'C:\laragon\www\sapapi\action-runner\_work\_temp'
+[2025-08-12 09:24:46Z INFO ExecutionContext] Write event payload to C:\laragon\www\sapapi\action-runner\_work\_temp\_github_workflow\event.json
+[2025-08-12 09:24:46Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:46Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:46Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\action-runner\_work'
+[2025-08-12 09:24:46Z INFO HostContext] Well known directory 'Temp': 'C:\laragon\www\sapapi\action-runner\_work\_temp'
+[2025-08-12 09:24:46Z INFO ExtensionManager] Getting extensions for interface: 'GitHub.Runner.Worker.IFileCommandExtension'
+[2025-08-12 09:24:46Z INFO ActionManifestManager] Input 'ref': default value evaluate result: ""
+[2025-08-12 09:24:46Z INFO ActionManifestManager] Input 'ssh-key': default value evaluate result: ""
+[2025-08-12 09:24:46Z INFO ActionManifestManager] Input 'ssh-known-hosts': default value evaluate result: ""
+[2025-08-12 09:24:46Z INFO ActionManifestManager] Input 'ssh-strict': default value evaluate result: {
+  "type": 0,
+  "file": 2,
+  "line": 47,
+  "col": 14,
+  "lit": "true"
+}
+[2025-08-12 09:24:46Z INFO ActionManifestManager] Input 'ssh-user': default value evaluate result: {
+  "type": 0,
+  "file": 2,
+  "line": 51,
+  "col": 14,
+  "lit": "git"
+}
+[2025-08-12 09:24:46Z INFO ActionManifestManager] Input 'persist-credentials': default value evaluate result: {
+  "type": 0,
+  "file": 2,
+  "line": 54,
+  "col": 14,
+  "lit": "true"
+}
+[2025-08-12 09:24:46Z INFO ActionManifestManager] Input 'path': default value evaluate result: ""
+[2025-08-12 09:24:46Z INFO ActionManifestManager] Input 'clean': default value evaluate result: {
+  "type": 0,
+  "file": 2,
+  "line": 59,
+  "col": 14,
+  "lit": "true"
+}
+[2025-08-12 09:24:46Z INFO ActionManifestManager] Input 'filter': default value evaluate result: {
+  "type": 0,
+  "file": 2,
+  "line": 64,
+  "col": 14,
+  "lit": ""
+}
+[2025-08-12 09:24:46Z INFO ActionManifestManager] Input 'sparse-checkout': default value evaluate result: {
+  "type": 0,
+  "file": 2,
+  "line": 69,
+  "col": 14,
+  "lit": ""
+}
+[2025-08-12 09:24:46Z INFO ActionManifestManager] Input 'sparse-checkout-cone-mode': default value evaluate result: {
+  "type": 0,
+  "file": 2,
+  "line": 73,
+  "col": 14,
+  "lit": "true"
+}
+[2025-08-12 09:24:46Z INFO ActionManifestManager] Input 'fetch-depth': default value evaluate result: {
+  "type": 0,
+  "file": 2,
+  "line": 76,
+  "col": 14,
+  "lit": "1"
+}
+[2025-08-12 09:24:46Z INFO ActionManifestManager] Input 'fetch-tags': default value evaluate result: {
+  "type": 0,
+  "file": 2,
+  "line": 79,
+  "col": 14,
+  "lit": "false"
+}
+[2025-08-12 09:24:46Z INFO ActionManifestManager] Input 'show-progress': default value evaluate result: {
+  "type": 0,
+  "file": 2,
+  "line": 82,
+  "col": 14,
+  "lit": "true"
+}
+[2025-08-12 09:24:46Z INFO ActionManifestManager] Input 'lfs': default value evaluate result: {
+  "type": 0,
+  "file": 2,
+  "line": 85,
+  "col": 14,
+  "lit": "false"
+}
+[2025-08-12 09:24:46Z INFO ActionManifestManager] Input 'submodules': default value evaluate result: {
+  "type": 0,
+  "file": 2,
+  "line": 94,
+  "col": 14,
+  "lit": "false"
+}
+[2025-08-12 09:24:46Z INFO ActionManifestManager] Input 'set-safe-directory': default value evaluate result: {
+  "type": 0,
+  "file": 2,
+  "line": 97,
+  "col": 14,
+  "lit": "true"
+}
+[2025-08-12 09:24:46Z INFO ActionManifestManager] Input 'github-server-url': default value evaluate result: ""
+[2025-08-12 09:24:46Z INFO ExtensionManager] Getting extensions for interface: 'GitHub.Runner.Worker.IActionCommandExtension'
+[2025-08-12 09:24:46Z INFO ActionCommandManager] Register action command extension for command internal-set-repo-path
+[2025-08-12 09:24:46Z INFO ActionCommandManager] Register action command extension for command set-env
+[2025-08-12 09:24:46Z INFO ActionCommandManager] Register action command extension for command set-output
+[2025-08-12 09:24:46Z INFO ActionCommandManager] Register action command extension for command save-state
+[2025-08-12 09:24:46Z INFO ActionCommandManager] Register action command extension for command add-path
+[2025-08-12 09:24:46Z INFO ActionCommandManager] Register action command extension for command add-mask
+[2025-08-12 09:24:46Z INFO ActionCommandManager] Register action command extension for command add-matcher
+[2025-08-12 09:24:46Z INFO ActionCommandManager] Register action command extension for command remove-matcher
+[2025-08-12 09:24:46Z INFO ActionCommandManager] Register action command extension for command warning
+[2025-08-12 09:24:46Z INFO ActionCommandManager] Register action command extension for command error
+[2025-08-12 09:24:46Z INFO ActionCommandManager] Register action command extension for command notice
+[2025-08-12 09:24:46Z INFO ActionCommandManager] Register action command extension for command debug
+[2025-08-12 09:24:46Z INFO ActionCommandManager] Register action command extension for command group
+[2025-08-12 09:24:46Z INFO ActionCommandManager] Register action command extension for command endgroup
+[2025-08-12 09:24:46Z INFO ActionCommandManager] Register action command extension for command echo
+[2025-08-12 09:24:46Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:46Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:46Z INFO HostContext] Well known directory 'Externals': 'C:\laragon\www\sapapi\action-runner\externals'
+[2025-08-12 09:24:46Z INFO ProcessInvokerWrapper] Starting process:
+[2025-08-12 09:24:46Z INFO ProcessInvokerWrapper]   File name: 'C:\laragon\www\sapapi\action-runner\externals\node20\bin\node.exe'
+[2025-08-12 09:24:46Z INFO ProcessInvokerWrapper]   Arguments: '"C:\laragon\www\sapapi\action-runner\_work\_actions\actions\checkout\v4\dist/index.js"'
+[2025-08-12 09:24:46Z INFO ProcessInvokerWrapper]   Working directory: 'C:\laragon\www\sapapi\action-runner\_work\sapapi\sapapi'
+[2025-08-12 09:24:46Z INFO ProcessInvokerWrapper]   Require exit code zero: 'False'
+[2025-08-12 09:24:46Z INFO ProcessInvokerWrapper]   Encoding web name: utf-8 ; code page: '65001'
+[2025-08-12 09:24:46Z INFO ProcessInvokerWrapper]   Force kill process on cancellation: 'False'
+[2025-08-12 09:24:46Z INFO ProcessInvokerWrapper]   Redirected STDIN: 'False'
+[2025-08-12 09:24:46Z INFO ProcessInvokerWrapper]   Persist current code page: 'True'
+[2025-08-12 09:24:46Z INFO ProcessInvokerWrapper]   Keep redirected STDIN open: 'False'
+[2025-08-12 09:24:46Z INFO ProcessInvokerWrapper]   High priority process: 'False'
+[2025-08-12 09:24:46Z INFO ProcessInvokerWrapper] Process started with process id 23228, waiting for process exit.
+[2025-08-12 09:24:46Z INFO JobServerQueue] Tried to upload 1 file(s) to results, success rate: 1/1.
+[2025-08-12 09:24:47Z INFO AddMaskCommandExtension] Add new secret mask with length of 32
+[2025-08-12 09:24:47Z INFO JobServerQueue] Try to append 1 batches web console lines for record '10f9013e-cf97-4674-b499-d4437d72a61c', success rate: 1/1.
+[2025-08-12 09:24:47Z INFO JobServerQueue] Try to append 1 batches web console lines for record '99349f53-3a57-4ef7-8fc2-b76580d186b2', success rate: 1/1.
+[2025-08-12 09:24:47Z INFO JobServerQueue] Try to upload 1 log files or attachments, success rate: 1/1.
+[2025-08-12 09:24:47Z INFO JobServerQueue] Got a step log file to send to results service.
+[2025-08-12 09:24:47Z INFO JobServerQueue] Starting upload of step log file to results service ResultsLog, C:\laragon\www\sapapi\action-runner\_diag\blocks\2d115a08-ff56-40a8-9364-16042bd896f4_da5f932b-5806-4873-9288-2f7e48767c52.1
+[2025-08-12 09:24:47Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
+[2025-08-12 09:24:47Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
+[2025-08-12 09:24:47Z INFO ProcessInvokerWrapper] Finished process 23228 with exit code 0, and elapsed time 00:00:01.1948710.
+[2025-08-12 09:24:47Z INFO CreateStepSummaryCommand] Step Summary file (C:\laragon\www\sapapi\action-runner\_work\_temp\_runner_file_commands\step_summary_5e06eafe-75a8-46fe-bc01-724975521e05) is empty; skipping attachment upload
+[2025-08-12 09:24:47Z INFO StepsRunner] Step result: 
+[2025-08-12 09:24:47Z INFO ExecutionContext] Publish step telemetry for current step {
+  "action": "actions/checkout",
+  "ref": "v4",
+  "type": "node20",
+  "stage": "Post",
+  "stepId": "99349f53-3a57-4ef7-8fc2-b76580d186b2",
+  "result": "succeeded",
+  "errorMessages": [
+    "The process 'C:\\Program Files\\Git\\cmd\\git.exe' failed with exit code 128"
+  ],
+  "executionTimeInSeconds": 2,
+  "startTime": "2025-08-12T09:24:46.6676451Z",
+  "finishTime": "2025-08-12T09:24:47.8862754Z"
+}.
+[2025-08-12 09:24:47Z INFO StepsRunner] No need for updating job result with current step result 'Succeeded'.
+[2025-08-12 09:24:47Z INFO StepsRunner] Current state: job state = ''
+[2025-08-12 09:24:47Z INFO JobRunner] Finalize job.
+[2025-08-12 09:24:47Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:47Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:47Z INFO HostContext] Well known directory 'Diag': 'C:\laragon\www\sapapi\action-runner\_diag'
+[2025-08-12 09:24:47Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:47Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:47Z INFO HostContext] Well known directory 'Diag': 'C:\laragon\www\sapapi\action-runner\_diag'
+[2025-08-12 09:24:47Z INFO JobExtension] Initialize Env context
+[2025-08-12 09:24:47Z INFO JobExtension] Initialize steps context
+[2025-08-12 09:24:47Z INFO JobExtension] Total accessible running process: 405.
+[2025-08-12 09:24:47Z INFO JobExtension] Inspecting process environment variables. PID: 28884 (chrome)
+[2025-08-12 09:24:47Z INFO JobExtension] Inspecting process environment variables. PID: 32120 (chrome)
+[2025-08-12 09:24:47Z INFO JobExtension] Inspecting process environment variables. PID: 38552 (NitroPDF)
+[2025-08-12 09:24:47Z INFO JobExtension] Inspecting process environment variables. PID: 18732 (Nitro_Slider)
+[2025-08-12 09:24:47Z INFO JobExtension] Inspecting process environment variables. PID: 38700 (chrome)
+[2025-08-12 09:24:47Z INFO JobExtension] Inspecting process environment variables. PID: 29104 (Nitro_Slider)
+[2025-08-12 09:24:47Z INFO JobExtension] Inspecting process environment variables. PID: 37988 (Nitro_Slider)
+[2025-08-12 09:24:47Z INFO JobExtension] Inspecting process environment variables. PID: 22804 (Nitro_Slider)
+[2025-08-12 09:24:47Z INFO JobExtension] Inspecting process environment variables. PID: 3648 (Nitro_Slider)
+[2025-08-12 09:24:47Z INFO JobExtension] Inspecting process environment variables. PID: 29460 (chrome)
+[2025-08-12 09:24:48Z INFO JobExtension] Inspecting process environment variables. PID: 32112 (vctip)
+[2025-08-12 09:24:48Z INFO JobExtension] Inspecting process environment variables. PID: 38920 (chrome)
+[2025-08-12 09:24:48Z INFO JobExtension] Inspecting process environment variables. PID: 26192 (chrome)
+[2025-08-12 09:24:48Z INFO JobExtension] Inspecting process environment variables. PID: 17080 (TrustedInstaller)
+[2025-08-12 09:24:48Z INFO JobExtension] Inspecting process environment variables. PID: 31720 (TiWorker)
+[2025-08-12 09:24:48Z INFO JobExtension] Inspecting process environment variables. PID: 36992 (node)
+[2025-08-12 09:24:48Z INFO JobExtension] Inspecting process environment variables. PID: 26172 (chrome)
+[2025-08-12 09:24:48Z INFO JobExtension] Inspecting process environment variables. PID: 4960 (node)
+[2025-08-12 09:24:48Z INFO JobExtension] Inspecting process environment variables. PID: 1260 (node)
+[2025-08-12 09:24:48Z INFO JobExtension] Inspecting process environment variables. PID: 35956 (node)
+[2025-08-12 09:24:48Z INFO JobExtension] Inspecting process environment variables. PID: 33388 (node)
+[2025-08-12 09:24:48Z INFO JobExtension] Inspecting process environment variables. PID: 34636 (node)
+[2025-08-12 09:24:48Z INFO JobExtension] Inspecting process environment variables. PID: 38652 (node)
+[2025-08-12 09:24:48Z INFO JobServerQueue] Try to append 1 batches web console lines for record '99349f53-3a57-4ef7-8fc2-b76580d186b2', success rate: 1/1.
+[2025-08-12 09:24:48Z INFO JobServerQueue] Try to append 1 batches web console lines for record 'b2445899-96cb-4d53-a1bb-e7315166bb8b', success rate: 1/1.
+[2025-08-12 09:24:48Z INFO JobExtension] Inspecting process environment variables. PID: 3400 (chrome)
+[2025-08-12 09:24:48Z INFO ExecutionContext] Publish step telemetry for current step {
+  "action": "complete_job",
+  "type": "runner",
+  "stage": "Post",
+  "stepId": "b2445899-96cb-4d53-a1bb-e7315166bb8b",
+  "result": "succeeded",
+  "errorMessages": [],
+  "executionTimeInSeconds": 1,
+  "startTime": "2025-08-12T09:24:47.8929561Z",
+  "finishTime": "2025-08-12T09:24:48.197719Z"
+}.
+[2025-08-12 09:24:48Z INFO JobRunner] Job result after all job steps finish: Succeeded
+[2025-08-12 09:24:48Z INFO JobRunner] Completing the job execution context.
+[2025-08-12 09:24:48Z INFO JobRunner] Shutting down the job server queue.
+[2025-08-12 09:24:48Z INFO JobServerQueue] Fire signal to shutdown all queues.
+[2025-08-12 09:24:49Z INFO JobServerQueue] Got a step log file to send to results service.
+[2025-08-12 09:24:49Z INFO JobServerQueue] Starting upload of step log file to results service ResultsLog, C:\laragon\www\sapapi\action-runner\_diag\blocks\2d115a08-ff56-40a8-9364-16042bd896f4_10f9013e-cf97-4674-b499-d4437d72a61c.1
+[2025-08-12 09:24:51Z INFO JobServerQueue] Tried to upload 2 file(s) to results, success rate: 2/2.
+[2025-08-12 09:24:52Z INFO JobServerQueue] All queue process task stopped.
+[2025-08-12 09:24:52Z INFO JobServerQueue] Try to append 1 batches web console lines for record 'b2445899-96cb-4d53-a1bb-e7315166bb8b', success rate: 1/1.
+[2025-08-12 09:24:52Z INFO JobServerQueue] Web console line queue drained.
+[2025-08-12 09:24:52Z INFO JobServerQueue] Uploading 3 files in one shot.
+[2025-08-12 09:24:52Z INFO JobServerQueue] Try to upload 3 log files or attachments, success rate: 3/3.
+[2025-08-12 09:24:52Z INFO JobServerQueue] File upload queue drained.
+[2025-08-12 09:24:52Z INFO JobServerQueue] Starting results-based upload queue...
+[2025-08-12 09:24:52Z INFO JobServerQueue] Uploading 3 file(s) in one shot through results service.
+[2025-08-12 09:24:52Z INFO JobServerQueue] Got a step log file to send to results service.
+[2025-08-12 09:24:52Z INFO JobServerQueue] Starting upload of step log file to results service ResultsLog, C:\laragon\www\sapapi\action-runner\_diag\blocks\2d115a08-ff56-40a8-9364-16042bd896f4_99349f53-3a57-4ef7-8fc2-b76580d186b2.1
+[2025-08-12 09:24:54Z INFO JobServerQueue] Got a step log file to send to results service.
+[2025-08-12 09:24:54Z INFO JobServerQueue] Starting upload of step log file to results service ResultsLog, C:\laragon\www\sapapi\action-runner\_diag\blocks\2d115a08-ff56-40a8-9364-16042bd896f4_b2445899-96cb-4d53-a1bb-e7315166bb8b.1
+[2025-08-12 09:24:55Z INFO JobServerQueue] Got a job log file to send to results service.
+[2025-08-12 09:24:55Z INFO JobServerQueue] Starting upload of job log file to results service ResultsLog, C:\laragon\www\sapapi\action-runner\_diag\blocks\2d115a08-ff56-40a8-9364-16042bd896f4_c0cc780a-0bf0-58ec-a3c0-f06d1556aa5e.1
+[2025-08-12 09:24:57Z INFO JobServerQueue] Tried to upload 3 file(s) to results, success rate: 3/3.
+[2025-08-12 09:24:57Z INFO JobServerQueue] Results upload queue drained.
+[2025-08-12 09:24:58Z INFO JobServerQueue] Timeline update queue drained.
+[2025-08-12 09:24:58Z INFO JobServerQueue] Disposing job server ...
+[2025-08-12 09:24:58Z INFO JobServerQueue] Disposing results server ...
+[2025-08-12 09:24:58Z INFO JobServerQueue] All queue process tasks have been stopped, and all queues are drained.
+[2025-08-12 09:24:58Z INFO TempDirectoryManager] Cleaning runner temp folder: C:\laragon\www\sapapi\action-runner\_work\_temp
+[2025-08-12 09:24:58Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 09:24:58Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 09:24:58Z INFO HostContext] Well known directory 'Diag': 'C:\laragon\www\sapapi\action-runner\_diag'
+[2025-08-12 09:24:58Z INFO HostContext] Well known config file 'Telemetry': 'C:\laragon\www\sapapi\action-runner\_diag\.telemetry'
+[2025-08-12 09:24:58Z INFO JobRunner] Raising job completed against run service
+[2025-08-12 09:24:59Z INFO Worker] Job completed.

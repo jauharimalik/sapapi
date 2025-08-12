@@ -1,37 +1,57 @@
-@echo off
-ECHO Starting deployment process...
-echo.
+#!/bin/bash
 
-REM --- Step 1: Stop all running Node.js processes ---
-ECHO Killing all existing Node.js processes...
-taskkill /F /IM node.exe /T
+# =======================================================
+# Skrip Deployment Aplikasi Node.js dengan PM2
+# =======================================================
 
-REM Wait to ensure all processes are terminated
-timeout /t 5 > nul
+echo "Memulai proses deployment..."
+echo "----------------------------------------"
 
-REM --- Step 2: Pull the latest code from the repository ---
-ECHO Pulling the latest code from Git...
-cd /d C:\laragon\www\sapapi
+# --- Langkah 1: Pindah ke direktori aplikasi ---
+# Ganti '/var/www/sapapi' dengan jalur direktori proyek Anda
+echo "Pindah ke direktori aplikasi..."
+cd /var/www/sapapi
+
+# --- Langkah 2: Tarik kode terbaru dari Git ---
+echo "Menarik kode terbaru dari repositori Git..."
 git pull
 
-REM --- Step 3: Start all Node.js servers in the background ---
-ECHO Starting all Node.js applications...
-echo.
+# --- Langkah 3: Hentikan dan hapus semua proses PM2 yang ada ---
+echo "Menghentikan dan menghapus semua proses PM2 yang berjalan..."
+pm2 stop all
+pm2 delete all
 
-ECHO Starting Delivery Note (server.js)...
-start /b nodemon server.js
+# --- Langkah 4: Mulai kembali semua aplikasi Node.js dengan PM2 ---
+echo "Memulai semua aplikasi Node.js dengan PM2..."
 
-ECHO Starting Tukar Guling (guling.js)...
-start /b nodemon guling.js
+# Mulai server.js (Delivery Note)
+pm2 start server.js --name "DeliveryNote" --watch --ignore-watch "node_modules"
 
-ECHO Starting Retur (retur.js)...
-start /b nodemon retur.js
+# Mulai guling.js (Tukar Guling)
+pm2 start guling.js --name "TukarGuling" --watch --ignore-watch "node_modules"
 
-ECHO Starting Rejection (rijek.js)...
-start /b nodemon rijek.js
+# Mulai retur.js (Retur)
+pm2 start retur.js --name "Retur" --watch --ignore-watch "node_modules"
 
-ECHO Starting STO (sto.js)...
-start /b nodemon sto.js
+# Mulai rijek.js (Rejection)
+pm2 start rijek.js --name "Rejection" --watch --ignore-watch "node_modules"
 
-echo.
-ECHO Deployment complete.
+# Mulai sto.js (STO)
+pm2 start sto.js --name "STO" --watch --ignore-watch "node_modules"
+
+# Mulai prod.js (Tambahan dari contoh GitHub Actions)
+pm2 start prod.js --name "prod-service" --watch --ignore-watch "node_modules"
+
+# Mulai grpo.js (Tambahan dari contoh GitHub Actions)
+pm2 start grpo.js --name "grpo-service" --watch --ignore-watch "node_modules"
+
+
+# --- Langkah 5: Simpan daftar proses PM2 agar dapat dipulihkan setelah reboot ---
+echo "Menyimpan daftar proses PM2..."
+pm2 save
+
+echo "----------------------------------------"
+echo "Deployment selesai."
+echo "Aplikasi Node.js sekarang berjalan di latar belakang."
+echo "Status PM2 saat ini:"
+pm2 list
