@@ -13,12 +13,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          # Perbaiki baris ini dengan menambahkan token
           repository: jauharimalik/sapapi
           token: ${{ secrets.GITHUB_TOKEN }}
           submodules: false
           clean: true
       
+      # Perbaikan: Tambahkan langkah ini untuk mengatur HOMEPATH
+      - name: Set HOMEPATH for PM2
+        run: |
+          # Atur HOMEPATH agar PM2 tidak mengeluarkan peringatan
+          # Ganti dengan path pengguna yang sesuai di server Anda
+          echo "HOMEPATH=C:\Users\PROGRAM-002" | Out-File -FilePath $env:GITHUB_ENV -Append
+        shell: powershell
+
       - name: Add npm global to PATH
         run: echo "C:\Users\PROGRAM-002\AppData\Roaming\npm" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
         shell: powershell
@@ -40,7 +47,8 @@ jobs:
           pm2 start retur.js --name "retur-service" --watch --ignore-watch "node_modules"
           pm2 start rijek.js --name "rijek-service" --watch --ignore-watch "node_modules"
           pm2 start sto.js --name "sto-service" --watch --ignore-watch "node_modules"
-          pm2 start server.js --name "server-service" --watch --ignore-modules "node_modules"
+          # Perbaikan: Mengganti --ignore-modules menjadi --ignore-watch
+          pm2 start server.js --name "server-service" --watch --ignore-watch "node_modules"
         shell: powershell
         
       - name: Save PM2 process list
