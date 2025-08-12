@@ -1,57 +1,60 @@
-#!/bin/bash
+@echo off
+rem =======================================================
+rem Skrip Deployment Aplikasi Node.js tanpa PM2
+rem Semua proses akan berjalan di latar belakang jendela ini.
+rem =======================================================
 
-# =======================================================
-# Skrip Deployment Aplikasi Node.js dengan PM2
-# =======================================================
+echo Memulai proses deployment...
+echo ----------------------------------------
 
-echo "Memulai proses deployment..."
-echo "----------------------------------------"
+rem --- Langkah 1: Pindah ke direktori aplikasi ---
+rem Ganti 'C:\jalur\ke\proyek' dengan jalur direktori proyek Anda
+echo Pindah ke direktori aplikasi...
+cd /d C:\jalur\ke\proyek\sapapi
 
-# --- Langkah 1: Pindah ke direktori aplikasi ---
-# Ganti '/var/www/sapapi' dengan jalur direktori proyek Anda
-echo "Pindah ke direktori aplikasi..."
-cd /var/www/sapapi
-
-# --- Langkah 2: Tarik kode terbaru dari Git ---
-echo "Menarik kode terbaru dari repositori Git..."
+rem --- Langkah 2: Tarik kode terbaru dari Git ---
+echo Menarik kode terbaru dari repositori Git...
 git pull
 
-# --- Langkah 3: Hentikan dan hapus semua proses PM2 yang ada ---
-echo "Menghentikan dan menghapus semua proses PM2 yang berjalan..."
-pm2 stop all
-pm2 delete all
+rem --- Langkah 3: Menghentikan proses Node.js yang berjalan sebelumnya (opsional) ---
+rem Skrip ini tidak secara otomatis menghentikan proses sebelumnya.
+rem Anda harus menghentikannya secara manual atau menggunakan alat lain.
+echo Skrip ini tidak menghentikan proses Node.js yang sudah berjalan.
+echo Proses akan dimulai kembali dan berjalan di latar belakang jendela ini.
 
-# --- Langkah 4: Mulai kembali semua aplikasi Node.js dengan PM2 ---
-echo "Memulai semua aplikasi Node.js dengan PM2..."
+rem --- Langkah 4: Mulai semua aplikasi Node.js dalam satu jendela ---
+echo Memulai semua aplikasi Node.js...
 
-# Mulai server.js (Delivery Note)
-pm2 start server.js --name "DeliveryNote" --watch --ignore-watch "node_modules"
+rem Mulai server.js (Delivery Note)
+echo Memulai DeliveryNote...
+start /b node server.js
 
-# Mulai guling.js (Tukar Guling)
-pm2 start guling.js --name "TukarGuling" --watch --ignore-watch "node_modules"
+rem Mulai guling.js (Tukar Guling)
+echo Memulai TukarGuling...
+start /b node guling.js
 
-# Mulai retur.js (Retur)
-pm2 start retur.js --name "Retur" --watch --ignore-watch "node_modules"
+rem Mulai retur.js (Retur)
+echo Memulai Retur...
+start /b node retur.js
 
-# Mulai rijek.js (Rejection)
-pm2 start rijek.js --name "Rejection" --watch --ignore-watch "node_modules"
+rem Mulai rijek.js (Rejection)
+echo Memulai Rejection...
+start /b node rijek.js
 
-# Mulai sto.js (STO)
-pm2 start sto.js --name "STO" --watch --ignore-watch "node_modules"
+rem Mulai sto.js (STO)
+echo Memulai STO...
+start /b node sto.js
 
-# Mulai prod.js (Tambahan dari contoh GitHub Actions)
-pm2 start prod.js --name "prod-service" --watch --ignore-watch "node_modules"
+rem Mulai prod.js
+echo Memulai prod-service...
+start /b node prod.js
 
-# Mulai grpo.js (Tambahan dari contoh GitHub Actions)
-pm2 start grpo.js --name "grpo-service" --watch --ignore-watch "node_modules"
+rem Mulai grpo.js
+echo Memulai grpo-service...
+start /b node grpo.js
 
-
-# --- Langkah 5: Simpan daftar proses PM2 agar dapat dipulihkan setelah reboot ---
-echo "Menyimpan daftar proses PM2..."
-pm2 save
-
-echo "----------------------------------------"
-echo "Deployment selesai."
-echo "Aplikasi Node.js sekarang berjalan di latar belakang."
-echo "Status PM2 saat ini:"
-pm2 list
+echo ----------------------------------------
+echo Deployment selesai.
+echo Semua aplikasi Node.js berjalan di latar belakang jendela ini.
+echo Jika Anda menutup jendela ini, semua aplikasi akan berhenti.
+echo Untuk melihat output, periksa file log atau ubah start /b menjadi start.

@@ -3,6 +3,26 @@ const dbService = require('./dbService');
 const sql = require('mssql');
 const notificationService = require('./notificationService');
 
+// In your doService.js
+exports.getRnColdspaceData = async (pool, params = {}) => {
+  try {
+    if (params.doNo) {
+      // If doNo is provided, fetch specific record
+      const result = await pool.request()
+        .input('doNo', sql.Int, params.doNo)
+        .query('SELECT * FROM r_dn_coldspace WHERE DO_NO = @doNo');
+      return result.recordset;
+    } else {
+      // If no doNo provided, fetch all records
+      const result = await pool.request()
+        .query('SELECT * FROM r_dn_coldspace');
+      return result.recordset;
+    }
+  } catch (error) {
+    console.error('Error in getRnColdspaceData:', error);
+    throw error;
+  }
+};
 
 
 exports.checkSingleDO = async (doNo, pool) => {  
