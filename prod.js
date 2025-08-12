@@ -90,6 +90,46 @@ async function getProductionOrderData(poNumber, sessionCookie, pool) {
     }
 }
 
+async function closeProductionOrder(poNumber, sessionCookie, pool) {
+    try {
+        const poDataResult = await getProductionOrderData(poNumber, sessionCookie, pool);
+
+        if (poDataResult.error) {
+            return { error: poDataResult.error };
+        }
+
+        const docEntry = poDataResult.data.AbsoluteEntry;
+
+        if (poDataResult.data.ProductionOrderStatus === 'boposClosed') {
+            return { message: `Production Order ${poNumber} is already closed.` };
+        }
+
+        const payload = {
+            "ProductionOrderStatus": "boposClosed"
+        };
+
+        const response = await axios.patch(
+            `${SAP_CONFIG.BASE_URL}/ProductionOrders(${docEntry})`,
+            payload,
+            {
+                headers: {
+                    'Cookie': sessionCookie,
+                    'Content-Type': 'application/json'
+                },
+                httpsAgent: httpsAgent
+            }
+        );
+        
+        console.log(`Successfully closed Production Order ${poNumber}.`);
+        return { message: `Production Order ${poNumber} (DocEntry: ${docEntry}) has been closed.` };
+
+    } catch (error) {
+        const errorMessage = error.response?.data?.error?.message?.value || error.message;
+        console.error(`Failed to close Production Order ${poNumber}:`, errorMessage);
+        return { error: `Failed to close Production Order ${poNumber}: ${errorMessage}` };
+    }
+}
+
 const getBatchDataFromOIBT = async (itemCode, whsCode, ExpDate, pool) => {
     try {
         const query = `
@@ -100,7 +140,7 @@ const getBatchDataFromOIBT = async (itemCode, whsCode, ExpDate, pool) => {
             FROM [pksrv-sap].test.dbo.OIBT T1
             INNER JOIN [pksrv-sap].test.dbo.oitm T2 ON T1.ItemCode = T2.ItemCode
             WHERE T1.ItemCode = '${itemCode}'
-            AND (T1.WhsCode = '${whsCode}' OR T1.WhsCode = T2.DfltWh)
+            AND (T1.WhsCode = '${whsCode}')
             AND T1.Quantity > 0
             AND T1.BatchNum LIKE '${ExpDate}%'
             ORDER BY T1.ExpDate ASC
@@ -122,21 +162,27 @@ const getBatchDataFromOIBT = async (itemCode, whsCode, ExpDate, pool) => {
 
 async function createGoodsIssue(issueData, sessionCookie) {
     try {
+        // const response = await axios.post(
+        //     `${SAP_CONFIG.BASE_URL}/ProductionOrders/IssueForProduction`,
+        
+        let risip = `${SAP_CONFIG.BASE_URL}/InventoryGenExits`
         const response = await axios.post(
-            `${SAP_CONFIG.BASE_URL}/InventoryGenExits`,
+            risip,
             issueData,
             { headers: { 'Cookie': sessionCookie }, httpsAgent: httpsAgent }
         );
         return response.data;
     } catch (error) {
-        throw new Error(`Gagal membuat Goods Issue: ${error.response?.data?.error?.message?.value || error.message}`);
+        // throw new Error(`Gagal membuat Goods Issue: ${error.response?.data?.error?.message?.value || error.message}`);
     }
 }
 
 async function createGoodsReceipt(receiptData, sessionCookie) {
     try {
+        // `${SAP_CONFIG.BASE_URL}/ProductionOrders/ReceiptFromProduction`,
+        let risip = `${SAP_CONFIG.BASE_URL}/InventoryGenEntries`
         const response = await axios.post(
-            `${SAP_CONFIG.BASE_URL}/InventoryGenEntries`,
+            risip,
             receiptData,
             { headers: { 'Cookie': sessionCookie }, httpsAgent: httpsAgent }
         );
@@ -229,109 +275,138 @@ async function processProductionOrders() {
                     continue;
                 }
 
-                const woDataResult = await getProductionOrderData(record.PO_NO, sessionCookie, pool);
+                let woDataResult = await getProductionOrderData(record.PO_NO, sessionCookie, pool);
+                
                 if (woDataResult.error) {
                     await updateRecordStatus(record.id, record.PO_NO, 0, woDataResult.error, null, null, pool);
                     await sendWhatsAppNotification(record.PO_NO, null, null, woDataResult.error, false);
                     continue;
                 }
-                const woData = woDataResult.data;
-
-                if (woData.ProductionOrderStatus === 'boposClosed') {
-                    const note = 'Dokumen Production Order sudah selesai (closed).';
-                    await updateRecordStatus(record.id, record.PO_NO, 3, note, woData.DocumentNumber, woData.AbsoluteEntry, pool);
-                    await sendWhatsAppNotification(record.PO_NO, woData.DocumentNumber, woData.AbsoluteEntry, note, true);
-                    continue;
-                }
-
-                const docDate = new Date().toISOString().split('T')[0];
-                const now = new Date();
-                const hhmmss = `${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
-                const expiryDate = convertVfdatToExpiryDate(record.VFDAT);
-
-                // --- BAGIAN GOODS ISSUE ---
-                const issueLines = [];
-                for (const line of woData.ProductionOrderLines) {
-                    // Cek apakah kuantitas yang dibutuhkan lebih besar dari 0
-                    if (line.PlannedQuantity > 0) {
-                        const batchInfo = await getBatchDataFromOIBT(line.ItemNo, line.Warehouse, record.VFDAT, pool);
-                        if (!batchInfo) {
-                            throw new Error(`Batch number untuk item ${line.ItemNo} dengan Expiry Date ${expiryDate} tidak ditemukan.`);
-                        }
-                        
-                        issueLines.push({
-                            "ItemCode": line.ItemNo,
-                            "Quantity": line.PlannedQuantity,
-                            "WarehouseCode": line.Warehouse,
-                            "ProductionOrderEntry": woData.AbsoluteEntry,
-                            "ProductionOrderLineNumber": line.LineNumber,
-                            "BatchNumbers": [{
-                                "BatchNumber": batchInfo.BatchNumber,
-                                "Quantity": line.PlannedQuantity,
-                                "InternalSerialNumber": batchInfo.BatchNumber,
-                                "ExpiryDate": batchInfo.ExpiryDate,
-                                "BaseLineNumber": line.LineNumber
-                            }]
-                        });
+                let woData = woDataResult.data;
+                if (woData.ProductionOrderType === 'bopotDisassembly') {}
+                else{
+                       
+                    if (woData.ProductionOrderStatus === 'boposClosed') {
+                        const note = 'Dokumen Production Order sudah selesai (closed).';
+                        await updateRecordStatus(record.id, record.PO_NO, 3, note, woData.DocumentNumber, woData.AbsoluteEntry, pool);
+                        await sendWhatsAppNotification(record.PO_NO, woData.DocumentNumber, woData.AbsoluteEntry, note, true);
+                        continue;
                     }
-                }
-                
-                const goodsIssuePayload = {
-                    "DocDate": docDate,
-                    "DocDueDate": docDate,
-                    "Series": 644,
-                    "Comments": `Pengeluaran Barang untuk Production Order ${woData.DocumentNumber}`,
-                    "FromWarehouse": woData.Warehouse,
-                    "JournalMemo": `Production Order - ${woData.ItemNo}`,
-                    "DocumentLines": issueLines
-                };
 
-                // Log payload Goods Issue sebelum dikirim
-                console.log(`Payload Goods Issue untuk PO ${record.PO_NO}:`);
-                console.log(JSON.stringify(goodsIssuePayload, null, 2));
+                    
+                    const docDate = new Date().toISOString().split('T')[0];
+                    const today = new Date(docDate);
+                    const nextDay = new Date(today);
+                    nextDay.setDate(today.getDate() + 1);
+                    const nextDocDate = nextDay.toISOString().split('T')[0];
 
-                const goodsIssueResult = await createGoodsIssue(goodsIssuePayload, sessionCookie);
-                console.log(`Goods Issue berhasil dibuat untuk PO ${record.PO_NO}: DocNum ${goodsIssueResult.DocNum}`);
+                    const now = new Date();
+                    const hhmmss = `${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
+                    const expiryDate = convertVfdatToExpiryDate(record.VFDAT);
 
-                // --- BAGIAN GOODS RECEIPT ---
-                const goodsReceiptPayload = {
-                    "DocDate": docDate,
-                    "DocDueDate": docDate,
-                    "Series": 643,
-                    "Comments": `Penerimaan Barang untuk Production Order ${woData.DocumentNumber}`,
-                    "FromWarehouse": woData.Warehouse,
-                    "JournalMemo": `Production Order - ${woData.ItemNo}`,
-                    "DocumentLines": [
-                        {
-                            "ItemCode": woData.ItemNo,
-                            "Quantity": record.QTYPO, // Menggunakan QTYPO dari DB
-                            "WarehouseCode": woData.Warehouse,
-                            "ProductionOrderEntry": woData.AbsoluteEntry,
-                            "ProductionOrderLineNumber": 0, // Perbaikan: Menggunakan 0 untuk Goods Receipt
-                            "BatchNumbers": [
-                                {
-                                    "BatchNumber": `${record.VFDAT}_${hhmmss}`,
-                                    "Quantity": record.QTYPO, // Menggunakan QTYPO dari DB
-                                    "InternalSerialNumber": `${record.VFDAT}_${hhmmss}`,
-                                    "ExpiryDate": expiryDate,
-                                    "BaseLineNumber": 0
-                                }
-                            ]
+                    // --- BAGIAN GOODS ISSUE ---
+                    const issueLines = [];
+                    for (const line of woData.ProductionOrderLines) {
+                        // Cek apakah kuantitas yang dibutuhkan lebih besar dari 0
+                        if (line.PlannedQuantity > 0) {
+                            const batchInfo = await getBatchDataFromOIBT(line.ItemNo, line.Warehouse, record.VFDAT, pool);
+                            if (!batchInfo) {
+                                throw new Error(`Batch number untuk item ${line.ItemNo} dengan Expiry Date ${expiryDate} tidak ditemukan.`);
+                            }
+                            
+                            issueLines.push({
+                                "Quantity": line.PlannedQuantity,
+                                "WarehouseCode": line.Warehouse,
+                                "ProductionOrderEntry": woData.AbsoluteEntry,
+                                "ProductionOrderLineNumber": line.LineNumber,
+                                "BaseEntry": woData.AbsoluteEntry,
+                                "BaseType": 202,
+                                "BaseLine": line.LineNumber,
+                                "AccountCode": "101120101",
+                                "UseBaseUnits": "tYES",
+                                "BatchNumbers": [{
+                                    "BatchNumber": batchInfo.BatchNumber,
+                                    "Quantity": line.PlannedQuantity,
+                                    "InternalSerialNumber": batchInfo.BatchNumber,
+                                    "ExpiryDate": batchInfo.ExpiryDate,
+                                    "BaseLineNumber": line.LineNumber
+                                }]
+                            });
                         }
-                    ]
-                };
+                    }
+                    
+                    const goodsIssuePayload = {
+                        "DocDate": docDate,
+                        "DocDueDate": docDate,
+                        "Series": 644,
+                        "FromWarehouse": woData.Warehouse,
+                        "JournalMemo": `Production Order - ${woData.ItemNo}`,
+                        "DocumentLines": issueLines
+                    };
 
-                // Log payload Goods Receipt sebelum dikirim
-                console.log(`Payload Goods Receipt untuk PO ${record.PO_NO}:`);
-                console.log(JSON.stringify(goodsReceiptPayload, null, 2));
+                    // Log payload Goods Issue sebelum dikirim
+                    // console.log(`Payload Goods Issue untuk PO ${record.PO_NO}:`);
+                    // console.log(JSON.stringify(goodsIssuePayload, null, 2));
+                    const totalIssuedQuantity = woData.ProductionOrderLines.reduce((sum, line) => sum + line.IssuedQuantity, 0);
+                    
+                    if (totalIssuedQuantity >= woData.PlannedQuantity) {
+                        const note = 'Tidak dapat melakukan Goods Issue. Semua bahan baku yang dibutuhkan sudah dikeluarkan.';
+                        console.error(note);
+                        await updateRecordStatus(record.id, record.PO_NO, 0, note, null, null, pool);
+                        await sendWhatsAppNotification(record.PO_NO, null, null, note, false);
+                    } else {
+                        const goodsIssueResult = await createGoodsIssue(goodsIssuePayload, sessionCookie);
+                        console.log(`Goods Issue berhasil dibuat untuk PO ${record.PO_NO} `);
+                    }
 
-                const goodsReceiptResult = await createGoodsReceipt(goodsReceiptPayload, sessionCookie);
-                console.log(`Goods Receipt berhasil dibuat untuk PO ${record.PO_NO}: DocNum ${goodsReceiptResult.DocNum}`);
+                    // --- BAGIAN GOODS RECEIPT ---
+                    const goodsReceiptPayload = {
+                        "Series": 643,
+                        "FromWarehouse": woData.Warehouse,
+                        "JournalMemo": woData.JournalRemarks,
+                        "DocumentLines": [
+                            {
+                                "Quantity": record.QTYPO, 
+                                "WarehouseCode": woData.Warehouse,
+                                "BaseEntry": woData.AbsoluteEntry,
+                                "BaseType": 202,
+                                "UseBaseUnits": "tYES",
+                                "ProductionOrderEntry": woData.AbsoluteEntry,
+                                "ProductionOrderLineNumber": -1,
+                                "BatchNumbers": [
+                                    {
+                                        "BatchNumber": `${record.VFDAT}#${hhmmss}`,
+                                        "Quantity": record.QTYPO, 
+                                        "InternalSerialNumber": `${record.VFDAT}#${hhmmss}`,
+                                        "ExpiryDate": expiryDate,
+                                        "BaseLineNumber": 0
+                                    }
+                                ]
+                            }
+                        ]
+                    };
 
-                const successNote = `Berhasil memproses Production Order: Goods Issue DocNum ${goodsIssueResult.DocNum}, Goods Receipt DocNum ${goodsReceiptResult.DocNum}`;
-                await updateRecordStatus(record.id, record.PO_NO, 3, successNote, woData.DocumentNumber, woData.AbsoluteEntry, pool);
-                await sendWhatsAppNotification(record.PO_NO, woData.DocumentNumber, woData.AbsoluteEntry, successNote, true);
+                    // // Log payload Goods Receipt sebelum dikirim
+                    // console.log(`Payload Goods Receipt untuk PO ${record.PO_NO}:`);
+                    // console.log(JSON.stringify(goodsReceiptPayload, null, 2));
 
+                    if (woData.CompletedQuantity >= woData.PlannedQuantity) {
+                        const note = 'Tidak dapat melakukan Goods Receipt. Kuantitas selesai sudah memenuhi kuantitas yang direncanakan.';
+                        console.error(note);
+                        await updateRecordStatus(record.id, record.PO_NO, 0, note, null, null, pool);
+                        await sendWhatsAppNotification(record.PO_NO, null, null, note, false);
+                        continue;
+                    }else{
+                        const goodsReceiptResult = await createGoodsReceipt(goodsReceiptPayload, sessionCookie);
+                        console.log(`Goods Receipt berhasil dibuat untuk PO ${record.PO_NO}`);
+                        const successNote = `Berhasil memproses Production Order  ${record.PO_NO} `;
+                        await updateRecordStatus(record.id, record.PO_NO, 3, successNote, null, null, pool);
+                        await sendWhatsAppNotification(record.PO_NO, null, null, successNote, true);    
+                    }
+
+                    // closeProductionOrder(record.PO_NO, sessionCookie, pool);
+
+                }
             } catch (error) {
                 const note = `Gagal memproses Production Order ${record.PO_NO}: ${error.message}`;
                 const status = error.message.includes('already exists') ? 4 : 0;
