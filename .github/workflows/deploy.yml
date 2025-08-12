@@ -13,8 +13,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          # Pastikan Anda menggunakan repository yang sama
           repository: jauharimalik/sapapi
-          token: ${{ secrets.GITHUB_TOKEN }}
+          # Tambahkan opsi submodules: false di sini
+          submodules: false
       
       - name: Add npm global to PATH
         run: echo "C:\Users\PROGRAM-002\AppData\Roaming\npm" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
@@ -37,7 +39,7 @@ jobs:
           pm2 start retur.js --name "retur-service" --watch --ignore-watch "node_modules"
           pm2 start rijek.js --name "rijek-service" --watch --ignore-watch "node_modules"
           pm2 start sto.js --name "sto-service" --watch --ignore-watch "node_modules"
-          pm2 start server.js --name "server-service" --watch --ignore-watch "node_modules"
+          pm2 start server.js --name "server-service" --watch --ignore-modules "node_modules"
         shell: powershell
         
       - name: Save PM2 process list
