@@ -1,57 +1,211 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PM2 Service Monitor</title>
+    <title>Dashboard PM2 Service</title>
+
+    <link href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        .header {
+            background-color: #0d47a1;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-weight: 300;
+        }
+
+        .main-container {
+            padding: 20px;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .control-panel {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+
+        .mdc-card {
+            margin-bottom: 16px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .mdc-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+
+        .mdc-card__primary-action {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+        }
+
+        .status-indicator {
+            margin-right: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+        }
+
+        .status-indicator.online { background-color: #43a047; } /* Hijau */
+        .status-indicator.stopped { background-color: #f44336; } /* Merah */
+        .status-indicator.errored { background-color: #ffb300; } /* Kuning */
+        .status-indicator.default { background-color: #757575; } /* Abu-abu */
+
+        .service-details {
+            flex-grow: 1;
+        }
+
+        .service-details h3 {
+            margin: 0;
+            font-weight: 500;
+        }
+
+        .service-details p {
+            margin: 4px 0;
+            color: #757575;
+            font-size: 0.9rem;
+        }
+    </style>
 </head>
 <body>
-    <h1>PM2 Service Status</h1>
-    <div id="services-container">Loading...</div>
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const container = document.getElementById('services-container');
-    
-    // URL ini mengambil data dari repository "sapapi"
-    const statusFileUrl = 'https://jauharimalik.github.io/sapapi/pm2-status.json';
 
-    fetch(statusFileUrl)
-        .then(response => {
-            if (!response.ok) {
-                // Periksa status respons HTTP.
-                if (response.status === 404) {
-                    throw new Error('File pm2-status.json not found. Check GitHub Pages settings for sapapi repository.');
-                }
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            container.innerHTML = '';
-            if (data.length === 0) {
-                container.innerHTML = '<p>No PM2 services are running.</p>';
-                return;
-            }
+    <header class="header">
+        <h1>Dashboard PM2 Services</h1>
+    </header>
 
-            data.forEach(service => {
-                const serviceDiv = document.createElement('div');
-                const status = service.pm2_env.status;
-                
-                serviceDiv.innerHTML = `
-                    <h3>${service.name}</h3>
-                    <p>Status: ${status}</p>
-                    <p>ID: ${service.pm_id}</p>
-                    <p>CPU: ${service.monit.cpu}%</p>
-                    <p>Memory: ${(service.monit.memory / 1024 / 1024).toFixed(2)} MB</p>
-                `;
-                container.appendChild(serviceDiv);
-            });
-        })
-        .catch(error => {
-            console.error('Error fetching data:', error);
-            container.innerHTML = `<p>${error.message}</p>`;
+    <main class="main-container">
+        <div class="control-panel">
+            <button id="refresh-button" class="mdc-button mdc-button--raised">
+                <span class="mdc-button__label">Refresh</span>
+            </button>
+        </div>
+        <div id="services-container">
+            <p>Memuat status layanan...</p>
+        </div>
+        <div id="loading-spinner" style="text-align: center; margin-top: 20px; display: none;">
+            <div class="mdc-circular-progress mdc-circular-progress--medium" role="progressbar" aria-label="Loading...">
+                <div class="mdc-circular-progress__determinate-container">
+                    <svg class="mdc-circular-progress__svg" viewBox="22 22 44 44">
+                        <circle class="mdc-circular-progress__path" cx="44" cy="44" r="20" stroke-dasharray="80" stroke-dashoffset="60"></circle>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
+    <script>
+        // Inisialisasi MDC
+        mdc.autoInit();
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('services-container');
+            const refreshButton = document.getElementById('refresh-button');
+            const loadingSpinner = document.getElementById('loading-spinner');
+            const statusFileUrl = 'https://jauharimalik.github.io/sapapi/pm2-status.json';
+
+            const fetchData = () => {
+                container.innerHTML = ''; // Hapus konten lama
+                loadingSpinner.style.display = 'block'; // Tampilkan loading spinner
+
+                fetch(statusFileUrl)
+                    .then(response => {
+                        if (!response.ok) {
+                            if (response.status === 404) {
+                                throw new Error('File pm2-status.json tidak ditemukan. Mohon periksa repository GitHub.');
+                            }
+                            throw new Error('Terjadi masalah pada jaringan. Kode: ' + response.status);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        loadingSpinner.style.display = 'none'; // Sembunyikan loading spinner
+                        container.innerHTML = '';
+                        
+                        if (data.length === 0) {
+                            container.innerHTML = '<p>Tidak ada layanan PM2 yang sedang berjalan.</p>';
+                            return;
+                        }
+
+                        data.forEach(service => {
+                            const serviceDiv = document.createElement('div');
+                            serviceDiv.className = 'mdc-card';
+                            
+                            const status = service.pm2_env.status;
+                            let statusClass = 'default';
+                            let icon = 'help_outline';
+
+                            if (status === 'online') {
+                                statusClass = 'online';
+                                icon = 'check_circle_outline';
+                            } else if (status === 'stopped') {
+                                statusClass = 'stopped';
+                                icon = 'block';
+                            } else if (status === 'errored') {
+                                statusClass = 'errored';
+                                icon = 'error_outline';
+                            }
+
+                            serviceDiv.innerHTML = `
+                                <div class="mdc-card__primary-action">
+                                    <div class="status-indicator ${statusClass}">
+                                        <i class="material-icons">${icon}</i>
+                                    </div>
+                                    <div class="service-details">
+                                        <h3 class="mdc-typography--headline6">${service.name}</h3>
+                                        <p>Status: <strong>${status}</strong></p>
+                                        <p>ID: ${service.pm_id}</p>
+                                        <p>CPU: ${service.monit.cpu}%</p>
+                                        <p>Memori: ${(service.monit.memory / 1024 / 1024).toFixed(2)} MB</p>
+                                    </div>
+                                </div>
+                            `;
+                            container.appendChild(serviceDiv);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error fetching data:', error);
+                        loadingSpinner.style.display = 'none';
+                        container.innerHTML = `
+                            <div class="mdc-card mdc-card--outlined">
+                                <div class="mdc-card__primary-action" style="color: #c62828;">
+                                    <i class="material-icons" style="margin-right: 16px;">warning</i>
+                                    <p>${error.message}</p>
+                                </div>
+                            </div>
+                        `;
+                    });
+            };
+
+            // Tambahkan event listener untuk tombol refresh
+            refreshButton.addEventListener('click', fetchData);
+
+            // Panggil fetchData pertama kali saat halaman dimuat
+            fetchData();
         });
-});
-</script>
+    </script>
 </body>
 </html>
