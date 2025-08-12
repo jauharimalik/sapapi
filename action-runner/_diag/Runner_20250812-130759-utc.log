@@ -1,0 +1,71 @@
+[2025-08-12 13:07:59Z INFO HostContext] No proxy settings were found based on environmental variables (http_proxy/https_proxy/HTTP_PROXY/HTTPS_PROXY)
+[2025-08-12 13:07:59Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 13:07:59Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 13:07:59Z INFO HostContext] Well known config file 'Credentials': 'C:\laragon\www\sapapi\action-runner\.credentials'
+[2025-08-12 13:07:59Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 13:07:59Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 13:07:59Z INFO HostContext] Well known config file 'Runner': 'C:\laragon\www\sapapi\action-runner\.runner'
+[2025-08-12 13:07:59Z INFO Listener] Runner is built for Windows (X64) - win-x64.
+[2025-08-12 13:07:59Z INFO Listener] RuntimeInformation: Microsoft Windows 10.0.19045.
+[2025-08-12 13:07:59Z INFO Listener] Version: 2.327.1
+[2025-08-12 13:07:59Z INFO Listener] Commit: 9513afd82fbc900d13362cdd4fcdab0538f5124e
+[2025-08-12 13:07:59Z INFO Listener] Culture: en-US
+[2025-08-12 13:07:59Z INFO Listener] UI Culture: en-US
+[2025-08-12 13:07:59Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 13:07:59Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 13:07:59Z INFO Listener] Validating directory permissions for: 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 13:07:59Z INFO CommandLineParser] Parse
+[2025-08-12 13:07:59Z INFO CommandLineParser] Parsing 3 args
+[2025-08-12 13:07:59Z INFO CommandLineParser] parsing argument
+[2025-08-12 13:07:59Z INFO CommandLineParser] HasArgs: False
+[2025-08-12 13:07:59Z INFO CommandLineParser] Adding Command: run
+[2025-08-12 13:07:59Z INFO CommandLineParser] parsing argument
+[2025-08-12 13:07:59Z INFO CommandLineParser] HasArgs: True
+[2025-08-12 13:07:59Z INFO CommandLineParser] arg: startuptype
+[2025-08-12 13:07:59Z INFO CommandLineParser] parsing argument
+[2025-08-12 13:07:59Z INFO CommandLineParser] HasArgs: True
+[2025-08-12 13:07:59Z INFO CommandLineParser] Adding option 'startuptype': 'service'
+[2025-08-12 13:07:59Z INFO Listener] Arguments parsed
+[2025-08-12 13:07:59Z INFO Runner] ExecuteCommand
+[2025-08-12 13:07:59Z INFO ConfigurationStore] currentAssemblyLocation: C:\laragon\www\sapapi\action-runner\bin\Runner.Listener.dll
+[2025-08-12 13:07:59Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 13:07:59Z INFO ConfigurationStore] binPath: C:\laragon\www\sapapi\action-runner\bin
+[2025-08-12 13:07:59Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 13:07:59Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 13:07:59Z INFO ConfigurationStore] RootFolder: C:\laragon\www\sapapi\action-runner
+[2025-08-12 13:07:59Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 13:07:59Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 13:07:59Z INFO HostContext] Well known config file 'Runner': 'C:\laragon\www\sapapi\action-runner\.runner'
+[2025-08-12 13:07:59Z INFO ConfigurationStore] ConfigFilePath: C:\laragon\www\sapapi\action-runner\.runner
+[2025-08-12 13:07:59Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 13:07:59Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 13:07:59Z INFO HostContext] Well known config file 'MigratedRunner': 'C:\laragon\www\sapapi\action-runner\.runner_migrated'
+[2025-08-12 13:07:59Z INFO ConfigurationStore] MigratedConfigFilePath: C:\laragon\www\sapapi\action-runner\.runner_migrated
+[2025-08-12 13:07:59Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 13:07:59Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 13:07:59Z INFO HostContext] Well known config file 'Credentials': 'C:\laragon\www\sapapi\action-runner\.credentials'
+[2025-08-12 13:07:59Z INFO ConfigurationStore] CredFilePath: C:\laragon\www\sapapi\action-runner\.credentials
+[2025-08-12 13:07:59Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 13:07:59Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 13:07:59Z INFO HostContext] Well known config file 'MigratedCredentials': 'C:\laragon\www\sapapi\action-runner\.credentials_migrated'
+[2025-08-12 13:07:59Z INFO ConfigurationStore] MigratedCredFilePath: C:\laragon\www\sapapi\action-runner\.credentials_migrated
+[2025-08-12 13:07:59Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 13:07:59Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\action-runner'
+[2025-08-12 13:07:59Z INFO HostContext] Well known config file 'Service': 'C:\laragon\www\sapapi\action-runner\.service'
+[2025-08-12 13:07:59Z INFO ConfigurationStore] ServiceConfigFilePath: C:\laragon\www\sapapi\action-runner\.service
+[2025-08-12 13:07:59Z INFO CommandSettings] Flag 'help': 'False'
+[2025-08-12 13:07:59Z INFO CommandSettings] Flag 'version': 'False'
+[2025-08-12 13:07:59Z INFO CommandSettings] Flag 'commit': 'False'
+[2025-08-12 13:07:59Z INFO CommandSettings] Flag 'check': 'False'
+[2025-08-12 13:07:59Z INFO CommandSettings] Command 'configure': 'False'
+[2025-08-12 13:07:59Z INFO CommandSettings] Command 'remove': 'False'
+[2025-08-12 13:07:59Z INFO CommandSettings] Command 'warmup': 'False'
+[2025-08-12 13:07:59Z INFO ConfigurationManager] LoadSettings
+[2025-08-12 13:07:59Z INFO ConfigurationStore] IsConfigured()
+[2025-08-12 13:07:59Z INFO ConfigurationStore] IsConfigured: False
+[2025-08-12 13:07:59Z INFO ConfigurationManager] Is configured: False
+[2025-08-12 13:07:59Z ERR  Terminal] WRITE ERROR: An error occurred: Not configured. Run config.(sh/cmd) to configure the runner.
+[2025-08-12 13:07:59Z ERR  Listener] GitHub.Runner.Common.NonRetryableException: Not configured. Run config.(sh/cmd) to configure the runner.
+   at GitHub.Runner.Listener.Configuration.ConfigurationManager.LoadSettings()
+   at GitHub.Runner.Listener.Runner.ExecuteCommand(CommandSettings command)
+   at GitHub.Runner.Listener.Program.MainAsync(IHostContext context, String[] args)
