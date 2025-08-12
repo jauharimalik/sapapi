@@ -18296,3 +18296,53 @@
 [2025-08-12 12:42:28Z INFO JobNotification] Entering JobStarted Notification
 [2025-08-12 12:42:28Z INFO JobNotification] Entering StartMonitor
 [2025-08-12 12:43:29Z INFO JobDispatcher] Successfully renew job 689ef064-5ed4-5dfa-a5c6-58a71fcb344e, job is valid till 8/12/2025 12:53:31 PM
+[2025-08-12 12:44:30Z INFO JobDispatcher] Successfully renew job 689ef064-5ed4-5dfa-a5c6-58a71fcb344e, job is valid till 8/12/2025 12:54:32 PM
+[2025-08-12 12:45:32Z INFO JobDispatcher] Successfully renew job 689ef064-5ed4-5dfa-a5c6-58a71fcb344e, job is valid till 8/12/2025 12:55:33 PM
+[2025-08-12 12:46:33Z INFO JobDispatcher] Successfully renew job 689ef064-5ed4-5dfa-a5c6-58a71fcb344e, job is valid till 8/12/2025 12:56:35 PM
+[2025-08-12 12:47:13Z INFO ConfigurationStore] HasCredentials()
+[2025-08-12 12:47:13Z INFO ConfigurationStore] stored True
+[2025-08-12 12:47:13Z INFO CredentialManager] GetCredentialProvider
+[2025-08-12 12:47:13Z INFO CredentialManager] Creating type OAuth
+[2025-08-12 12:47:13Z INFO CredentialManager] Creating credential type: OAuth
+[2025-08-12 12:47:13Z INFO RSAEncryptedFileKeyManager] Loading RSA key parameters from file C:\laragon\www\sapapi\action-runner\.credentials_rsaparams
+[2025-08-12 12:47:13Z INFO RSAEncryptedFileKeyManager] Loading RSA key parameters from file C:\laragon\www\sapapi\action-runner\.credentials_rsaparams
+[2025-08-12 12:47:13Z INFO RSAEncryptedFileKeyManager] Loading RSA key parameters from file C:\laragon\www\sapapi\action-runner\.credentials_rsaparams
+[2025-08-12 12:47:13Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
+[2025-08-12 12:47:13Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
+[2025-08-12 12:47:13Z INFO ProcessInvokerWrapper] Finished process 31460 with exit code 100, and elapsed time 00:04:44.8554894.
+[2025-08-12 12:47:13Z INFO JobDispatcher] Worker finished for job 689ef064-5ed4-5dfa-a5c6-58a71fcb344e. Code: 100
+[2025-08-12 12:47:13Z INFO JobDispatcher] finish job request for job 689ef064-5ed4-5dfa-a5c6-58a71fcb344e with result: Succeeded
+[2025-08-12 12:47:13Z INFO Terminal] WRITE LINE: 2025-08-12 12:47:13Z: Job deploy completed with result: Succeeded
+[2025-08-12 12:47:13Z INFO JobDispatcher] Stop renew job request for job 689ef064-5ed4-5dfa-a5c6-58a71fcb344e.
+[2025-08-12 12:47:13Z INFO JobDispatcher] job renew has been cancelled, stop renew job 689ef064-5ed4-5dfa-a5c6-58a71fcb344e.
+[2025-08-12 12:47:13Z INFO JobNotification] Entering JobCompleted Notification
+[2025-08-12 12:47:13Z INFO JobNotification] Entering EndMonitor
+[2025-08-12 12:47:13Z INFO BrokerMessageListener] Received job status event. JobState: Online
+[2025-08-12 12:47:13Z INFO BrokerMessageListener] _getMessagesTokenSource is already disposed.
+[2025-08-12 12:47:16Z INFO GitHubActionsService] AAD Correlation ID for this token request: Unknown
+[2025-08-12 12:47:16Z WARN GitHubActionsService] Retrieving an AAD auth token took a long time (3.7820702 seconds)
+[2025-08-12 12:47:20Z INFO JobDispatcher] Job request 0 for plan 7c55f28c-e331-4c96-879c-6fcf4fefed15 job c26091ff-661e-5d52-ae94-c1d37a02509e received.
+[2025-08-12 12:47:20Z INFO JobDispatcher] Pull OrchestrationId 7c55f28c-e331-4c96-879c-6fcf4fefed15.deploy.__default from JWT claims
+[2025-08-12 12:47:20Z INFO BrokerMessageListener] Received job status event. JobState: Busy
+[2025-08-12 12:47:20Z INFO BrokerMessageListener] _getMessagesTokenSource is already disposed.
+[2025-08-12 12:47:20Z INFO JobDispatcher] Job request 689ef064-5ed4-5dfa-a5c6-58a71fcb344e processed succeed.
+[2025-08-12 12:47:20Z INFO Terminal] WRITE LINE: 2025-08-12 12:47:20Z: Running job: deploy
+[2025-08-12 12:47:20Z INFO JobDispatcher] Start renew job request 0 for job c26091ff-661e-5d52-ae94-c1d37a02509e.
+[2025-08-12 12:47:22Z INFO JobDispatcher] Successfully renew job c26091ff-661e-5d52-ae94-c1d37a02509e, job is valid till 8/12/2025 12:57:24 PM
+[2025-08-12 12:47:22Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 12:47:22Z INFO ProcessInvokerWrapper] Starting process:
+[2025-08-12 12:47:22Z INFO ProcessInvokerWrapper]   File name: 'C:\laragon\www\sapapi\action-runner\bin\Runner.Worker.exe'
+[2025-08-12 12:47:22Z INFO ProcessInvokerWrapper]   Arguments: 'spawnclient 2636 2412'
+[2025-08-12 12:47:22Z INFO ProcessInvokerWrapper]   Working directory: 'C:\laragon\www\sapapi\action-runner\bin'
+[2025-08-12 12:47:22Z INFO ProcessInvokerWrapper]   Require exit code zero: 'False'
+[2025-08-12 12:47:22Z INFO ProcessInvokerWrapper]   Encoding web name:  ; code page: ''
+[2025-08-12 12:47:22Z INFO ProcessInvokerWrapper]   Force kill process on cancellation: 'True'
+[2025-08-12 12:47:22Z INFO ProcessInvokerWrapper]   Redirected STDIN: 'False'
+[2025-08-12 12:47:22Z INFO ProcessInvokerWrapper]   Persist current code page: 'False'
+[2025-08-12 12:47:22Z INFO ProcessInvokerWrapper]   Keep redirected STDIN open: 'False'
+[2025-08-12 12:47:22Z INFO ProcessInvokerWrapper]   High priority process: 'True'
+[2025-08-12 12:47:22Z INFO ProcessInvokerWrapper] Process started with process id 36552, waiting for process exit.
+[2025-08-12 12:47:22Z INFO JobDispatcher] Send job request message to worker for job c26091ff-661e-5d52-ae94-c1d37a02509e.
+[2025-08-12 12:47:22Z INFO ProcessChannel] Sending message of length 21573, with hash 'de8891fde181530486287d9efb1ec46f732d3a9ebb3867203a56c7b17eb88f2c'
+[2025-08-12 12:47:22Z INFO JobNotification] Entering JobStarted Notification
+[2025-08-12 12:47:22Z INFO JobNotification] Entering StartMonitor

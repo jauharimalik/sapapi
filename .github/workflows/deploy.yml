@@ -13,9 +13,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          # Pastikan Anda menggunakan repository yang sama
+          # Perbaiki baris ini dengan menambahkan token
           repository: jauharimalik/sapapi
-          # Tambahkan opsi submodules: false di sini
+          token: ${{ secrets.GITHUB_TOKEN }}
           submodules: false
       
       - name: Add npm global to PATH

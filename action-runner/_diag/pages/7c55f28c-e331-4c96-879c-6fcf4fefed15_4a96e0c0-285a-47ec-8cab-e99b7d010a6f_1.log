@@ -1,0 +1,10 @@
+﻿2025-08-12T12:51:30.0683703Z Post job cleanup.
+2025-08-12T12:51:30.2528687Z [command]"C:\Program Files\Git\cmd\git.exe" version
+2025-08-12T12:51:30.2791320Z git version 2.44.0.windows.1
+2025-08-12T12:51:30.2879519Z Temporarily overriding HOME='C:\laragon\www\sapapi\action-runner\_work\_temp\c9c1c93a-cfde-4966-a6ce-700ca233f1a1' before making global git config changes
+2025-08-12T12:51:30.2880526Z Adding repository directory to the temporary git global config as a safe directory
+2025-08-12T12:51:30.2894088Z [command]"C:\Program Files\Git\cmd\git.exe" config --global --add safe.directory C:\laragon\www\sapapi\action-runner\_work\sapapi\sapapi
+2025-08-12T12:51:30.3222447Z [command]"C:\Program Files\Git\cmd\git.exe" config --local --name-only --get-regexp core\.sshCommand
+2025-08-12T12:51:30.3522449Z [command]"C:\Program Files\Git\cmd\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+2025-08-12T12:51:31.1295488Z fatal: No url found for submodule path 'action-runner/_work/sapapi/sapapi' in .gitmodules
+2025-08-12T12:51:31.1632293Z ##[warning]The process 'C:\Program Files\Git\cmd\git.exe' failed with exit code 128
