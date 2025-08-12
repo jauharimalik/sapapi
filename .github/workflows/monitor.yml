@@ -3,21 +3,28 @@ name: PM2 Service Monitor
 
 on:
   schedule:
-    # Menjalankan setiap 2 menit
+    # Menjalankan setiap 1 menit
     - cron: '*/1 * * * *'
-  # Pemicu ini memungkinkan Anda menjalankan secara manual
   workflow_dispatch:
 
 jobs:
   monitor:
     runs-on: self-hosted
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Add npm global to PATH
         run: echo "C:\Users\PROGRAM-002\AppData\Roaming\npm" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
         shell: powershell
-      
-      - name: Install PM2
-        run: npm install -g pm2
-      
-      - name: Show PM2 process status
-        run: pm2 list
+        
+      - name: Get PM2 process status as JSON
+        run: pm2 jlist > pm2-status.json
+
+      - name: Commit and push status file
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git add pm2-status.json
+          git diff-index --quiet HEAD || git commit -m "Update PM2 service status"
+          git push

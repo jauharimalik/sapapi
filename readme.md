@@ -1,42 +1,72 @@
-# Proyek SAP API Integration
+# PM2 Service Monitor
 
-Proyek ini berisi serangkaian server Node.js yang berfungsi sebagai API untuk mengintegrasikan berbagai proses bisnis dengan sistem SAP. Aplikasi ini mengelola fungsionalitas seperti `Delivery Note`, `Tukar Guling`, `Retur`, `Rejection`, dan `STO`.
+Ini adalah proyek sederhana yang menggunakan **GitHub Actions** untuk memantau status layanan (service) yang berjalan dengan **PM2** di server `self-hosted` secara berkala.
+
+Setiap satu menit, workflow ini akan mengambil status PM2, menyimpannya ke dalam file JSON statis, dan meng-update-nya di repository ini. Hasil dari monitoring ini dapat diakses secara publik melalui **GitHub Pages**.
 
 ---
 
-## Cara Menjalankan Aplikasi
+## Fitur Utama
 
-Anda dapat menjalankan semua server secara otomatis atau manual. Metode otomatis sangat disarankan untuk memastikan semua server berjalan dengan kode terbaru.
+-   **Pemantauan Otomatis:** Workflow berjalan setiap 1 menit sesuai jadwal yang telah ditentukan.
+-   **Output Statis:** Hasil status PM2 disimpan dalam format **JSON** ke file `pm2-status.json`.
+-   **Akses Publik:** Data status dapat diakses melalui GitHub Pages, memungkinkan Anda untuk membangun dashboard monitoring publik tanpa harus login.
 
-### 1. Metode Otomatis (Direkomendasikan)
+---
 
-Gunakan skrip `csx.bat` untuk menjalankan deployment secara lengkap. Skrip ini akan:
-1.  Menghentikan semua proses Node.js yang sedang berjalan.
-2.  Mengambil pembaruan kode terbaru dari repositori Git.
-3.  Memulai ulang semua server Node.js menggunakan `nodemon` secara *background*.
+## Cara Kerja
 
-Jalankan perintah berikut di Command Prompt:
-```bash
-csx.bat
+1.  **Workflow GitHub Actions:** File `.github/workflows/monitor.yml` berisi skrip yang akan dijalankan.
+2.  **Eksekusi Perintah:** Skrip akan terhubung ke runner `self-hosted` dan menjalankan perintah `pm2 jlist` untuk mendapatkan daftar layanan dalam format JSON.
+3.  **Update File:** Output JSON tersebut diarahkan ke file `pm2-status.json`.
+4.  **Commit dan Push:** Skrip kemudian akan melakukan `git commit` dan `git push` untuk meng-update file `pm2-status.json` di repository ini.
+5.  **GitHub Pages:** Karena file `pm2-status.json` berada di repository dan GitHub Pages telah diaktifkan, file tersebut dapat diakses secara publik melalui URL.
 
-# Untuk Delivery Note
-nodemon server.js
+---
 
-# Untuk Tukar Guling
-nodemon guling.js
+## Cara Menggunakan
 
-# Untuk Retur
-nodemon retur.js
+### 1. Prasyarat
 
-# Untuk Rejection
-nodemon rijek.js
+-   Sebuah server dengan **GitHub Actions Runner** terinstal dan terdaftar sebagai `self-hosted`.
+-   PM2 sudah terinstal secara global di server tersebut (`npm install -g pm2`).
 
-# Untuk STO
-nodemon sto.js
+### 2. Konfigurasi Repository
 
-Konfigurasi
-Semua konfigurasi penting untuk koneksi ke database, layanan SAP, dan WhatsApp disimpan dalam file terpisah. Pastikan Anda menyesuaikan nilai-nilai di bawah ini dengan setelan di lingkungan perusahaan Anda.
+-   Pastikan Anda telah mengaktifkan **GitHub Pages** untuk repository ini. Anda bisa mengaturnya di menu **Settings > Pages**.
+-   Berikan izin **"Read and write permissions"** pada token `GITHUB_TOKEN` di menu **Settings > Actions > General**. Ini penting agar workflow dapat melakukan `commit` ke repository.
 
-config.js
-File ini berisi konfigurasi untuk koneksi ke database SQL Server.
+### 3. File Workflow
 
+Pastikan file workflow Anda (`.github/workflows/monitor.yml`) sudah sesuai dengan skrip berikut:
+
+```yaml
+# .github/workflows/monitor.yml
+name: PM2 Service Monitor
+
+on:
+  schedule:
+    - cron: '*/1 * * * *'
+  workflow_dispatch:
+
+jobs:
+  monitor:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Add npm global to PATH
+        run: echo "C:\Users\PROGRAM-002\AppData\Roaming\npm" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+        shell: powershell
+        
+      - name: Get PM2 process status as JSON
+        run: pm2 jlist > pm2-status.json
+
+      - name: Commit and push status file
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git add pm2-status.json
+          git diff-index --quiet HEAD || git commit -m "Update PM2 service status"
+          git push
