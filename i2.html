@@ -326,47 +326,97 @@
         };
 
         const renderTable = (dataToRender) => {
-            const fragment = document.createDocumentFragment();
-            tableBody.innerHTML = '';
-            
-            dataToRender.forEach((rowData) => {
-                const row = document.createElement('tr');
-                row.setAttribute('data-id', rowData.id);
+    const fragment = document.createDocumentFragment();
+    tableBody.innerHTML = '';
+    
+    dataToRender.forEach((rowData) => {
+        const row = document.createElement('tr');
+        row.setAttribute('data-id', rowData.id || rowData.DO_NO);
 
-                const actionCell = document.createElement('td');
-                actionCell.classList.add('sticky-col');
+        // Action cell (sticky column)
+        const actionCell = document.createElement('td');
+        actionCell.classList.add('sticky-col');
+        
+        const recheckButton = document.createElement('button');
+        recheckButton.classList.add('btn-small', 'waves-effect', 'waves-light', 'red', 'lighten-1');
+        recheckButton.textContent = 'Recheck';
+        recheckButton.onclick = () => recheckDO(rowData.DO_NO || rowData.do_no);
+        actionCell.appendChild(recheckButton);
+        row.appendChild(actionCell);
 
-                const recheckButton = document.createElement('button');
-                recheckButton.classList.add('btn-small', 'waves-effect', 'waves-light', 'red', 'lighten-1');
-                recheckButton.textContent = 'Recheck';
-                recheckButton.onclick = () => recheckDO(rowData.DO_NO);
-                
-                actionCell.appendChild(recheckButton);
-                row.appendChild(actionCell);
-
-                const orderedKeys = [
-                    'id', 'COMP_CODE', 'DO_NO', 'STO_NO', 'PL_NP', 'DEL_DATE', 'SITE', 'SLOC', 'LineNum', 'SKU',
-                    'QTY', 'LOT', 'QTY_KG', 'expired_date', 'ReasonFlag', 'SU', 'MED_TYPE', 'ORDER_TYPE',
-                    'ismatch', 'total_sku_do', 'total_sku_dn', 'jo_status', 'doc_num', 'doc_entry', 'note', 'iswa',
-                    'created_at', 'updated_at'
-                ];
-
-                orderedKeys.forEach(key => {
-                    const cell = document.createElement('td');
-                    if (key.includes('DEL_DATE') || key.includes('created_at') || key.includes('updated_at')) {
-                        cell.textContent = rowData[key] ? new Date(rowData[key]).toLocaleString() : '';
-                    } else {
-                        cell.textContent = rowData[key] !== null ? rowData[key] : '';
-                    }
-                    row.appendChild(cell);
-                });
-                fragment.appendChild(row);
-            });
-            tableBody.appendChild(fragment);
-            
-            tableBody.onmousedown = (event) => { geserkk(tableBody); };
-            tableBody.onmousemove = (event) => { geserkk(tableBody); };
+        // Define the mapping between your data fields and table columns
+        const fieldMap = {
+            'id': rowData.id,
+            'COMP_CODE': rowData.COMP_CODE,
+            'DO_NO': rowData.DO_NO || rowData.do_no,
+            'STO_NO': rowData.STO_NO || rowData.sto_no,
+            'PL_NP': rowData.PL_NP || rowData.pl_np,
+            'DEL_DATE': rowData.DEL_DATE || rowData.del_date,
+            'SITE': rowData.SITE || rowData.site,
+            'SLOC': rowData.SLOC || rowData.sloc,
+            'LineNum': rowData.LineNum || rowData.lineNum || 0,
+            'SKU': rowData.SKU || rowData.sku,
+            'QTY': rowData.QTY || rowData.qty,
+            'LOT': rowData.LOT || rowData.lot,
+            'QTY_KG': rowData.QTY_KG || rowData.qty_kg,
+            'expired_date': rowData.expired_date,
+            'ReasonFlag': rowData.ReasonFlag || rowData.reasonFlag,
+            'SU': rowData.SU || rowData.su,
+            'MED_TYPE': rowData.MED_TYPE || rowData.med_type,
+            'ORDER_TYPE': rowData.ORDER_TYPE || rowData.order_type,
+            'ismatch': rowData.ismatch,
+            'total_sku_do': rowData.total_sku_do,
+            'total_sku_dn': rowData.total_sku_dn,
+            'jo_status': rowData.jo_status,
+            'doc_num': rowData.doc_num,
+            'doc_entry': rowData.doc_entry,
+            'note': rowData.note,
+            'iswa': rowData.iswa,
+            'created_at': rowData.created_at,
+            'updated_at': rowData.updated_at
         };
+
+        // Create cells for each column in the correct order
+        Object.values(fieldMap).forEach(value => {
+            const cell = document.createElement('td');
+            
+            // Handle date fields
+            if (typeof value === 'string' && (value.includes('T') || value.includes('-'))) {
+                try {
+                    const date = new Date(value);
+                    cell.textContent = isNaN(date.getTime()) ? value : date.toLocaleString();
+                } catch {
+                    cell.textContent = value;
+                }
+            } 
+            // Handle numeric fields
+            else if (typeof value === 'number') {
+                cell.textContent = value;
+            }
+            // Handle null/undefined
+            else if (value === null || value === undefined) {
+                cell.textContent = '';
+            }
+            // Handle boolean values
+            else if (typeof value === 'boolean') {
+                cell.textContent = value ? 'Yes' : 'No';
+            }
+            // Default case
+            else {
+                cell.textContent = value || '';
+            }
+            
+            row.appendChild(cell);
+        });
+
+        fragment.appendChild(row);
+    });
+    
+    tableBody.appendChild(fragment);
+    
+    // Initialize horizontal scrolling
+    geserkk(tableBody);
+};
 
         const applyFiltersAndSort = () => {
             let dataToFilter = [...allData];

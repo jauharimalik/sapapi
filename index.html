@@ -634,7 +634,6 @@
                         </button>
                     `;
                 } else if (action === 'restart') {
-                    // Animasi restart
                     const statusIndicator = card.querySelector('.status-indicator');
                     statusIndicator.innerHTML = '<i class="material-icons">autorenew</i>';
                     statusIndicator.style.animation = 'spin 1s linear infinite';
@@ -646,13 +645,10 @@
                     }, 1000);
                 }
                 
-                mdc.autoInit(); // Re-inisialisasi komponen MDC
+                mdc.autoInit();
             });
             
-            // Panggil pertama kali saat halaman dimuat
             fetchData();
-            
-            // Auto-refresh setiap 30 detik
             setInterval(fetchData, 30000);
         });
     </script>

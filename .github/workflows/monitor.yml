@@ -18,14 +18,14 @@ jobs:
         run: echo "C:\Users\PROGRAM-002\AppData\Roaming\npm" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
         shell: powershell
         
-      - name: Get PM2 process status as JSON
-        run: pm2 jlist > pm2-status.json
+      # - name: Get PM2 process status as JSON
+      #   run: pm2 jlist > pm2-status.json
 
-      - name: Commit and push status file
-        run: |
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global user.name "github-actions[bot]"
-          git add pm2-status.json
-          git diff-index --quiet HEAD || git commit -m "Update PM2 service status"
-          # Perbaikan: Tambahkan token ke URL repository untuk otorisasi
-          git push https://${{ secrets.GITHUB_TOKEN }}@github.com/jauharimalik/sapapi.git
+      # - name: Commit and push status file
+      #   run: |
+      #     git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      #     git config --global user.name "github-actions[bot]"
+      #     git add pm2-status.json
+      #     git diff-index --quiet HEAD || git commit -m "Update PM2 service status"
+      #     # Perbaikan: Tambahkan token ke URL repository untuk otorisasi
+      #     git push https://${{ secrets.GITHUB_TOKEN }}@github.com/jauharimalik/sapapi.git
