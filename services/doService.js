@@ -24,6 +24,26 @@ exports.getRnColdspaceData = async (pool, params = {}) => {
   }
 };
 
+exports.getgrColdspaceData = async (pool, params = {}) => {
+  try {
+    if (params.doNo) {
+      // If doNo is provided, fetch specific record
+      const result = await pool.request()
+        .input('doNo', sql.Int, params.doNo)
+        .query('SELECT * FROM r_grpo_coldspace WHERE PO_NO = @doNo');
+      return result.recordset;
+    } else {
+      // If no doNo provided, fetch all records
+      const result = await pool.request()
+        .query('SELECT * FROM r_grpo_coldspace');
+      return result.recordset;
+    }
+  } catch (error) {
+    console.error('Error in getgrColdspaceData:', error);
+    throw error;
+  }
+};
+
 
 exports.checkSingleDO = async (doNo, pool) => {  
   let docEntry, docNum;

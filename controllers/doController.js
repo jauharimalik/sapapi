@@ -14,6 +14,20 @@ exports.getRnColdspaceData = async (req, res) => {
 };
 
 
+exports.getgrColdspaceData = async (req, res) => {
+  try {
+      const pool = req.pool;
+      const result = await doService.getgrColdspaceData(pool);
+      res.json(result);
+  } catch (error) {
+      console.error('Error di doController.getgrColdspaceData:', error);
+      res.status(500).json({
+          error: error.message || 'Gagal mengambil data dari r_dn_coldspace.'
+      });
+  }
+};
+
+
 exports.checkSingleDO = async (req, res) => {
   try {
     const doNo = req.query.docnum;

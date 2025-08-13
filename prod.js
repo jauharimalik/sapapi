@@ -213,6 +213,25 @@ async function updateRecordStatus(id, poNo, joStatus, note, docNum, docEntry, po
                     iswa = 1
                 WHERE id = @id;
             `);
+
+                
+            await pool.request()
+            .input('DO_NO', sql.Int, poNo)
+            .input('joStatus', sql.Int, joStatus)
+            .input('note', sql.NVarChar, note)
+            .input('docNum', sql.Int, docNum)
+            .input('docEntry', sql.Int, docEntry)
+            .query(`
+                UPDATE r_dn_coldspace
+                SET jo_status = @joStatus,
+                    note = @note,
+                    doc_num = @docNum,
+                    doc_entry = @docEntry,
+                    iswa = 1
+                WHERE DO_NO = @DO_NO;
+            `);
+
+            
     } catch (error) {
         console.error(`Gagal update status record PO ${poNo}: ${error.message}`);
     }
@@ -422,7 +441,7 @@ async function processProductionOrders() {
                     console.error(`Error processing record ${record.PO_NO}:`, note);
                     await sendWhatsAppNotification(record.PO_NO, null, null, note, false);
                 }
-                
+
                 await updateRecordStatus(record.id, record.PO_NO, status, note, null, null, pool);
             
             }

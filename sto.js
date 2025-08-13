@@ -415,22 +415,6 @@ const updateRecordStatus = async (id, joStatus, note, docNum, docEntry, pool, po
             `);
 
             await pool.request()
-            .input('PO_NO', sql.Int, pono)
-            .input('joStatus', sql.Int, joStatus)
-            .input('note', sql.NVarChar, note)
-            .input('docNum', sql.Int, docNum)
-            .input('docEntry', sql.Int, docEntry)
-            .query(`
-                UPDATE r_dn_coldspace
-                SET jo_status = @joStatus,
-                    note = @note,
-                    doc_num = @docNum,
-                    doc_entry = @docEntry,
-                    iswa = CASE WHEN @joStatus = 3 THEN 1 ELSE 0 END
-                WHERE PO_NO = @PO_NO;
-            `);
-
-        await pool.request()
             .input('DO_NO', sql.Int, pono)
             .input('joStatus', sql.Int, joStatus)
             .input('note', sql.NVarChar, note)
@@ -509,6 +493,11 @@ const resetNotificationStatus = async (poNo, pool) => {
         await pool.request()
             .input('poNo', sql.VarChar, poNo)
             .query('UPDATE r_grpo_coldspace SET iswa = NULL WHERE PO_NO = @poNo');
+
+        
+            await pool.request()
+            .input('poNo', sql.VarChar, poNo)
+            .query('UPDATE r_dn_coldspace SET iswa = NULL WHERE DO_NO = @poNo');
     } catch (error) {
         console.error('Gagal reset status notifikasi:', error.message);
     }
