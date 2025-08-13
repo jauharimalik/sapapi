@@ -336,7 +336,7 @@ const createStockTransferPayload = (record, invTransferRequest, batchData) => {
     if (!lineItem) {
         
         console.error(`Error: No matching line item found for SKU: ${record.SKU} and LINE_NO: ${record.LINE_NO}`);
-        // throw new Error('Matching delivery note line item not found.');
+        throw new Error('Matching delivery note line item not found.');
         //throw new Error(`Item ${record.SKU} with line number ${record.LINE_NO} not found in the Inventory Transfer Request.`);
     }else{
 
@@ -412,6 +412,22 @@ const updateRecordStatus = async (id, joStatus, note, docNum, docEntry, pool, po
                     doc_entry = @docEntry,
                     iswa = CASE WHEN @joStatus = 3 THEN 1 ELSE 0 END
                 WHERE id = @id OR (@PO_NO IS NOT NULL AND PO_NO = @PO_NO);
+            `);
+
+            await pool.request()
+            .input('PO_NO', sql.Int, pono)
+            .input('joStatus', sql.Int, joStatus)
+            .input('note', sql.NVarChar, note)
+            .input('docNum', sql.Int, docNum)
+            .input('docEntry', sql.Int, docEntry)
+            .query(`
+                UPDATE r_dn_coldspace
+                SET jo_status = @joStatus,
+                    note = @note,
+                    doc_num = @docNum,
+                    doc_entry = @docEntry,
+                    iswa = CASE WHEN @joStatus = 3 THEN 1 ELSE 0 END
+                WHERE PO_NO = @PO_NO;
             `);
 
         await pool.request()

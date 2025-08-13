@@ -1,656 +1,689 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard PM2 Service</title>
-
-    <link href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <title>Coldspace Data Overview</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
-        :root {
-            --primary-color: #1a73e8;
-            --primary-dark: #0d47a1;
-            --secondary-color: #f5f5f5;
-            --success-color: #43a047;
-            --error-color: #f44336;
-            --warning-color: #ffb300;
-            --info-color: #2196f3;
-            --text-primary: #202124;
-            --text-secondary: #5f6368;
-            --card-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            --card-shadow-hover: 0 8px 16px rgba(0,0,0,0.2);
-        }
-
         body {
-            font-family: 'Roboto', sans-serif;
             background-color: #f8f9fa;
-            color: var(--text-primary);
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
+            font-family: 'Roboto', sans-serif;
         }
-
-        .header {
-            background-color: var(--primary-dark);
+        .container-main {
+            margin-top: 20px;
+            margin-bottom: 20px;
+            padding: 0 15px;
+        }
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .search-export-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-grow: 1;
+            min-width: 300px;
+        }
+        .tabs-container {
+            display: flex;
+            overflow-x: auto;
+            white-space: nowrap;
+            margin-bottom: 20px;
+            scrollbar-width: none;
+        }
+        .tabs-container::-webkit-scrollbar {
+            display: none;
+        }
+        .tab-item {
+            padding: 12px 24px;
+            background: #e0e0e0;
+            border-radius: 4px 4px 0 0;
+            margin-right: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            color: #555;
+            transition: all 0.3s;
+        }
+        .tab-item.active {
+            background: #6c7ae0;
             color: white;
-            padding: 16px 20px;
-            text-align: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        .table-container {
+            max-height: 70vh;
+            overflow: auto;
+            position: relative;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            background: white;
+        }
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            white-space: nowrap;
+        }
+        th {
             position: sticky;
             top: 0;
-            z-index: 100;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .header h1 {
-            margin: 0;
-            font-weight: 500;
-            font-size: 1.5rem;
-        }
-
-        .main-container {
-            padding: 24px;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .control-panel {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-            gap: 16px;
-        }
-
-        .search-container {
-            display: flex;
-            align-items: center;
-            background: white;
-            border-radius: 4px;
-            padding: 0 12px;
-            box-shadow: var(--card-shadow);
-            flex-grow: 1;
-            max-width: 400px;
-        }
-
-        .search-container i {
-            color: var(--text-secondary);
-            margin-right: 8px;
-        }
-
-        #search-input {
-            border: none;
-            padding: 12px 0;
-            flex-grow: 1;
-            outline: none;
-            font-size: 0.9rem;
-        }
-
-        .filter-buttons {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .services-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-        }
-
-        .mdc-card {
-            border-radius: 8px;
-            overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            box-shadow: var(--card-shadow);
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .mdc-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--card-shadow-hover);
-        }
-
-        .mdc-card__primary-action {
-            display: flex;
-            padding: 16px;
-            flex-grow: 1;
-        }
-
-        .status-indicator {
-            margin-right: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
+            background-color: #6c7ae0;
             color: white;
-            font-size: 24px;
-            flex-shrink: 0;
-        }
-
-        .status-indicator.online { background-color: var(--success-color); }
-        .status-indicator.stopped { background-color: var(--error-color); }
-        .status-indicator.errored { background-color: var(--warning-color); }
-        .status-indicator.default { background-color: var(--text-secondary); }
-
-        .service-details {
-            flex-grow: 1;
-            overflow: hidden;
-        }
-
-        .service-details h3 {
-            margin: 0 0 8px 0;
+            z-index: 10;
+            cursor: pointer;
+            padding: 15px 10px;
+            text-align: left;
             font-weight: 500;
-            font-size: 1.1rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
-
-        .service-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 8px;
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #f0f0f0;
+            color: #555;
         }
-
-        .meta-item {
-            display: flex;
-            align-items: center;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
+        tr:hover {
+            background-color: #f8f9ff;
         }
-
-        .meta-item i {
-            font-size: 1rem;
-            margin-right: 4px;
+        .sticky-col {
+            position: sticky;
+            left: 0;
+            background-color: #ffffff;
+            z-index: 9;
+            box-shadow: 2px 0 3px -1px rgba(0,0,0,0.1);
         }
-
-        .progress-container {
-            margin-top: 8px;
+        th.sticky-col {
+            z-index: 11;
+            background-color: #6c7ae0;
         }
-
-        .progress-label {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            margin-bottom: 4px;
+        .sort-icon {
+            font-size: 1.2em;
+            vertical-align: middle;
+            margin-left: 5px;
         }
-
-        .mdc-linear-progress {
-            height: 8px;
+        .dropdown-trigger {
+            padding: 0 8px;
+            height: 30px;
+            line-height: 30px;
+        }
+        .dropdown-content {
+            min-width: 120px;
+        }
+        .dropdown-content li a {
+            color: #333;
+            font-size: 14px;
+            padding: 8px 16px;
+        }
+        .dropdown-content li a:hover {
+            background-color: #f5f5f5;
+        }
+        .skeleton-row {
+            height: 48px;
+            border-bottom: 1px solid #eee;
+        }
+        .skeleton-row td {
+            padding: 12px 10px;
+        }
+        .skeleton-row .skeleton-cell {
+            background-color: #e0e0e0;
+            height: 100%;
             border-radius: 4px;
+            animation: pulse 1.5s infinite ease-in-out;
         }
-
-        .card-actions {
-            display: flex;
-            justify-content: flex-end;
-            padding: 8px;
-            border-top: 1px solid rgba(0,0,0,0.1);
+        .skeleton-row .skeleton-cell.wide {
+            width: 80%;
         }
-
-        .action-button {
-            margin-left: 8px;
+        .search-container {
+            position: relative;
+            flex-grow: 1;
+            min-width: 200px;
         }
-
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            grid-column: 1 / -1;
+        .search-container .material-icons {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #999;
         }
-
-        .empty-state i {
-            font-size: 48px;
-            color: var(--text-secondary);
-            margin-bottom: 16px;
+        .search-container input {
+            padding-left: 35px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            box-shadow: none;
+            width: 100%;
         }
-
-        .empty-state h3 {
-            margin: 0 0 8px 0;
-            color: var(--text-primary);
+        .btn-export {
+            background-color: #5cb85c;
+            white-space: nowrap;
         }
-
-        .empty-state p {
-            margin: 0;
-            color: var(--text-secondary);
+        .btn-export:hover {
+            background-color: #4cae4c;
         }
-
-        @media (max-width: 600px) {
-            .header h1 {
-                font-size: 1.2rem;
-            }
-            
-            .main-container {
-                padding: 16px;
-            }
-            
-            .services-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .control-panel {
+        .btn-action {
+            background-color: #6c7ae0;
+            color: white;
+        }
+        .btn-action:hover {
+            background-color: #5a68d1;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status-error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .status-warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        @keyframes pulse {
+            0% { background-color: #e0e0e0; }
+            50% { background-color: #f0f0f0; }
+            100% { background-color: #e0e0e0; }
+        }
+        @media (max-width: 768px) {
+            .header-container {
                 flex-direction: column;
                 align-items: stretch;
             }
-            
-            .search-container {
-                max-width: none;
+            .search-export-container {
+                flex-direction: column;
+                gap: 10px;
             }
-        }
-
-        /* Animation for status change */
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-
-        .status-updated {
-            animation: pulse 0.5s ease;
+            .search-container {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
 
-    <header class="header">
-        <h1>
-            <i class="material-icons" style="vertical-align: middle; margin-right: 8px;">dashboard</i>
-            PM2 Service Dashboard
-        </h1>
-        <div id="last-updated" style="font-size: 0.85rem; opacity: 0.9;"></div>
-    </header>
+    <div class="container container-main">
+        <h4 class="center-align blue-text text-darken-2" style="padding-top: 20px;">Coldspace Data Overview</h4>
 
-    <main class="main-container">
-        <div class="control-panel">
-            <div class="search-container">
-                <i class="material-icons">search</i>
-                <input id="search-input" type="text" placeholder="Cari layanan...">
-            </div>
-            <div class="filter-buttons">
-                <button id="filter-all" class="mdc-button mdc-button--outlined" data-filter="all">
-                    <span class="mdc-button__label">Semua</span>
-                </button>
-                <button id="filter-online" class="mdc-button mdc-button--outlined" data-filter="online">
-                    <span class="mdc-button__label">Online</span>
-                </button>
-                <button id="filter-stopped" class="mdc-button mdc-button--outlined" data-filter="stopped">
-                    <span class="mdc-button__label">Stopped</span>
-                </button>
-                <button id="filter-errored" class="mdc-button mdc-button--outlined" data-filter="errored">
-                    <span class="mdc-button__label">Errored</span>
-                </button>
-            </div>
-            <button id="refresh-button" class="mdc-button mdc-button--raised">
-                <i class="material-icons mdc-button__icon" aria-hidden="true">refresh</i>
-                <span class="mdc-button__label">Refresh</span>
-            </button>
+        <div class="tabs-container">
+            <div class="tab-item active" onclick="switchTab('dn')">Delivery Note</div>
+            <div class="tab-item" onclick="switchTab('gr')">Goods Receipt</div>
         </div>
-        
-        <div id="services-container" class="services-grid">
-            <div class="empty-state">
-                <i class="material-icons">hourglass_empty</i>
-                <h3>Memuat status layanan...</h3>
-                <p>Harap tunggu sebentar</p>
+
+        <div class="header-container">
+            <div class="search-export-container">
+                <div class="search-container">
+                    <i class="material-icons">search</i>
+                    <input type="text" id="searchInput" placeholder="Search data..." oninput="handleSearch()">
+                </div>
+                <button id="exportButton" class="btn btn-export waves-effect waves-light" onclick="exportToExcel()">
+                    Export to Excel
+                    <i class="material-icons right">file_download</i>
+                </button>
             </div>
         </div>
-        
-        <div id="loading-spinner" style="text-align: center; margin: 40px 0; display: none;">
-            <div class="mdc-circular-progress mdc-circular-progress--medium" role="progressbar" aria-label="Loading...">
-                <div class="mdc-circular-progress__determinate-container">
-                    <svg class="mdc-circular-progress__svg" viewBox="22 22 44 44">
-                        <circle class="mdc-circular-progress__path" cx="44" cy="44" r="20" stroke-dasharray="80" stroke-dashoffset="60"></circle>
-                    </svg>
+
+        <div class="table-container" id="tableContainer" tabindex="0" onkeydown="handleTableKeydown(event)">
+            <table class="geserkk">
+                <thead id="tableHeader">
+                    <!-- Headers will be populated by JavaScript -->
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Data will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="recheckModal" class="modal">
+        <div class="modal-content">
+            <h4>Recheck Details</h4>
+            <div id="recheckModalContent">
+                <div class="progress">
+                    <div class="indeterminate"></div>
                 </div>
             </div>
-            <p>Memperbarui data...</p>
         </div>
-    </main>
+        <div class="modal-footer">
+            <a href="#!" class="modal-close waves-effect waves-green btn-flat">Close</a>
+        </div>
+    </div>
 
-    <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <script>
-        // Inisialisasi MDC
-        mdc.autoInit();
+        let allData = { dn: [], gr: [] };
+        let displayedData = [];
+        let currentSortColumn = null;
+        let currentSortDirection = 'asc';
+        let currentTab = 'dn';
+        let modalInstance = null;
         
-        document.addEventListener('DOMContentLoaded', () => {
-            const container = document.getElementById('services-container');
-            const refreshButton = document.getElementById('refresh-button');
-            const loadingSpinner = document.getElementById('loading-spinner');
-            const searchInput = document.getElementById('search-input');
-            const filterButtons = document.querySelectorAll('.filter-buttons .mdc-button');
-            const lastUpdatedEl = document.getElementById('last-updated');
+        const API_BASE_URL = 'http://192.168.60.19:3300/api/';
+        const DN_ENDPOINT = API_BASE_URL + 'tarikandn';
+        const GR_ENDPOINT = API_BASE_URL + 'tarikangr';
+        const RECHECK_ENDPOINT = API_BASE_URL + 'check-do?docnum=';
+
+        const dnHeaders = [
+            { key: 'id', label: 'ID' },
+            { key: 'COMP_CODE', label: 'Comp Code' },
+            { key: 'DO_NO', label: 'DO No' },
+            { key: 'STO_NO', label: 'STO No' },
+            { key: 'PL_NP', label: 'PL NP' },
+            { key: 'DEL_DATE', label: 'Del Date' },
+            { key: 'SITE', label: 'Site' },
+            { key: 'SLOC', label: 'Sloc' },
+            { key: 'LineNum', label: 'LineNum' },
+            { key: 'SKU', label: 'SKU' },
+            { key: 'QTY', label: 'QTY' },
+            { key: 'LOT', label: 'LOT' },
+            { key: 'QTY_KG', label: 'QTY KG' },
+            { key: 'expired_date', label: 'Expired Date' },
+            { key: 'ReasonFlag', label: 'Reason Flag' },
+            { key: 'SU', label: 'SU' },
+            { key: 'MED_TYPE', label: 'Med Type' },
+            { key: 'ORDER_TYPE', label: 'Order Type' },
+            { key: 'ismatch', label: 'Is Match' },
+            { key: 'total_sku_do', label: 'Total SKU DO' },
+            { key: 'total_sku_dn', label: 'Total SKU DN' },
+            { key: 'jo_status', label: 'JO Status' },
+            { key: 'doc_num', label: 'Doc Num' },
+            { key: 'doc_entry', label: 'Doc Entry' },
+            { key: 'note', label: 'Note' },
+            { key: 'iswa', label: 'ISWA' },
+            { key: 'created_at', label: 'Created At' },
+            { key: 'updated_at', label: 'Updated At' }
+        ];
+
+        const grHeaders = [
+            { key: 'id', label: 'ID' },
+            { key: 'name_file', label: 'File Name' },
+            { key: 'COMP_CODE', label: 'Comp Code' },
+            { key: 'PO_NO', label: 'PO No' },
+            { key: 'WMS_ASN_NO', label: 'WMS ASN No' },
+            { key: 'PO_DATE', label: 'PO Date' },
+            { key: 'PO_DEL', label: 'PO Del' },
+            { key: 'RR_DATE', label: 'RR Date' },
+            { key: 'VENDOR', label: 'Vendor' },
+            { key: 'VENDORNAME', label: 'Vendor Name' },
+            { key: 'LINE_NO', label: 'Line No' },
+            { key: 'SKU', label: 'SKU' },
+            { key: 'FLAG', label: 'Flag' },
+            { key: 'QTYPO', label: 'QTY PO' },
+            { key: 'QTYGR', label: 'QTY GR' },
+            { key: 'SLOC', label: 'Sloc' },
+            { key: 'VFDAT', label: 'VF Date' },
+            { key: 'QTYPO_KG', label: 'QTY PO KG' },
+            { key: 'QTYGR_KG', label: 'QTY GR KG' },
+            { key: 'CODE_MAT', label: 'Code Mat' },
+            { key: 'Surat_Jalan', label: 'Surat Jalan' },
+            { key: 'nopolisi', label: 'No Polisi' },
+            { key: 'driver', label: 'Driver' },
+            { key: 'TRK_TYPE', label: 'TRK Type' },
+            { key: 'SKU_QUALITY', label: 'SKU Quality' },
+            { key: 'ismatch', label: 'Is Match' },
+            { key: 'sku_from_count', label: 'SKU From Count' },
+            { key: 'sku_gr_count', label: 'SKU GR Count' },
+            { key: 'Whscode', label: 'Whs Code' },
+            { key: 'batchnum_suggest', label: 'Batch Num Suggest' },
+            { key: 'jo_status', label: 'JO Status' },
+            { key: 'doc_num', label: 'Doc Num' },
+            { key: 'doc_entry', label: 'Doc Entry' },
+            { key: 'note', label: 'Note' },
+            { key: 'note_gilang', label: 'Note Gilang' },
+            { key: 'iswa', label: 'ISWA' },
+            { key: 'jo_wh', label: 'JO WH' },
+            { key: 'created_at', label: 'Created At' },
+            { key: 'updated_at', label: 'Updated At' }
+        ];
+
+        window.onload = () => {
+            modalInstance = M.Modal.init(document.getElementById('recheckModal'));
+            fetchData('dn');
+        };
+
+        let switchTab = (tab) => {
+            currentTab = tab;
+            document.querySelectorAll('.tab-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector(`.tab-item:nth-child(${tab === 'dn' ? 1 : 2})`).classList.add('active');
+            fetchData(tab);
+        };
+
+        let showSkeleton = () => {
+            let skeletonHtml = '';
+            let columnsCount = currentTab === 'dn' ? dnHeaders.length + 1 : grHeaders.length + 1;
             
-            const statusFileUrl = 'https://jauharimalik.github.io/sapapi/pm2-status.json';
-            let servicesData = [];
-            let currentFilter = 'all';
-            let currentSearch = '';
-            
-            // Format waktu terakhir update
-            const formatTime = (date) => {
-                return date.toLocaleTimeString('id-ID', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit'
-                });
-            };
-            
-            // Filter dan tampilkan layanan berdasarkan kriteria
-            const filterServices = () => {
-                const filtered = servicesData.filter(service => {
-                    // Filter berdasarkan status
-                    const statusMatch = currentFilter === 'all' || service.pm2_env.status === currentFilter;
-                    
-                    // Filter berdasarkan pencarian
-                    const searchMatch = service.name.toLowerCase().includes(currentSearch.toLowerCase());
-                    
-                    return statusMatch && searchMatch;
-                });
+            for (let i = 0; i < 15; i++) {
+                skeletonHtml += `<tr class="skeleton-row">`;
+                skeletonHtml += `<td class="sticky-col"><div class="skeleton-cell"></div></td>`;
                 
-                displayServices(filtered);
-            };
-            
-            // Tampilkan layanan dalam grid
-            const displayServices = (services) => {
-                if (services.length === 0) {
-                    container.innerHTML = `
-                        <div class="empty-state">
-                            <i class="material-icons">search_off</i>
-                            <h3>Tidak ada layanan yang cocok</h3>
-                            <p>Coba ubah filter atau kata kunci pencarian</p>
-                        </div>
-                    `;
-                    return;
+                for (let j = 0; j < columnsCount - 1; j++) {
+                    skeletonHtml += `<td><div class="skeleton-cell ${j % 3 === 0 ? 'wide' : ''}"></div></td>`;
                 }
                 
-                container.innerHTML = '';
+                skeletonHtml += `</tr>`;
+            }
+            document.getElementById('tableBody').innerHTML = skeletonHtml;
+        };
+
+        let fetchData = async (type) => {
+            showSkeleton();
+            try {
+                let endpoint = type === 'dn' ? DN_ENDPOINT : GR_ENDPOINT;
+                let response = await fetch(endpoint);
                 
-                services.forEach(service => {
-                    const status = service.pm2_env.status;
-                    let statusClass = 'default';
-                    let icon = 'help_outline';
-                    let statusColor = '';
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                let result = await response.json();
+                if (result.success && result.data) {
+                    allData[type] = result.data;
+                    renderTableHeaders(type);
+                    applyFiltersAndSort();
+                } else {
+                    document.getElementById('tableBody').innerHTML = '<tr><td colspan="30" class="center-align">No data found.</td></tr>';
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                document.getElementById('tableBody').innerHTML = `<tr><td colspan="30" class="center-align">Failed to load data. ${error.message}</td></tr>`;
+            }
+        };
+
+        let renderTableHeaders = (type) => {
+            let headers = type === 'dn' ? dnHeaders : grHeaders;
+            let headerHtml = `<tr><th class="sticky-col">Action</th>`;
+            
+            headers.forEach(header => {
+                headerHtml += `<th data-sort="${header.key}">${header.label} <span class="sort-icon material-icons"></span></th>`;
+            });
+            
+            headerHtml += `</tr>`;
+            document.getElementById('tableHeader').innerHTML = headerHtml;
+            
+            document.querySelectorAll('th[data-sort]').forEach(header => {
+                header.onclick = () => handleSort(header.dataset.sort);
+            });
+        };
+
+        let renderTable = (dataToRender) => {
+            let fragment = document.createDocumentFragment();
+            let tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+            
+            dataToRender.forEach(rowData => {
+                let row = document.createElement('tr');
+                row.setAttribute('data-id', rowData.id || rowData.DO_NO || rowData.PO_NO);
+
+                let actionCell = document.createElement('td');
+                actionCell.className = 'sticky-col';
+                
+                let dropdownHtml = `
+                    <a class='dropdown-trigger btn btn-action' href='#' data-target='dropdown-${rowData.id}'>
+                        Actions <i class="material-icons right">arrow_drop_down</i>
+                    </a>
+                    <ul id='dropdown-${rowData.id}' class='dropdown-content'>
+                        <li><a href="#!" onclick="recheckDO('${rowData.DO_NO || rowData.PO_NO}')"><i class="material-icons">refresh</i> Recheck</a></li>
+                        <li><a href="#!" onclick="showDetails(${rowData.id})"><i class="material-icons">info</i> Details</a></li>
+                    </ul>
+                `;
+                actionCell.innerHTML = dropdownHtml;
+                row.appendChild(actionCell);
+
+                let headers = currentTab === 'dn' ? dnHeaders : grHeaders;
+                headers.forEach(header => {
+                    let cell = document.createElement('td');
+                    let value = rowData[header.key];
                     
-                    if (status === 'online') {
-                        statusClass = 'online';
-                        icon = 'check_circle';
-                        statusColor = 'var(--success-color)';
-                    } else if (status === 'stopped') {
-                        statusClass = 'stopped';
-                        icon = 'block';
-                        statusColor = 'var(--error-color)';
-                    } else if (status === 'errored') {
-                        statusClass = 'errored';
-                        icon = 'error';
-                        statusColor = 'var(--warning-color)';
+                    if (value === null || value === undefined) {
+                        cell.textContent = '';
+                    } else if (typeof value === 'boolean') {
+                        cell.textContent = value ? 'Yes' : 'No';
+                    } else if (header.key.includes('date') || header.key.includes('created') || header.key.includes('updated')) {
+                        try {
+                            let date = new Date(value);
+                            cell.textContent = isNaN(date.getTime()) ? value : date.toLocaleString();
+                        } catch {
+                            cell.textContent = value;
+                        }
+                    } else {
+                        cell.textContent = value;
                     }
                     
-                    // Hitung penggunaan CPU (batasi maksimal 100%)
-                    const cpuUsage = Math.min(service.monit.cpu, 100);
-                    // Hitung penggunaan memori dalam MB
-                    const memoryUsage = (service.monit.memory / 1024 / 1024).toFixed(2);
-                    // Hitung persentase memori (asumsi 512MB sebagai maksimal untuk contoh)
-                    const memoryPercent = Math.min((service.monit.memory / (512 * 1024 * 1024)) * 100, 100);
-                    
-                    const serviceDiv = document.createElement('div');
-                    serviceDiv.className = 'mdc-card';
-                    serviceDiv.dataset.status = status;
-                    serviceDiv.dataset.name = service.name.toLowerCase();
-                    
-                    serviceDiv.innerHTML = `
-                        <div class="mdc-card__primary-action">
-                            <div class="status-indicator ${statusClass}">
-                                <i class="material-icons">${icon}</i>
-                            </div>
-                            <div class="service-details">
-                                <h3 class="mdc-typography--headline6">${service.name}</h3>
-                                <div class="service-meta">
-                                    <span class="meta-item">
-                                        <i class="material-icons">fingerprint</i>
-                                        ID: ${service.pm_id}
-                                    </span>
-                                    <span class="meta-item" style="color: ${statusColor}">
-                                        <i class="material-icons">circle</i>
-                                        ${status}
-                                    </span>
-                                    <span class="meta-item">
-                                        <i class="material-icons">update</i>
-                                        ${service.pm2_env.restart_time || 0}x restart
-                                    </span>
-                                </div>
-                                
-                                <div class="progress-container">
-                                    <div class="progress-label">
-                                        <span>CPU: ${cpuUsage}%</span>
-                                        <span>RAM: ${memoryUsage} MB</span>
-                                    </div>
-                                    <div role="progressbar" class="mdc-linear-progress mdc-linear-progress--buffer">
-                                        <div class="mdc-linear-progress__buffering-dots"></div>
-                                        <div class="mdc-linear-progress__buffer"></div>
-                                        <div class="mdc-linear-progress__bar mdc-linear-progress__primary-bar" style="transform: scaleX(${cpuUsage/100})">
-                                            <span class="mdc-linear-progress__bar-inner"></span>
-                                        </div>
-                                        <div class="mdc-linear-progress__bar mdc-linear-progress__secondary-bar" style="transform: scaleX(${memoryPercent/100})">
-                                            <span class="mdc-linear-progress__bar-inner"></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-actions">
-                            <button class="mdc-button mdc-button--outlined action-button" data-action="restart" data-id="${service.pm_id}">
-                                <i class="material-icons mdc-button__icon" aria-hidden="true">replay</i>
-                                <span class="mdc-button__label">Restart</span>
-                            </button>
-                            ${status === 'online' ? `
-                            <button class="mdc-button mdc-button--outlined action-button" data-action="stop" data-id="${service.pm_id}">
-                                <i class="material-icons mdc-button__icon" aria-hidden="true">stop</i>
-                                <span class="mdc-button__label">Stop</span>
-                            </button>
-                            ` : `
-                            <button class="mdc-button mdc-button--outlined action-button" data-action="start" data-id="${service.pm_id}">
-                                <i class="material-icons mdc-button__icon" aria-hidden="true">play_arrow</i>
-                                <span class="mdc-button__label">Start</span>
-                            </button>
-                            `}
-                        </div>
-                    `;
-                    
-                    container.appendChild(serviceDiv);
+                    row.appendChild(cell);
                 });
-                
-                // Inisialisasi komponen MDC untuk elemen yang baru dibuat
-                mdc.autoInit();
-            };
-            
-            // Ambil data dari API
-            const fetchData = () => {
-                container.innerHTML = '<div class="empty-state"><i class="material-icons">hourglass_empty</i><h3>Memuat status layanan...</h3><p>Harap tunggu sebentar</p></div>';
-                loadingSpinner.style.display = 'block';
-                
-                // Tambahkan timestamp untuk menghindari cache
-                const url = `${statusFileUrl}?t=${new Date().getTime()}`;
-                
-                fetch(url)
-                    .then(response => {
-                        if (!response.ok) {
-                            if (response.status === 404) {
-                                throw new Error('File pm2-status.json tidak ditemukan. Mohon periksa repository GitHub.');
-                            }
-                            throw new Error(`Terjadi masalah pada jaringan. Kode: ${response.status}`);
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        loadingSpinner.style.display = 'none';
-                        servicesData = data;
-                        
-                        // Update waktu terakhir refresh
-                        const now = new Date();
-                        lastUpdatedEl.textContent = `Terakhir diperbarui: ${formatTime(now)}`;
-                        
-                        if (data.length === 0) {
-                            container.innerHTML = `
-                                <div class="empty-state">
-                                    <i class="material-icons">warning</i>
-                                    <h3>Tidak ada layanan PM2 yang sedang berjalan</h3>
-                                    <p>Coba mulai layanan melalui terminal server</p>
-                                </div>
-                            `;
-                            return;
-                        }
-                        
-                        filterServices();
-                    })
-                    .catch(error => {
-                        console.error('Error fetching data:', error);
-                        loadingSpinner.style.display = 'none';
-                        container.innerHTML = `
-                            <div class="empty-state">
-                                <i class="material-icons" style="color: var(--error-color)">error</i>
-                                <h3>Gagal memuat data</h3>
-                                <p>${error.message}</p>
-                                <button id="retry-button" class="mdc-button mdc-button--raised" style="margin-top: 16px;">
-                                    <i class="material-icons mdc-button__icon" aria-hidden="true">refresh</i>
-                                    <span class="mdc-button__label">Coba Lagi</span>
-                                </button>
-                            </div>
-                        `;
-                        
-                        // Tambahkan event listener untuk tombol retry
-                        const retryButton = document.getElementById('retry-button');
-                        if (retryButton) {
-                            retryButton.addEventListener('click', fetchData);
-                        }
-                    });
-            };
-            
-            // Event listeners
-            refreshButton.addEventListener('click', () => {
-                fetchData();
-                
-                // Animasi tombol refresh
-                refreshButton.querySelector('.material-icons').style.transform = 'rotate(360deg)';
-                refreshButton.querySelector('.material-icons').style.transition = 'transform 0.5s ease';
-                
-                setTimeout(() => {
-                    refreshButton.querySelector('.material-icons').style.transform = 'rotate(0deg)';
-                }, 500);
+
+                fragment.appendChild(row);
             });
             
-            searchInput.addEventListener('input', (e) => {
-                currentSearch = e.target.value;
-                filterServices();
+            tableBody.appendChild(fragment);
+            
+            document.querySelectorAll('.dropdown-trigger').forEach(elem => {
+                M.Dropdown.init(elem, { constrainWidth: false });
             });
             
-            filterButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    currentFilter = button.dataset.filter;
-                    
-                    // Update tampilan tombol filter
-                    filterButtons.forEach(btn => {
-                        btn.classList.remove('mdc-button--raised');
-                        btn.classList.add('mdc-button--outlined');
+            if (document.querySelector('.geserkk')) {
+                initHorizontalScroll(document.querySelector('.geserkk'));
+            }
+        };
+
+        let initHorizontalScroll = (element) => {
+            let isDown = false;
+            let startX;
+            let scrollLeft;
+
+            element.onmousedown = (e) => {
+                isDown = true;
+                element.classList.add('kgrab');
+                startX = e.pageX - element.offsetLeft;
+                scrollLeft = element.scrollLeft;
+            };
+
+            element.onmouseleave = () => {
+                isDown = false;
+                element.classList.remove('kgrab');
+            };
+
+            element.onmouseup = () => {
+                isDown = false;
+                element.classList.remove('kgrab');
+            };
+
+            element.onmousemove = (e) => {
+                if (!isDown) return;
+                e.preventDefault();
+                let x = e.pageX - element.offsetLeft;
+                let walk = (x - startX) * 3;
+                element.scrollLeft = scrollLeft - walk;
+            };
+        };
+
+        let handleSort = (column) => {
+            let sortIcon = document.querySelector(`th[data-sort="${column}"] .sort-icon`);
+            
+            document.querySelectorAll('.sort-icon').forEach(icon => {
+                icon.textContent = '';
+            });
+
+            if (currentSortColumn === column) {
+                currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSortColumn = column;
+                currentSortDirection = 'asc';
+            }
+
+            if (sortIcon) {
+                sortIcon.textContent = currentSortDirection === 'asc' ? 'arrow_drop_up' : 'arrow_drop_down';
+            }
+
+            applyFiltersAndSort();
+        };
+
+        let handleSearch = () => {
+            clearTimeout(window.searchDebounce);
+            window.searchDebounce = setTimeout(() => {
+                applyFiltersAndSort();
+            }, 300);
+        };
+
+        let applyFiltersAndSort = () => {
+            let dataToFilter = [...allData[currentTab]];
+            let searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+            if (searchTerm) {
+                dataToFilter = dataToFilter.filter(row => {
+                    return Object.values(row).some(value => {
+                        if (value === null || value === undefined) return false;
+                        return String(value).toLowerCase().includes(searchTerm);
                     });
-                    
-                    button.classList.remove('mdc-button--outlined');
-                    button.classList.add('mdc-button--raised');
-                    
-                    filterServices();
                 });
-            });
-            
-            // Delegasi event untuk tombol aksi
-            container.addEventListener('click', (e) => {
-                const actionButton = e.target.closest('.action-button');
-                if (!actionButton) return;
-                
-                const action = actionButton.dataset.action;
-                const serviceId = actionButton.dataset.id;
-                
-                // Tampilkan konfirmasi untuk aksi penting
-                if (action === 'stop' || action === 'restart') {
-                    if (!confirm(`Anda yakin ingin ${action} layanan ini?`)) {
-                        return;
+            }
+
+            if (currentSortColumn) {
+                dataToFilter.sort((a, b) => {
+                    let valA = a[currentSortColumn];
+                    let valB = b[currentSortColumn];
+
+                    if (valA === null || valA === undefined) return currentSortDirection === 'asc' ? 1 : -1;
+                    if (valB === null || valB === undefined) return currentSortDirection === 'asc' ? -1 : 1;
+
+                    if (typeof valA === 'string' && typeof valB === 'string') {
+                        return currentSortDirection === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                    } else {
+                        return currentSortDirection === 'asc' ? valA - valB : valB - valA;
                     }
-                }
-                
-                // Simulasikan aksi (pada implementasi nyata, ini akan memanggil API)
-                console.log(`Aksi ${action} pada layanan ID ${serviceId}`);
-                
-                // Tampilkan feedback visual
-                const card = actionButton.closest('.mdc-card');
-                card.classList.add('status-updated');
-                setTimeout(() => {
-                    card.classList.remove('status-updated');
-                }, 500);
-                
-                // Pada implementasi nyata, setelah API berhasil, panggil fetchData() lagi
-                // Untuk contoh ini, kita hanya mengubah status visual sementara
-                if (action === 'start') {
-                    card.querySelector('.status-indicator').className = 'status-indicator online';
-                    card.querySelector('.status-indicator i').textContent = 'check_circle';
-                    card.querySelector('.meta-item:nth-child(2)').innerHTML = 
-                        '<i class="material-icons">circle</i> online';
-                    card.querySelector('.meta-item:nth-child(2)').style.color = 'var(--success-color)';
-                    
-                    // Update tombol aksi
-                    const actionsDiv = card.querySelector('.card-actions');
-                    actionsDiv.innerHTML = `
-                        <button class="mdc-button mdc-button--outlined action-button" data-action="restart" data-id="${serviceId}">
-                            <i class="material-icons mdc-button__icon" aria-hidden="true">replay</i>
-                            <span class="mdc-button__label">Restart</span>
-                        </button>
-                        <button class="mdc-button mdc-button--outlined action-button" data-action="stop" data-id="${serviceId}">
-                            <i class="material-icons mdc-button__icon" aria-hidden="true">stop</i>
-                            <span class="mdc-button__label">Stop</span>
-                        </button>
-                    `;
-                } else if (action === 'stop') {
-                    card.querySelector('.status-indicator').className = 'status-indicator stopped';
-                    card.querySelector('.status-indicator i').textContent = 'block';
-                    card.querySelector('.meta-item:nth-child(2)').innerHTML = 
-                        '<i class="material-icons">circle</i> stopped';
-                    card.querySelector('.meta-item:nth-child(2)').style.color = 'var(--error-color)';
-                    
-                    // Update tombol aksi
-                    const actionsDiv = card.querySelector('.card-actions');
-                    actionsDiv.innerHTML = `
-                        <button class="mdc-button mdc-button--outlined action-button" data-action="restart" data-id="${serviceId}">
-                            <i class="material-icons mdc-button__icon" aria-hidden="true">replay</i>
-                            <span class="mdc-button__label">Restart</span>
-                        </button>
-                        <button class="mdc-button mdc-button--outlined action-button" data-action="start" data-id="${serviceId}">
-                            <i class="material-icons mdc-button__icon" aria-hidden="true">play_arrow</i>
-                            <span class="mdc-button__label">Start</span>
-                        </button>
-                    `;
-                } else if (action === 'restart') {
-                    const statusIndicator = card.querySelector('.status-indicator');
-                    statusIndicator.innerHTML = '<i class="material-icons">autorenew</i>';
-                    statusIndicator.style.animation = 'spin 1s linear infinite';
-                    
-                    setTimeout(() => {
-                        statusIndicator.style.animation = '';
-                        statusIndicator.className = 'status-indicator online';
-                        statusIndicator.innerHTML = '<i class="material-icons">check_circle</i>';
-                    }, 1000);
-                }
-                
-                mdc.autoInit();
-            });
+                });
+            }
+
+            displayedData = dataToFilter;
+            renderTable(displayedData);
+        };
+
+        let recheckDO = async (docNo) => {
+            if (!docNo) return;
             
-            fetchData();
-            setInterval(fetchData, 30000);
-        });
+            modalInstance.open();
+            document.getElementById('recheckModalContent').innerHTML = `
+                <div class="progress"><div class="indeterminate"></div></div>
+                <p class="center-align">Checking Document Number: ${docNo}</p>
+            `;
+
+            try {
+                let response = await fetch(`${RECHECK_ENDPOINT}${docNo}`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                let result = await response.json();
+                let detailHtml = `
+                    <p><strong>Document Number:</strong> ${docNo}</p>
+                    <p><strong>Status:</strong> ${result.status || 'N/A'}</p>
+                    <p><strong>Message:</strong> ${result.message || 'No message provided.'}</p>
+                `;
+                document.getElementById('recheckModalContent').innerHTML = detailHtml;
+            } catch (error) {
+                console.error('Error during recheck:', error);
+                document.getElementById('recheckModalContent').innerHTML = `
+                    <div class="red-text">
+                        <p><strong>Failed to recheck Document Number:</strong> ${docNo}</p>
+                        <p>Error: ${error.message}</p>
+                    </div>
+                `;
+            }
+        };
+
+        let showDetails = (id) => {
+            let data = displayedData.find(item => item.id === id);
+            if (!data) return;
+            
+            modalInstance.open();
+            let detailHtml = `<div class="collection">`;
+            
+            for (let key in data) {
+                if (data.hasOwnProperty(key)) {
+                    let value = data[key];
+                    if (value === null || value === undefined) continue;
+                    
+                    if (key.includes('date') || key.includes('created') || key.includes('updated')) {
+                        try {
+                            let date = new Date(value);
+                            value = isNaN(date.getTime()) ? value : date.toLocaleString();
+                        } catch {
+                            // Keep original value if date parsing fails
+                        }
+                    }
+                    
+                    detailHtml += `
+                        <div class="collection-item">
+                            <strong>${key}:</strong> ${value}
+                        </div>
+                    `;
+                }
+            }
+            
+            detailHtml += `</div>`;
+            document.getElementById('recheckModalContent').innerHTML = detailHtml;
+        };
+
+        let exportToExcel = () => {
+            if (displayedData.length === 0) {
+                M.toast({ html: 'No data to export', classes: 'red' });
+                return;
+            }
+
+            let headers = currentTab === 'dn' ? dnHeaders : grHeaders;
+            let headerLabels = ['Action', ...headers.map(h => h.label)];
+            let csvContent = [headerLabels.join(',')];
+
+            displayedData.forEach(row => {
+                let rowValues = [''];
+                headers.forEach(header => {
+                    let value = row[header.key];
+                    if (value === null || value === undefined) {
+                        rowValues.push('');
+                    } else if (header.key.includes('date') || header.key.includes('created') || header.key.includes('updated')) {
+                        try {
+                            let date = new Date(value);
+                            rowValues.push(isNaN(date.getTime()) ? `"${value}"` : `"${date.toLocaleString()}"`);
+                        } catch {
+                            rowValues.push(`"${value}"`);
+                        }
+                    } else {
+                        rowValues.push(`"${value}"`);
+                    }
+                });
+                csvContent.push(rowValues.join(','));
+            });
+
+            let blob = new Blob([csvContent.join('\n')], { type: 'text/csv;charset=utf-8;' });
+            let link = document.createElement('a');
+            let url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', `coldspace_${currentTab}_data.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+
+        let handleTableKeydown = (event) => {
+            if (event.target.id !== 'tableContainer') return;
+            
+            let scrollStep = 100;
+            if (event.key === 'ArrowRight') {
+                document.getElementById('tableContainer').scrollLeft += scrollStep;
+                event.preventDefault();
+            } else if (event.key === 'ArrowLeft') {
+                document.getElementById('tableContainer').scrollLeft -= scrollStep;
+                event.preventDefault();
+            }
+        };
     </script>
 </body>
 </html>
