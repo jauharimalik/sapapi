@@ -2,9 +2,6 @@
 name: PM2 Service Monitor
 
 on:
-  schedule:
-    # Menjalankan setiap 1 menit
-    - cron: '*/600 * * * *'
   workflow_dispatch:
 
 jobs:
@@ -17,7 +14,7 @@ jobs:
       - name: Add npm global to PATH
         run: echo "C:\Users\PROGRAM-002\AppData\Roaming\npm" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
         shell: powershell
-        
+      
       # - name: Get PM2 process status as JSON
       #   run: pm2 jlist > pm2-status.json
 
