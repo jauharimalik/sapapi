@@ -6,14 +6,15 @@ const doService = require('./services/doService');
 
 app.use(express.json());
 app.use(cors({
-    origin: ['http://albacore-direct-neatly.ngrok-free.app',
-        
+    origin: [
+        'http://albacore-direct-neatly.ngrok-free.app',
         'https://jauharimalik.github.io', 
         'https://cute-mature-shrew.ngrok-free.app',
         'https://cute-mature-shrew.ngrok-free.app','http://192.168.60.19',
         'https://jauharimalik.github.io/sapapi'],
-    methods: ['GET', 'POST'],
-    allowedHeaders: ['Content-Type']
+    
+    methods: ['GET', 'POST', 'OPTIONS'], // Tambahkan metode OPTIONS
+    allowedHeaders: ['Content-Type', 'ngrok-skip-browser-warning'] 
 }));
 
 // Database middleware
