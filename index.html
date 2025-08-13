@@ -9,124 +9,144 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         body {
-            background-color: #f5f5f5;
+            background-color: #f0f2f5;
             font-family: 'Roboto', sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
         }
-        .container-fluid {
-            width: 100%;
-            padding: 0 15px;
+        .app-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #f0f2f5;
         }
-        .toolbar {
+        .header-bar {
+            display: flex;
+            align-items: center;
+            color: #333;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: #fff;
+            padding: 5px;
+        }
+        .header-bar .search-container {
+            flex-grow: 1;
+            position: relative;
+        }
+        .header-bar .search-container input {
+            border: none;
+            height: 40px;
+            padding: 0 16px 0 48px !important;
+            color: #333;
+            width: calc(100% - 64px);
+            margin:0;
+        }
+        .header-bar .search-container i.material-icons {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #888;
+        }
+        .header-bar .search-container input:focus{border:none!important;}
+        .header-bar .search-container input:focus ~ i.material-icons {
+            color: #075e54;
+        }
+        .modal .modal-content .notes-item {
+            margin: 18px 0 10px;
+            border: unset;
+            background: #075e54;
+            padding: 8px 10px;
+            display: block;
+            border-radius: 8px;
+            text-transform: uppercase;
+            color: #fff;
+        }
+        .modal-footer > * {
+            display: block;
+            width: 50%;
+            text-align: center;
+        }
+        .tabs-container {
+            display: flex;
+            background-color: #ffffff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 40px; 
+            z-index: 90;
+        }
+        .tabs-container .tab-link {
+            flex: 1;
+            text-align: center;
+            padding: 3px 0 8px;
+            color: #555;
+            font-weight: 500;
+            cursor: pointer;
+            position: relative;
+            transition: color 0.2s;
+        }
+        .tabs-container .tab-link.active {
+            color: #075e54;
+        }
+        .tabs-container .tab-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: #075e54;
+        }
+        .content-container {
+            overflow-y: auto;
+            padding: 16px;
+            flex-grow: 1;
+        }
+        .data-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .data-card:hover {
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+        .data-card:active {
+            transform: scale(0.98);
+        }
+        .data-card .card-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 8px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 15px;
         }
-        .tabs-export-container {
+        .data-card .card-subtitle {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 8px;
+        }
+        .data-card .card-info {
             display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        .tabs-row {
-            display: flex;
-            background: #f1f3f6;
-            padding: 4px;
-        }
-        .tab {
-            padding: 8px 16px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s;
-            text-align: center;
-            min-width: 100px;
-            white-space: nowrap;
-        }
-        .tab.active {
-            background: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            color: #3f51b5;
-        }
-        .input-field {
-            margin-top: 0;
-            margin-bottom: 0;
-            flex-grow: 1;
-            min-width: 250px;
-        }
-        .input-field label {
-            pointer-events: none;
-        }
-        .input-field label.active {
-            transform: translateY(-10px) scale(0.8);
-        }
-        .export-btn {
-            background-color: #4caf50;
-            white-space: nowrap;
-        }
-        .table-container {
-            width: 100%;
-            overflow-x: auto;
-            background: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            white-space: nowrap;
-        }
-        th, td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #e0e0e0;
-            border-radius: 0;
-        }
-        th {
-            background-color: #3f51b5;
-            color: white;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-        th.action-cell {
-            position: sticky;
-            left: 0;
-            z-index: 30;
-            background-color: #3f51b5;
-            color: white;
-            box-shadow: 2px 0 3px -1px rgba(0,0,0,0.1);
-        }
-        td.action-cell {
-            position: sticky;
-            left: 0;
-            z-index: 20;
-            background-color: white;
-            box-shadow: 2px 0 3px -1px rgba(0,0,0,0.1);
-        }
-        tr:hover {
-            background-color: #f5f5f5;
-        }
-        .action-btn {
-            padding: 0 10px;
-            height: 30px;
-            line-height: 30px;
+            justify-content: space-between;
             font-size: 13px;
-        }
-        .dropdown-content {
-            min-width: 140px;
-            z-index: 999;
-        }
-        .sort-icon {
-            margin-left: 5px;
-            vertical-align: middle;
+            color: #555;
         }
         .status-badge {
-            display: inline-block;
-            padding: 3px 8px;
-            font-size: 12px;
-            font-weight: 500;
+            font-size: 11px;
+            padding: 3px 6px;
+            border-radius: 10px;
+            font-weight: bold;
+            white-space: nowrap;
         }
         .success {
             background-color: #e8f5e9;
@@ -140,55 +160,96 @@
             background-color: #fff8e1;
             color: #f57f17;
         }
-        @media (max-width: 768px) {
-            .toolbar {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .tabs-export-container {
-                width: 100%;
-                justify-content: space-between;
-            }
-            .input-field {
-                width: 100%;
-            }
+        .modal.bottom-sheet {
+            max-height: 80%;
+            border-top-left-radius: 16px;
+            border-top-right-radius: 16px;
+            padding: 24px;
+        }
+        .modal .modal-content {padding-bottom: 0!important; }
+        .modal .modal-content h4 {
+            font-size: 20px;
+            font-weight: bold;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 16px;
+            margin-bottom: 16px;
+            margin-top: 0;
+            color: #333;
+        }
+        .modal .modal-content .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .modal .modal-content .detail-item strong {
+            font-weight: 500;
+            color: #555;
+        }
+        .modal .modal-content .detail-item.notes-item strong {
+            text-align: left;
+            flex-basis: 30%;
+        }
+        .modal .modal-content .detail-item.notes-item span {
+            text-align: left;
+            flex-grow: 1;
+        }
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 16px 24px;
+            background-color: #ffffff;
+            box-shadow: 0 -2px 5px 0 rgba(0,0,0,0.1);
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            border-top-left-radius: 16px;
+            border-top-right-radius: 16px;
         }
     </style>
 </head>
 <body>
-    <div class="container-fluid">
-        <div class="toolbar">
-            <div class="input-field">
-                <i class="material-icons prefix">search</i>
-                <input type="text" id="searchInput" oninput="handleSearch()">
-                <label for="searchInput">Search data...</label>
-            </div>
-            <div class="tabs-export-container">
-                <div class="tabs-row">
-                    <div class="tab active" onclick="switchTab('dn')">DN</div>
-                    <div class="tab" onclick="switchTab('gr')">GR</div>
-                </div>
-                <button class="btn export-btn waves-effect" onclick="exportToExcel()">
-                    <i class="material-icons left">file_download</i> Export Excel
-                </button>
+    <div class="app-container">
+        <div class="header-bar">
+            <div class="search-container">
+                <i class="material-icons">search</i>
+                <input type="text" id="searchInput" placeholder="Search data..." oninput="handleSearch()">
             </div>
         </div>
-        <div class="table-container">
-            <table>
-                <thead id="tableHeader"></thead>
-                <tbody id="tableBody"></tbody>
-            </table>
+
+        <div class="tabs-container">
+            <div class="tab-link active" onclick="switchTab('dn')">DN</div>
+            <div class="tab-link" onclick="switchTab('gr')">GR</div>
+        </div>
+
+        <div class="content-container" id="content-container">
+            <div id="data-list-loader" class="center-align" style="padding-top: 50px; display: none;">
+                <div class="preloader-wrapper big active">
+                    <div class="spinner-layer spinner-blue-only">
+                        <div class="circle-clipper left"><div class="circle"></div></div>
+                        <div class="gap-patch"><div class="circle"></div></div>
+                        <div class="circle-clipper right"><div class="circle"></div></div>
+                    </div>
+                </div>
+            </div>
+            <div id="data-list"></div>
         </div>
     </div>
-    <div id="detailModal" class="modal">
+    
+    <div id="detailModal" class="modal bottom-sheet">
         <div class="modal-content">
             <h4>Details</h4>
             <div id="modalContent"></div>
         </div>
         <div class="modal-footer">
+            <button class="btn waves-effect waves-light" onclick="recheckItem()">Retry</button>
             <a href="#!" class="modal-close waves-effect waves-grey btn-flat">Close</a>
         </div>
     </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <script>
         function levenshtein(a, b) {
@@ -217,36 +278,37 @@
         let allData = { dn: [], gr: [] };
         let displayedData = [];
         let currentTab = 'dn';
-        let currentSort = { column: null, direction: 'asc' };
         let modalInstance = null;
-
         let API_BASE_URL = 'https://cute-mature-shrew.ngrok-free.app/api/';
         let DN_ENDPOINT = API_BASE_URL + 'tarikandn';
         let GR_ENDPOINT = API_BASE_URL + 'tarikangr';
+        let selectedItemForModal = null;
 
         window.onload = function() {
             modalInstance = M.Modal.init(document.getElementById('detailModal'));
-            M.updateTextFields();
             loadData('dn');
         };
 
         let switchTab = function(tab) {
             currentTab = tab;
-            document.querySelectorAll('.tab').forEach(function(t) {
+            document.querySelectorAll('.tab-link').forEach(function(t) {
                 t.classList.remove('active');
             });
-            document.querySelector('.tab[onclick="switchTab(\'' + tab + '\')"]').classList.add('active');
-            loadData(tab);
+            document.querySelector('.tab-link[onclick="switchTab(\'' + tab + '\')"]').classList.add('active');
+            
+            if (allData[tab].length === 0) {
+                loadData(tab);
+            } else {
+                applyFiltersAndSort();
+            }
         };
 
         let loadData = function(type) {
-            document.getElementById('tableBody').innerHTML = '<tr><td colspan="20" class="center-align"><div class="progress"><div class="indeterminate"></div></div></td></tr>';
+            showLoader();
             let endpoint = type === 'dn' ? DN_ENDPOINT : GR_ENDPOINT;
             const requestHeaders = new Headers();
             requestHeaders.append('ngrok-skip-browser-warning', 'true');
 
-            
-            // fetch(endpoint)
             fetch(endpoint, { headers: requestHeaders })
                 .then(function(response) {
                     if (!response.ok) {
@@ -257,96 +319,80 @@
                 .then(function(data) {
                     if (Array.isArray(data)) {
                         allData[type] = data;
-                        renderTableHeaders(type);
-                        applyFiltersAndSort();
+                        if (currentTab === type) {
+                            applyFiltersAndSort();
+                        }
                     } else {
                         throw new Error('API did not return array data');
                     }
                 })
                 .catch(function(error) {
                     console.error('Error loading data:', error);
-                    document.getElementById('tableBody').innerHTML = '<tr><td colspan="20" class="center-align red-text">Error loading data: ' + error.message + '</td></tr>';
+                    hideLoader();
+                    document.getElementById('data-list').innerHTML = '<p class="center-align red-text">Error loading data: ' + error.message + '</p>';
                 });
         };
 
-        let renderTableHeaders = function(type) {
-            let columns = type === 'dn' ? [
-                { key: 'DO_NO', label: 'DO Number' },
-                { key: 'STO_NO', label: 'STO Number' },
-                { key: 'PL_NP', label: 'PL Number' },
-                { key: 'DEL_DATE', label: 'Delivery Date' },
-                { key: 'SITE', label: 'Site' },
-                { key: 'SKU', label: 'SKU' },
-                { key: 'QTY', label: 'Quantity' },
-                { key: 'LOT', label: 'LOT' },
-                { key: 'expired_date', label: 'Expired Date' },
-                { key: 'ismatch', label: 'Match Status' },
-                { key: 'jo_status', label: 'Status' },
-                { key: 'note', label: 'Notes' }
-            ] : [
-                { key: 'PO_NO', label: 'PO Number' },
-                { key: 'WMS_ASN_NO', label: 'ASN Number' },
-                { key: 'RR_DATE', label: 'Receipt Date' },
-                { key: 'VENDOR', label: 'Vendor' },
-                { key: 'SKU', label: 'SKU' },
-                { key: 'QTYPO', label: 'PO Qty' },
-                { key: 'QTYGR', label: 'GR Qty' },
-                { key: 'SLOC', label: 'Storage Loc' },
-                { key: 'VFDAT', label: 'Expiry Date' },
-                { key: 'ismatch', label: 'Match Status' },
-                { key: 'jo_status', label: 'Status' },
-                { key: 'note', label: 'Notes' }
-            ];
-
-            let headerHtml = '<tr><th class="action-cell">Actions</th>';
-            columns.forEach(function(col) {
-                headerHtml += '<th onclick="sortTable(\'' + col.key + '\')">' + col.label + '<i class="material-icons sort-icon">' + (currentSort.column === col.key ? (currentSort.direction === 'asc' ? 'arrow_drop_up' : 'arrow_drop_down') : '') + '</i></th>';
-            });
-            headerHtml += '</tr>';
-            document.getElementById('tableHeader').innerHTML = headerHtml;
+        let refreshData = function() {
+            M.toast({ html: 'Refreshing data...', classes: 'rounded' });
+            allData[currentTab] = [];
+            loadData(currentTab);
         };
 
-        let renderTableData = function() {
-            let tableBody = document.getElementById('tableBody');
-            tableBody.innerHTML = '';
+        let showLoader = function() {
+            document.getElementById('data-list').innerHTML = '';
+            document.getElementById('data-list-loader').style.display = 'block';
+        };
+
+        let hideLoader = function() {
+            document.getElementById('data-list-loader').style.display = 'none';
+        };
+
+        let renderDataCards = function() {
+            hideLoader();
+            const dataList = document.getElementById('data-list');
+            dataList.innerHTML = '';
             if (displayedData.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="20" class="center-align">No data found</td></tr>';
+                dataList.innerHTML = '<p class="center-align">No data found</p>';
                 return;
             }
-            let columns = currentTab === 'dn' ? [
-                'DO_NO', 'STO_NO', 'PL_NP', 'DEL_DATE', 'SITE', 'SKU', 'QTY', 
-                'LOT', 'expired_date', 'ismatch', 'jo_status', 'note'
-            ] : [
-                'PO_NO', 'WMS_ASN_NO', 'RR_DATE', 'VENDOR', 'SKU', 'QTYPO', 
-                'QTYGR', 'SLOC', 'VFDAT', 'ismatch', 'jo_status', 'note'
-            ];
+
             displayedData.forEach(function(row) {
-                let rowHtml = '<tr><td class="action-cell"><a class="dropdown-trigger btn action-btn waves-effect" href="#" data-target="actions-' + row.id + '">Actions <i class="material-icons right">arrow_drop_down</i></a><ul id="actions-' + row.id + '" class="dropdown-content"><li><a href="#!" onclick="showDetails(' + row.id + ')"><i class="material-icons">visibility</i> View</a></li><li><a href="#!" onclick="recheckItem(' + row.id + ')"><i class="material-icons">refresh</i> Recheck</a></li></ul></td>';
-                columns.forEach(function(col) {
-                    let value = row[col];
-                    if (col.includes('DATE') || col.includes('created_at') || col.includes('updated_at')) {
-                        value = formatDate(value);
-                    } else if (col === 'ismatch') {
-                        value = value ? '<span class="status-badge success">Matched</span>' : '<span class="status-badge error">Mismatch</span>';
-                    } else if (col === 'jo_status') {
-                        value = getStatusBadge(value);
-                    }
-                    rowHtml += '<td>' + (value || '') + '</td>';
-                });
-                rowHtml += '</tr>';
-                tableBody.innerHTML += rowHtml;
-            });
-            document.querySelectorAll('.dropdown-trigger').forEach(function(elem) {
-                M.Dropdown.init(elem, {
-                    coverTrigger: false,
-                    constrainWidth: false,
-                    container: document.body
-                });
+                let title, subtitle, mainInfo, subInfo;
+                let statusBadge = getStatusBadge(row.jo_status);
+
+                if (currentTab === 'dn') {
+                    title = row.DO_NO || '-';
+                    subtitle = `STO: ${row.STO_NO || '-'}`;
+                    mainInfo = `SKU: ${row.SKU || '-'}`;
+                    subInfo = `Qty: ${row.QTY || '-'} | Exp: ${formatDate(row.expired_date)}`;
+                } else if (currentTab === 'gr') {
+                    title = row.PO_NO || '-';
+                    subtitle = `ASN: ${row.WMS_ASN_NO || '-'}`;
+                    mainInfo = `Vendor: ${row.VENDOR || '-'}`;
+                    subInfo = `GR Qty: ${row.QTYGR || '-'} | Exp: ${formatDate(row.VFDAT)}`;
+                } else {
+                    return;
+                }
+
+                dataList.innerHTML += `
+                    <div class="data-card" onclick="showDetails('${row.id}')">
+                        <div class="card-title">
+                            <span>${title}</span>
+                            <span>${statusBadge}</span>
+                        </div>
+                        <div class="card-subtitle">${subtitle}</div>
+                        <div class="card-info">
+                            <span>${mainInfo}</span>
+                            <span>${subInfo}</span>
+                        </div>
+                    </div>
+                `;
             });
         };
 
         let formatDate = function(dateString) {
-            if (!dateString) return '';
+            if (!dateString) return '-';
             try {
                 let date = new Date(dateString);
                 return date.toLocaleDateString();
@@ -365,16 +411,6 @@
             } else {
                 return '<span class="status-badge warning">Processing</span>';
             }
-        };
-
-        let sortTable = function(column) {
-            if (currentSort.column === column) {
-                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
-            } else {
-                currentSort.column = column;
-                currentSort.direction = 'asc';
-            }
-            applyFiltersAndSort();
         };
 
         let handleSearch = function() {
@@ -398,12 +434,10 @@
                             if (value === null || value === undefined) return false;
                             const cellValue = String(value).toLowerCase();
                             
-                            // Cek kecocokan langsung
                             if (cellValue.includes(keyword)) {
                                 return true;
                             }
-
-                            // Cek kecocokan fuzzy
+                            
                             const wordsInCell = cellValue.split(' ');
                             return wordsInCell.some(word => {
                                 const distance = levenshtein(word, keyword);
@@ -415,64 +449,74 @@
                     });
                 });
             }
-
-            if (currentSort.column) {
-                data.sort(function(a, b) {
-                    let valA = a[currentSort.column];
-                    let valB = b[currentSort.column];
-                    if (valA == null) return currentSort.direction === 'asc' ? 1 : -1;
-                    if (valB == null) return currentSort.direction === 'asc' ? -1 : 1;
-                    if (typeof valA === 'string' && typeof valB === 'string') {
-                        return currentSort.direction === 'asc' ? 
-                            valA.localeCompare(valB) : valB.localeCompare(valA);
-                    } else {
-                        return currentSort.direction === 'asc' ? valA - valB : valB - valA;
-                    }
-                });
-            }
             displayedData = data;
-            renderTableData();
+            renderDataCards();
         };
 
         let showDetails = function(id) {
-            let item = displayedData.find(function(i) { return i.id === id; });
+            let item = displayedData.find(function(i) { return i.id == id; });
             if (!item) return;
+            selectedItemForModal = item;
+
             let modalContent = '';
-            let columns = currentTab === 'dn' ? [
-                { key: 'DO_NO', label: 'DO Number' },
-                { key: 'STO_NO', label: 'STO Number' },
-                { key: 'COMP_CODE', label: 'Company Code' },
-                { key: 'DEL_DATE', label: 'Delivery Date' },
-                { key: 'SKU', label: 'SKU' },
-                { key: 'QTY', label: 'Quantity' },
-                { key: 'expired_date', label: 'Expiry Date' },
-                { key: 'jo_status', label: 'Status' },
-                { key: 'note', label: 'Notes' }
-            ] : [
-                { key: 'PO_NO', label: 'PO Number' },
-                { key: 'COMP_CODE', label: 'Company Code' },
-                { key: 'RR_DATE', label: 'Receipt Date' },
-                { key: 'VENDOR', label: 'Vendor' },
-                { key: 'SKU', label: 'SKU' },
-                { key: 'QTYGR', label: 'GR Quantity' },
-                { key: 'SLOC', label: 'Storage Loc' },
-                { key: 'VFDAT', label: 'Expiry Date' },
-                { key: 'jo_status', label: 'Status' },
-                { key: 'note', label: 'Notes' }
-            ];
+            let columns = [];
+            
+            if (currentTab === 'dn') {
+                columns = [
+                    { key: 'DO_NO', label: 'DO Number' },
+                    { key: 'STO_NO', label: 'STO Number' },
+                    { key: 'COMP_CODE', label: 'Company Code' },
+                    { key: 'PL_NP', label: 'PL Number' },
+                    { key: 'DEL_DATE', label: 'Delivery Date' },
+                    { key: 'SITE', label: 'Site' },
+                    { key: 'SKU', label: 'SKU' },
+                    { key: 'QTY', label: 'Quantity' },
+                    { key: 'LOT', label: 'LOT' },
+                    { key: 'expired_date', label: 'Expiry Date' },
+                    { key: 'ismatch', label: 'Match Status' },
+                    { key: 'jo_status', label: 'Status' },
+                    { key: 'note', label: 'Notes' },
+                ];
+            } else if (currentTab === 'gr') {
+                columns = [
+                    { key: 'PO_NO', label: 'PO Number' },
+                    { key: 'WMS_ASN_NO', label: 'ASN Number' },
+                    { key: 'COMP_CODE', label: 'Company Code' },
+                    { key: 'RR_DATE', label: 'Receipt Date' },
+                    { key: 'VENDOR', label: 'Vendor' },
+                    { key: 'SKU', label: 'SKU' },
+                    { key: 'QTYPO', label: 'PO Quantity' },
+                    { key: 'QTYGR', label: 'GR Quantity' },
+                    { key: 'SLOC', label: 'Storage Loc' },
+                    { key: 'VFDAT', label: 'Expiry Date' },
+                    { key: 'ismatch', label: 'Match Status' },
+                    { key: 'jo_status', label: 'Status' },
+                    { key: 'note', label: 'Notes' }
+                ];
+            }
+
             columns.forEach(function(col) {
                 let value = item[col.key];
-                if (col.key.includes('DATE') || col.key.includes('created_at') || col.key.includes('updated_at')) {
+                if (col.key.includes('DATE') || col.key.includes('expired_date') || col.key.includes('VFDAT')) {
                     value = formatDate(value);
+                } else if (col.key === 'ismatch') {
+                    value = value ? 'Matched' : 'Mismatch';
                 }
-                modalContent += '<div class="row" style="margin-bottom: 10px;"><div class="col s4"><strong>' + col.label + ':</strong></div><div class="col s8">' + (value || '-') + '</div></div>';
+                
+                let notesClass = (col.key === 'note') ? 'notes-item' : '';
+                modalContent += `<div class="detail-item ${notesClass}"><strong>${col.label}:</strong><span>${value || '-'}</span></div>`;
             });
             document.getElementById('modalContent').innerHTML = modalContent;
             modalInstance.open();
         };
 
-        let recheckItem = function(id) {
-            M.toast({ html: 'Rechecking item ' + id + '...', classes: 'rounded' });
+        let recheckItem = function() {
+            if (!selectedItemForModal) return;
+            const itemId = selectedItemForModal.id;
+            const itemType = currentTab.toUpperCase();
+            M.toast({ html: `Rechecking ${itemType} item ${itemId}...`, classes: 'rounded' });
+            modalInstance.close();
+            // Implement API call for recheck here
         };
 
         let exportToExcel = function() {
@@ -480,48 +524,61 @@
                 M.toast({ html: 'No data to export', classes: 'red rounded' });
                 return;
             }
-            let columns = currentTab === 'dn' ? [
-                { key: 'DO_NO', label: 'DO Number' },
-                { key: 'STO_NO', label: 'STO Number' },
-                { key: 'COMP_CODE', label: 'Company Code' },
-                { key: 'DEL_DATE', label: 'Delivery Date' },
-                { key: 'SKU', label: 'SKU' },
-                { key: 'QTY', label: 'Quantity' },
-                { key: 'LOT', label: 'LOT' },
-                { key: 'expired_date', label: 'Expiry Date' },
-                { key: 'jo_status', label: 'Status' },
-                { key: 'note', label: 'Notes' }
-            ] : [
-                { key: 'PO_NO', label: 'PO Number' },
-                { key: 'COMP_CODE', label: 'Company Code' },
-                { key: 'RR_DATE', label: 'Receipt Date' },
-                { key: 'VENDOR', label: 'Vendor' },
-                { key: 'SKU', label: 'SKU' },
-                { key: 'QTYGR', label: 'GR Quantity' },
-                { key: 'SLOC', label: 'Storage Loc' },
-                { key: 'VFDAT', label: 'Expiry Date' },
-                { key: 'jo_status', label: 'Status' },
-                { key: 'note', label: 'Notes' }
-            ];
+            
+            let columns;
+            let sheetName;
+            if (currentTab === 'dn') {
+                columns = [
+                    { key: 'DO_NO', label: 'DO Number' },
+                    { key: 'STO_NO', label: 'STO Number' },
+                    { key: 'COMP_CODE', label: 'Company Code' },
+                    { key: 'DEL_DATE', label: 'Delivery Date' },
+                    { key: 'SKU', label: 'SKU' },
+                    { key: 'QTY', label: 'Quantity' },
+                    { key: 'LOT', label: 'LOT' },
+                    { key: 'expired_date', label: 'Expiry Date' },
+                    { key: 'jo_status', label: 'Status' },
+                    { key: 'note', label: 'Notes' }
+                ];
+                sheetName = 'DeliveryNotes';
+            } else if (currentTab === 'gr') {
+                columns = [
+                    { key: 'PO_NO', label: 'PO Number' },
+                    { key: 'COMP_CODE', label: 'Company Code' },
+                    { key: 'RR_DATE', label: 'Receipt Date' },
+                    { key: 'VENDOR', label: 'Vendor' },
+                    { key: 'SKU', label: 'SKU' },
+                    { key: 'QTYGR', label: 'GR Quantity' },
+                    { key: 'SLOC', label: 'Storage Loc' },
+                    { key: 'VFDAT', label: 'Expiry Date' },
+                    { key: 'jo_status', label: 'Status' },
+                    { key: 'note', label: 'Notes' }
+                ];
+                sheetName = 'GoodsReceipts';
+            } else {
+                 return;
+            }
+
             let excelData = [
                 columns.map(function(col) { return col.label; })
             ];
+
             displayedData.forEach(function(row) {
                 let rowData = columns.map(function(col) {
                     let value = row[col.key];
-                    if (col.key.includes('DATE') || col.key.includes('created_at') || col.key.includes('updated_at')) {
+                    if (col.key.includes('DATE') || col.key.includes('expired_date') || col.key.includes('VFDAT')) {
                         return formatDate(value);
                     }
                     return value || '';
                 });
                 excelData.push(rowData);
             });
+            
             let wb = XLSX.utils.book_new();
             let ws = XLSX.utils.aoa_to_sheet(excelData);
-            XLSX.utils.book_append_sheet(wb, ws, currentTab === 'dn' ? 'DeliveryNotes' : 'GoodsReceipts');
-            XLSX.writeFile(wb, 'Coldspace_' + (currentTab === 'dn' ? 'DN' : 'GR') + '_Data.xlsx');
+            XLSX.utils.book_append_sheet(wb, ws, sheetName);
+            XLSX.writeFile(wb, 'Coldspace_' + sheetName + '_Data.xlsx');
         };
     </script>
 </body>
 </html>
-
