@@ -4,7 +4,7 @@ name: PM2 Service Monitor
 on:
   schedule:
     # Menjalankan setiap 1 menit
-    - cron: '*/1 * * * *'
+    - cron: '*/600 * * * *'
   workflow_dispatch:
 
 jobs:

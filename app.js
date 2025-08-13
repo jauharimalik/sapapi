@@ -6,7 +6,7 @@ const doService = require('./services/doService');
 
 app.use(express.json());
 app.use(cors({
-    origin: ['http://albacore-direct-neatly.ngrok-free.app', 'http://192.168.60.19'],
+    origin: ['http://albacore-direct-neatly.ngrok-free.app', 'http://192.168.60.19','https://jauharimalik.github.io/sapapi'],
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type']
 }));
