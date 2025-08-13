@@ -242,7 +242,12 @@
         let loadData = function(type) {
             document.getElementById('tableBody').innerHTML = '<tr><td colspan="20" class="center-align"><div class="progress"><div class="indeterminate"></div></div></td></tr>';
             let endpoint = type === 'dn' ? DN_ENDPOINT : GR_ENDPOINT;
-            fetch(endpoint)
+            const requestHeaders = new Headers();
+            requestHeaders.append('ngrok-skip-browser-warning', 'true');
+
+            
+            // fetch(endpoint)
+            fetch(endpoint, { headers: requestHeaders })
                 .then(function(response) {
                     if (!response.ok) {
                         throw new Error('HTTP error! status: ' + response.status);
@@ -519,3 +524,4 @@
     </script>
 </body>
 </html>
+
