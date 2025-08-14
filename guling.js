@@ -37,15 +37,6 @@ const WHATSAPP_CONFIG = {
     failureGroup: '120363421138507049@g.us'
 };
 
-
-
-async function getDfltwhForSKU(sku) {
-    if (sku === 'G502') return 'BS03';
-    if (sku === 'K102') return 'BS04';
-    if (sku === 'F001') return 'BS02';
-    return null;
-}
-
 const processTradeinTradeout = async () => {
     let pool;
     try {
@@ -297,16 +288,6 @@ const validateVfdatWithExpDate = (record, goodsIssueData) => {
 
 const getBatchDataFromOBTN = async (itemCode, whsCode, ExpDate, pool) => {
     try {
-        // const query = `
-        //     SELECT TOP 1
-        //         T1.BatchNum AS BatchNumber,
-        //         T1.Quantity AS AvailableQuantity,
-        //         T0.ExpDate AS ExpirationDate
-        //     FROM [pksrv-sap].test.dbo.OBTN T0
-        //     INNER JOIN [pksrv-sap].test.dbo.OIBT T1 ON T0.AbsEntry = T1.BaseEntry
-        //     WHERE T1.ItemCode = @itemCode AND T1.WhsCode = @whsCode AND T1.Quantity > 0
-        //     ORDER BY T0.ExpDate ASC`;
-
         let query = `
             SELECT TOP 1
                 isnull(T1.BatchNum,'${ExpDate}') AS BatchNumber,
@@ -338,20 +319,26 @@ const getBatchDataFromOBTN = async (itemCode, whsCode, ExpDate, pool) => {
     }
 };
 
-const createGoodsReceiptPayload = async (record, batchData, goodsIssue, pool) => {
+const getGoodsReceiptSeries = async (pool) => {
+    const query = `
+        select series from [pksrv-sap].test.dbo.nnm1 t0 
+        where seriesname like '%tg%' and objectcode = '59' and indicator = YEAR(GETDATE())`;
+    
+    try {
+        const result = await pool.request().query(query);
+        return result.recordset[0]?.series || 686; // Gunakan 686 sebagai fallback jika tidak ada hasil
+    } catch (error) {
+        console.error('Gagal mendapatkan series dari database:', error.message);
+        return 686; // Gunakan 686 sebagai fallback jika terjadi error
+    }
+};
 
-    console.log('All DocumentLines:', goodsIssue.DocumentLines.map(line => ({
-        ItemCode: line.ItemCode,
-        LineNum: line.LineNum,
-        LineNumType: typeof line.LineNum
-      })));
+const createGoodsReceiptPayload = async (record, batchData, goodsIssue, pool) => {
 
     const lineItem = goodsIssue.DocumentLines.find(line =>
         line.ItemCode === record.SKU && line.LineNum.toString() === record.LINE_NO.toString()
     );
     
-
-    // const whsCode = record.VENDOR === 'VIRTUAL' ? 'CS-03' : record.VENDOR;
     let warehouseCode;
     let dfltwh = await getDfltwhForSKU(record.sub_vendor); 
     if (record.sub_vendor === 'VIRTUAL') {
@@ -379,7 +366,6 @@ const createGoodsReceiptPayload = async (record, batchData, goodsIssue, pool) =>
     }
 
     const whsCode = warehouseCode === 'VIRTUAL' ? 'CS-03' : warehouseCode;
-
     const binAbsEntry = await getBinAbsEntry(whsCode, pool);
 
     const documentLines = [{
@@ -409,6 +395,8 @@ const createGoodsReceiptPayload = async (record, batchData, goodsIssue, pool) =>
             BaseLineNumber: 0
         }];
     }
+
+    const goodsReceiptSeries = await getGoodsReceiptSeries(pool);
     
     let res = {
         DocType: "dDocument_Items",
@@ -417,7 +405,7 @@ const createGoodsReceiptPayload = async (record, batchData, goodsIssue, pool) =>
         Comments: `Penerimaan Barang berdasarkan Pengeluaran Barang #${goodsIssue.DocNum}`,
         JournalMemo: "Goods Receipt",
         DocTime: new Date().toLocaleTimeString('id-ID', { hour12: false }),
-        Series: 686,
+        Series: goodsReceiptSeries, // Menggunakan nilai series dari database
         TaxDate: new Date().toISOString().split('T')[0],
         DocObjectCode: "oInventoryGenEntry",
         DocumentLines: documentLines,
@@ -437,7 +425,6 @@ const createGoodsReceiptPayload = async (record, batchData, goodsIssue, pool) =>
         U_IDU_Status_DebitNote: "N"
     };
 
-    // console.log(res);
     return res;
 };
 
@@ -544,14 +531,6 @@ const sendWhatsAppNotification = async (poNo, existingDocNum, existingDocEntry, 
             },
             timeout: 10000
         });
-
-        // console.log('------------------------------------------------------------------------------------');
-        // console.log('Notifikasi WhatsApp terkirim:', {
-        //     poNo,
-        //     docNum: finalDocNum,
-        //     status: statusText,
-        //     messageId: response.data?.id || null
-        // });
 
         return { success: true, messageId: response.data?.id || null };
     } catch (error) {

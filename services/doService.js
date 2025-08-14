@@ -52,7 +52,7 @@ exports.checkSingleDO = async (doNo, pool) => {
     .query(`select t0.*,isnull((select top 1 tx.SUP_SITE from r_do_coldspace_dev tx where tx.DO_NO = t0.DO_NO),'CS-03') as vendor,
       isnull((select top 1 tx.SUP_SITE from r_do_coldspace_dev tx where tx.DO_NO = t0.DO_NO),'CS-03') as SITE
       from r_dn_coldspace t0
-      WHERE t0.ORDER_TYPE != 'N-STO' and t0.ORDER_TYPE != 'PROD' and t0.ismatch = 1 and (t0.jo_status IS NULL or t0.iswa is null) and t0.DO_NO =@doNo`);
+      WHERE t0.ORDER_TYPE != 'N-STO' and t0.ORDER_TYPE != 'PROD' and t0.ismatch = 1 and jo_status is null and iswa  IS NULL  and t0.DO_NO =@doNo`);
 
   rdn_query.recordset.forEach(rdn_datar => {
       rdn_data.push(rdn_datar);
@@ -104,8 +104,8 @@ exports.checkSingleDO = async (doNo, pool) => {
           CASE
             WHEN T2.CardCode IS NULL THEN (isnull((
                 select top 1 site from [appsrv].db_pandurasa.dbo.r_dn_coldspace csx where csx.do_no = t2.docnum
-            ),'VIRTUAL') COLLATE SQL_Latin1_General_CP1_CI_AS) -- Apply COLLATE here
-            ELSE T2.CardCode COLLATE SQL_Latin1_General_CP1_CI_AS -- Apply COLLATE here
+            ),'VIRTUAL') COLLATE database_default) -- Apply COLLATE here
+            ELSE T2.CardCode COLLATE database_default -- Apply COLLATE here
           END AS [SITE],
           T3.LineNum AS LINE_NO,
           T3.[ItemCode] AS SKU,
@@ -442,7 +442,7 @@ exports.runAutoCheck = async (pool) => {
   try {
     const result = await pool.request()
       .query(`SELECT DISTINCT DO_NO FROM r_dn_coldspace WITH (NOLOCK) 
-              WHERE ORDER_TYPE != 'N-STO' and order_type != 'PROD' and ismatch = 1 and (jo_status IS NULL or iswa is null)`);
+              WHERE ORDER_TYPE != 'N-STO' and order_type != 'PROD' and ismatch = 1 and (jo_status IS NULL)`);
     
     const doList = result.recordset.map(row => row.DO_NO);
     if (doList.length === 0) { 
@@ -470,7 +470,7 @@ exports.runAutoCheck = async (pool) => {
 exports.recheckNullIswaDOs = async (pool) => {
   const result = await pool.request()
       .query(`SELECT DISTINCT DO_NO FROM r_dn_coldspace WITH (NOLOCK) 
-              WHERE  ORDER_TYPE != 'N-STO' and order_type != 'PROD' and ismatch = 1 and  iswa IS NULL AND del_date >= '2025-07-01'`);
+              WHERE  ORDER_TYPE != 'N-STO' and order_type != 'PROD' and ismatch = 1 and  jo_status is null and iswa  IS NULL AND del_date >= '2025-07-01'`);
     
     const doList = result.recordset.map(row => row.DO_NO);
     
