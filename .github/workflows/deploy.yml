@@ -11,14 +11,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        # Ganti actions/checkout@v4 menjadi actions/checkout@v2
         uses: actions/checkout@v4
         with:
           repository: jauharimalik/sapapi
           token: ${{ secrets.GITHUB_TOKEN }}
-          submodules: false
-          # Hapus opsi submodules dan clean karena v2 tidak mendukungnya
-      
+          submodules: false # Mengabaikan submodule untuk mencegah error
+
       - name: Set HOMEPATH for PM2
         run: |
           echo "HOMEPATH=C:\Users\PROGRAM-002" | Out-File -FilePath $env:GITHUB_ENV -Append
