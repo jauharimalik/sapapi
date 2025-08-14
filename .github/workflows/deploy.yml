@@ -16,6 +16,7 @@ jobs:
         with:
           repository: jauharimalik/sapapi
           token: ${{ secrets.GITHUB_TOKEN }}
+          submodules: false
           # Hapus opsi submodules dan clean karena v2 tidak mendukungnya
       
       - name: Set HOMEPATH for PM2
