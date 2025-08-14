@@ -10,7 +10,7 @@ jobs:
     steps:
       - name: Checkout repository
         # Ganti actions/checkout@v4 menjadi actions/checkout@v2
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Add npm global to PATH
         run: echo "C:\Users\PROGRAM-002\AppData\Roaming\npm" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
         shell: powershell
