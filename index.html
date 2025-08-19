@@ -285,7 +285,304 @@
     <div id="connectionStatus" class="connection-status disconnected" title="Disconnected"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    
     <script>
+        let formatDate = dateString =>
+        (dateString?.length === 6 && !isNaN(dateString))
+            ? `${dateString.substring(4, 6)}-${dateString.substring(2, 4)}-20${dateString.substring(0, 2)}`
+            : '-';
+
+        let levenshtein = (a, b) => {
+            let [an, bn] = [a.length, b.length];
+            let matrix = Array(bn + 1).fill(null).map(() => Array(an + 1).fill(null));
+            for (let i = 0; i <= an; i++) matrix[0][i] = i;
+            for (let j = 0; j <= bn; j++) matrix[j][0] = j;
+            for (let j = 1; j <= bn; j++) {
+                for (let i = 1; i <= an; i++) {
+                    let cost = a[i - 1] === b[j - 1] ? 0 : 1;
+                    matrix[j][i] = Math.min(matrix[j][i - 1] + 1, matrix[j - 1][i] + 1, matrix[j - 1][i - 1] + cost);
+                }
+            }
+            return matrix[bn][an];
+        };
+
+        let allData = { dn: [], gr: [] };
+        let displayedData = [];
+        let currentTab = 'dn';
+        let modalInstance = null;
+        let ws = null;
+        let reconnectAttempts = 0;
+        let maxReconnectAttempts = 5;
+        let selectedItemForModal = null;
+        let lastUpdateTime = null;
+        let API_BASE_URL = 'https://cute-mature-shrew.ngrok-free.app/api/';
+        let DN_ENDPOINT = API_BASE_URL + 'tarikandn';
+        let GR_ENDPOINT = API_BASE_URL + 'tarikangr';
+
+        let connectWebSocket = () => {
+            try {
+                let WS_URL = 'wss://rightly-composed-marlin.ngrok-free.app';
+                ws = new WebSocket(WS_URL);
+                ws.onopen = () => {
+                    console.log('WebSocket connection established');
+                    updateConnectionStatus(true);
+                    reconnectAttempts = 0;
+                    M.toast({ html: 'Connected to server', classes: 'rounded' });
+                };
+                ws.onmessage = event => {
+                    try {
+                        let data = JSON.parse(event.data);
+                        (data.dn && data.grpo)
+                            ? processDataUpdate(data)
+                            : data.dn ? processPartialUpdate(data.dn, 'dn') : data.grpo && processPartialUpdate(data.grpo, 'gr');
+                    } catch (error) {
+                        console.error('Error processing WebSocket message:', error);
+                    }
+                };
+                ws.onclose = () => {
+                    console.log('WebSocket connection closed');
+                    updateConnectionStatus(false);
+                    if (reconnectAttempts < maxReconnectAttempts) {
+                        let delay = Math.pow(2, reconnectAttempts) * 1000;
+                        reconnectAttempts++;
+                        console.log(`Attempting to reconnect in ${delay / 1000} seconds (${reconnectAttempts}/${maxReconnectAttempts})`);
+                        setTimeout(connectWebSocket, delay);
+                    } else {
+                        M.toast({ html: 'Unable to connect to server', classes: 'red rounded' });
+                    }
+                };
+                ws.onerror = error => {
+                    console.error('WebSocket error:', error);
+                    updateConnectionStatus(false);
+                };
+            } catch (error) {
+                console.error('Error establishing WebSocket connection:', error);
+            }
+        };
+
+        let processDataUpdate = data => {
+            lastUpdateTime = new Date();
+            data.dn && (allData.dn = data.dn);
+            data.grpo && (allData.gr = data.grpo);
+            showUpdateNotification();
+            ((currentTab === 'dn' && data.dn) || (currentTab === 'gr' && data.grpo)) && applyFiltersAndSort();
+            hideLoader();
+        };
+
+        let processPartialUpdate = (newData, type) => {
+            lastUpdateTime = new Date();
+            newData.forEach(newItem => {
+                let existingIndex = allData[type].findIndex(item => item.id === newItem.id);
+                existingIndex !== -1 ? allData[type][existingIndex] = newItem : allData[type].push(newItem);
+            });
+            showUpdateNotification();
+            (currentTab === type) && applyFiltersAndSort();
+        };
+
+        let showUpdateNotification = () => {
+            if (document.hidden) {
+                ('Notification' in window && Notification.permission === 'granted') &&
+                    new Notification('Coldspace Data Updated', { body: 'New data is available', icon: '/favicon.ico' });
+            }
+            M.toast({ html: `Data updated at ${lastUpdateTime.toLocaleTimeString()}`, classes: 'toast-update rounded' });
+        };
+
+        let updateConnectionStatus = connected => {
+            let statusElement = document.getElementById('connectionStatus');
+            statusElement.className = connected ? 'connection-status connected' : 'connection-status disconnected';
+            statusElement.title = connected ? 'Connected' : 'Disconnected';
+        };
+
+        let loadInitialData = () => {
+            showLoader();
+            let requestHeaders = new Headers();
+            requestHeaders.append('ngrok-skip-browser-warning', 'true');
+            Promise.all([
+                fetch(DN_ENDPOINT, { headers: requestHeaders }).then(response => response.json()),
+                fetch(GR_ENDPOINT, { headers: requestHeaders }).then(response => response.json())
+            ])
+            .then(([dnData, grData]) => {
+                Array.isArray(dnData) && (allData.dn = dnData);
+                Array.isArray(grData) && (allData.gr = grData);
+                applyFiltersAndSort();
+            })
+            .catch(error => {
+                console.error('Error loading initial data:', error);
+                hideLoader();
+                document.getElementById('data-list').innerHTML = `<p class="center-align red-text">Error loading data: ${error.message}</p>`;
+            });
+        };
+
+        let switchTab = tab => {
+            currentTab = tab;
+            document.querySelectorAll('.tab-link').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.tab-link[onclick="switchTab('${tab}')"]`).classList.add('active');
+            applyFiltersAndSort();
+        };
+
+        let refreshData = () => {
+            M.toast({ html: 'Requesting latest data...', classes: 'rounded' });
+            showLoader();
+            (ws && ws.readyState === WebSocket.OPEN) ? ws.send(JSON.stringify({ type: 'request_data' })) : loadInitialData();
+        };
+
+        let showLoader = () => {
+            document.getElementById('data-list').innerHTML = '';
+            document.getElementById('data-list-loader').style.display = 'block';
+        };
+
+        let hideLoader = () => {
+            document.getElementById('data-list-loader').style.display = 'none';
+        };
+
+        let renderDataCards = () => {
+            hideLoader();
+            let dataList = document.getElementById('data-list');
+            dataList.innerHTML = displayedData.length === 0 ? '<p class="center-align">No data found</p>' : '';
+            if (displayedData.length === 0) return;
+
+            displayedData.forEach(row => {
+                let title, subtitle, mainInfo, subInfo;
+                let statusBadge = getStatusBadge(row.jo_status);
+                if (currentTab === 'dn') {
+                    [title, subtitle, mainInfo, subInfo] = [
+                        row.DO_NO || '-',
+                        `STO: ${row.STO_NO || '-'}`,
+                        `SKU: ${row.SKU || '-'}`,
+                        `Qty: ${row.QTY || '-'} | Exp: ${formatDate(row.expired_date)}`
+                    ];
+                } else if (currentTab === 'gr') {
+                    [title, subtitle, mainInfo, subInfo] = [
+                        row.PO_NO || '-',
+                        `ASN: ${row.WMS_ASN_NO || '-'}`,
+                        `Vendor: ${row.VENDOR || '-'}`,
+                        `GR Qty: ${row.QTYGR || '-'} | Exp: ${formatDate(row.VFDAT)}`
+                    ];
+                }
+                dataList.innerHTML += `
+                    <div class="data-card" onclick="showDetails('${row.id}')">
+                        <div class="card-title">
+                            <span>${title}</span>
+                            <span>${statusBadge}</span>
+                        </div>
+                        <div class="card-subtitle">${subtitle}</div>
+                        <div class="card-info">
+                            <span>${mainInfo}</span>
+                            <span>${subInfo}</span>
+                        </div>
+                    </div>`;
+            });
+        };
+
+        let getStatusBadge = status => {
+            if (!status) return '';
+            let s = status.toString().toLowerCase();
+            return s.includes('complete') || s.includes('success') || s === '3'
+                ? '<span class="status-badge success">Completed</span>'
+                : s.includes('error') || s.includes('fail') || s === '0'
+                    ? '<span class="status-badge error">Failed</span>'
+                    : '<span class="status-badge warning">Processing</span>';
+        };
+
+        let handleSearch = () => {
+            clearTimeout(window.searchTimer);
+            window.searchTimer = setTimeout(applyFiltersAndSort, 300);
+        };
+
+        let applyFiltersAndSort = () => {
+            let data = [...allData[currentTab]];
+            let searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            let threshold = 0.3;
+            if (searchTerm) {
+                let searchKeywords = searchTerm.split(' ').filter(word => word.length > 1);
+                data = data.filter(row =>
+                    searchKeywords.every(keyword =>
+                        Object.values(row).some(value => {
+                            if (value === null || value === undefined) return false;
+                            let cellValue = String(value).toLowerCase();
+                            return cellValue.includes(keyword) ||
+                                cellValue.split(' ').some(word =>
+                                    (Math.max(word.length, keyword.length) > 0
+                                        ? levenshtein(word, keyword) / Math.max(word.length, keyword.length)
+                                        : 1) <= threshold
+                                );
+                        })
+                    )
+                );
+            }
+            displayedData = data;
+            renderDataCards();
+        };
+
+        let showDetails = id => {
+            let item = displayedData.find(i => i.id == id);
+            if (!item) return;
+            selectedItemForModal = item;
+            let isDN = currentTab === 'dn';
+            let columns = isDN
+                ? [{ key: 'DO_NO', label: 'DO Number' }, { key: 'STO_NO', label: 'STO Number' }, { key: 'COMP_CODE', label: 'Company Code' }, { key: 'PL_NP', label: 'PL Number' }, { key: 'DEL_DATE', label: 'Delivery Date' }, { key: 'SITE', label: 'Site' }, { key: 'SKU', label: 'SKU' }, { key: 'QTY', label: 'Quantity' }, { key: 'LOT', label: 'LOT' }, { key: 'expired_date', label: 'Expiry Date' }, { key: 'ismatch', label: 'Match Status' }, { key: 'jo_status', label: 'Status' }, { key: 'note', label: 'Notes' }]
+                : [{ key: 'PO_NO', label: 'PO Number' }, { key: 'WMS_ASN_NO', label: 'ASN Number' }, { key: 'COMP_CODE', label: 'Company Code' }, { key: 'RR_DATE', label: 'Receipt Date' }, { key: 'VENDOR', label: 'Vendor' }, { key: 'SKU', label: 'SKU' }, { key: 'QTYPO', label: 'PO Quantity' }, { key: 'QTYGR', label: 'GR Quantity' }, { key: 'SLOC', label: 'Storage Loc' }, { key: 'VFDAT', label: 'Expiry Date' }, { key: 'ismatch', label: 'Match Status' }, { key: 'jo_status', label: 'Status' }, { key: 'note', label: 'Notes' }];
+
+            let modalContent = columns.map(col => {
+                let value = item[col.key];
+                value = ['DEL_DATE', 'expired_date', 'VFDAT', 'RR_DATE'].includes(col.key)
+                    ? formatDate(value)
+                    : col.key === 'ismatch'
+                        ? (value ? 'Matched' : 'Mismatch')
+                        : value || '-';
+                return `<div class="detail-item ${col.key === 'note' ? 'notes-item' : ''}"><span>${col.label}: </span><span>${value}</span></div>`;
+            }).join('');
+            document.getElementById('modalContent').innerHTML = modalContent;
+            modalInstance.open();
+        };
+
+        let recheckItem = () => {
+            if (!selectedItemForModal) return;
+            let { id, currentTab } = selectedItemForModal;
+            M.toast({ html: `Rechecking ${currentTab.toUpperCase()} item ${id}...`, classes: 'rounded' });
+            (ws && ws.readyState === WebSocket.OPEN)
+                ? ws.send(JSON.stringify({ type: 'recheck', itemId: id, itemType: currentTab }))
+                : M.toast({ html: 'Not connected to server', classes: 'red rounded' });
+            modalInstance.close();
+        };
+
+        let exportToExcel = () => {
+            if (displayedData.length === 0) {
+                M.toast({ html: 'No data to export', classes: 'red rounded' });
+                return;
+            }
+            let isDN = currentTab === 'dn';
+            let columns = isDN
+                ? [{ key: 'DO_NO', label: 'DO Number' }, { key: 'STO_NO', label: 'STO Number' }, { key: 'COMP_CODE', label: 'Company Code' }, { key: 'DEL_DATE', label: 'Delivery Date' }, { key: 'SKU', label: 'SKU' }, { key: 'QTY', label: 'Quantity' }, { key: 'LOT', label: 'LOT' }, { key: 'expired_date', label: 'Expiry Date' }, { key: 'jo_status', label: 'Status' }, { key: 'note', label: 'Notes' }]
+                : [{ key: 'PO_NO', label: 'PO Number' }, { key: 'COMP_CODE', label: 'Company Code' }, { key: 'RR_DATE', label: 'Receipt Date' }, { key: 'VENDOR', label: 'Vendor' }, { key: 'SKU', label: 'SKU' }, { key: 'QTYGR', label: 'GR Quantity' }, { key: 'SLOC', label: 'Storage Loc' }, { key: 'VFDAT', label: 'Expiry Date' }, { key: 'jo_status', label: 'Status' }, { key: 'note', label: 'Notes' }];
+            let sheetName = isDN ? 'DeliveryNotes' : 'GoodsReceipts';
+            let excelData = [columns.map(col => col.label)];
+            displayedData.forEach(row => {
+                let rowData = columns.map(col => ['DEL_DATE', 'expired_date', 'VFDAT', 'RR_DATE'].includes(col.key) ? formatDate(row[col.key]) : row[col.key] || '');
+                excelData.push(rowData);
+            });
+            let wb = XLSX.utils.book_new();
+            let ws = XLSX.utils.aoa_to_sheet(excelData);
+            XLSX.utils.book_append_sheet(wb, ws, sheetName);
+            XLSX.writeFile(wb, `Coldspace_${sheetName}_Data.xlsx`);
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if ('Notification' in window) Notification.requestPermission();
+        });
+
+        window.onload = () => {
+            modalInstance = M.Modal.init(document.getElementById('detailModal'));
+            loadInitialData();
+            connectWebSocket();
+            setInterval(() => {
+                (ws && ws.readyState === WebSocket.OPEN) && ws.send(JSON.stringify({ type: 'request_data' }));
+            }, 30000);
+        };
+    </script>
+    <!-- <script>
+        let formatDate = dateString => (dateString?.length === 6 && !isNaN(dateString)) ? `${dateString.substring(4, 6)}-${dateString.substring(2, 4)}-20${dateString.substring(0, 2)}` : '-';
+
         function levenshtein(a, b) {
             const an = a.length;
             const bn = b.length;
@@ -530,6 +827,7 @@
             document.getElementById('data-list-loader').style.display = 'none';
         };
 
+
         let renderDataCards = function() {
             hideLoader();
             const dataList = document.getElementById('data-list');
@@ -571,16 +869,6 @@
                     </div>
                 `;
             });
-        };
-
-        let formatDate = function(dateString) {
-            if (!dateString) return '-';
-            try {
-                let date = new Date(dateString);
-                return date.toLocaleDateString();
-            } catch {
-                return dateString;
-            }
         };
 
         let getStatusBadge = function(status) {
@@ -771,6 +1059,6 @@
             XLSX.utils.book_append_sheet(wb, ws, sheetName);
             XLSX.writeFile(wb, 'Coldspace_' + sheetName + '_Data.xlsx');
         };
-    </script>
+    </script> -->
 </body>
 </html>
