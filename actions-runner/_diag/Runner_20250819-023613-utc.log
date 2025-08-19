@@ -1,0 +1,197 @@
+[2025-08-19 02:36:13Z INFO HostContext] No proxy settings were found based on environmental variables (http_proxy/https_proxy/HTTP_PROXY/HTTPS_PROXY)
+[2025-08-19 02:36:13Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\actions-runner\bin'
+[2025-08-19 02:36:13Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\actions-runner'
+[2025-08-19 02:36:13Z INFO HostContext] Well known config file 'Credentials': 'C:\laragon\www\sapapi\actions-runner\.credentials'
+[2025-08-19 02:36:14Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\actions-runner\bin'
+[2025-08-19 02:36:14Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\actions-runner'
+[2025-08-19 02:36:14Z INFO HostContext] Well known config file 'Runner': 'C:\laragon\www\sapapi\actions-runner\.runner'
+[2025-08-19 02:36:14Z INFO Listener] Runner is built for Windows (X64) - win-x64.
+[2025-08-19 02:36:14Z INFO Listener] RuntimeInformation: Microsoft Windows 10.0.19045.
+[2025-08-19 02:36:14Z INFO Listener] Version: 2.328.0
+[2025-08-19 02:36:14Z INFO Listener] Commit: 6f9a9110adce65f44ca6f7c0ae142b9cc6af937b
+[2025-08-19 02:36:14Z INFO Listener] Culture: en-US
+[2025-08-19 02:36:14Z INFO Listener] UI Culture: en-US
+[2025-08-19 02:36:14Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\actions-runner\bin'
+[2025-08-19 02:36:14Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\actions-runner'
+[2025-08-19 02:36:14Z INFO Listener] Validating directory permissions for: 'C:\laragon\www\sapapi\actions-runner'
+[2025-08-19 02:36:14Z INFO CommandLineParser] Parse
+[2025-08-19 02:36:14Z INFO CommandLineParser] Parsing 3 args
+[2025-08-19 02:36:14Z INFO CommandLineParser] parsing argument
+[2025-08-19 02:36:14Z INFO CommandLineParser] HasArgs: False
+[2025-08-19 02:36:14Z INFO CommandLineParser] Adding Command: run
+[2025-08-19 02:36:14Z INFO CommandLineParser] parsing argument
+[2025-08-19 02:36:14Z INFO CommandLineParser] HasArgs: True
+[2025-08-19 02:36:14Z INFO CommandLineParser] arg: startuptype
+[2025-08-19 02:36:14Z INFO CommandLineParser] parsing argument
+[2025-08-19 02:36:14Z INFO CommandLineParser] HasArgs: True
+[2025-08-19 02:36:14Z INFO CommandLineParser] Adding option 'startuptype': 'service'
+[2025-08-19 02:36:14Z INFO Listener] Arguments parsed
+[2025-08-19 02:36:14Z INFO Runner] ExecuteCommand
+[2025-08-19 02:36:14Z INFO ConfigurationStore] currentAssemblyLocation: C:\laragon\www\sapapi\actions-runner\bin\Runner.Listener.dll
+[2025-08-19 02:36:14Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\actions-runner\bin'
+[2025-08-19 02:36:14Z INFO ConfigurationStore] binPath: C:\laragon\www\sapapi\actions-runner\bin
+[2025-08-19 02:36:14Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\actions-runner\bin'
+[2025-08-19 02:36:14Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\actions-runner'
+[2025-08-19 02:36:14Z INFO ConfigurationStore] RootFolder: C:\laragon\www\sapapi\actions-runner
+[2025-08-19 02:36:14Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\actions-runner\bin'
+[2025-08-19 02:36:14Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\actions-runner'
+[2025-08-19 02:36:14Z INFO HostContext] Well known config file 'Runner': 'C:\laragon\www\sapapi\actions-runner\.runner'
+[2025-08-19 02:36:14Z INFO ConfigurationStore] ConfigFilePath: C:\laragon\www\sapapi\actions-runner\.runner
+[2025-08-19 02:36:14Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\actions-runner\bin'
+[2025-08-19 02:36:14Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\actions-runner'
+[2025-08-19 02:36:14Z INFO HostContext] Well known config file 'MigratedRunner': 'C:\laragon\www\sapapi\actions-runner\.runner_migrated'
+[2025-08-19 02:36:14Z INFO ConfigurationStore] MigratedConfigFilePath: C:\laragon\www\sapapi\actions-runner\.runner_migrated
+[2025-08-19 02:36:14Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\actions-runner\bin'
+[2025-08-19 02:36:14Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\actions-runner'
+[2025-08-19 02:36:14Z INFO HostContext] Well known config file 'Credentials': 'C:\laragon\www\sapapi\actions-runner\.credentials'
+[2025-08-19 02:36:14Z INFO ConfigurationStore] CredFilePath: C:\laragon\www\sapapi\actions-runner\.credentials
+[2025-08-19 02:36:14Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\actions-runner\bin'
+[2025-08-19 02:36:14Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\actions-runner'
+[2025-08-19 02:36:14Z INFO HostContext] Well known config file 'MigratedCredentials': 'C:\laragon\www\sapapi\actions-runner\.credentials_migrated'
+[2025-08-19 02:36:14Z INFO ConfigurationStore] MigratedCredFilePath: C:\laragon\www\sapapi\actions-runner\.credentials_migrated
+[2025-08-19 02:36:14Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\actions-runner\bin'
+[2025-08-19 02:36:14Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\actions-runner'
+[2025-08-19 02:36:14Z INFO HostContext] Well known config file 'Service': 'C:\laragon\www\sapapi\actions-runner\.service'
+[2025-08-19 02:36:14Z INFO ConfigurationStore] ServiceConfigFilePath: C:\laragon\www\sapapi\actions-runner\.service
+[2025-08-19 02:36:14Z INFO CommandSettings] Flag 'help': 'False'
+[2025-08-19 02:36:14Z INFO CommandSettings] Flag 'version': 'False'
+[2025-08-19 02:36:14Z INFO CommandSettings] Flag 'commit': 'False'
+[2025-08-19 02:36:14Z INFO CommandSettings] Flag 'check': 'False'
+[2025-08-19 02:36:14Z INFO CommandSettings] Command 'configure': 'False'
+[2025-08-19 02:36:14Z INFO CommandSettings] Command 'remove': 'False'
+[2025-08-19 02:36:14Z INFO CommandSettings] Command 'warmup': 'False'
+[2025-08-19 02:36:14Z INFO ConfigurationManager] LoadSettings
+[2025-08-19 02:36:14Z INFO ConfigurationStore] IsConfigured()
+[2025-08-19 02:36:14Z INFO ConfigurationStore] IsConfigured: True
+[2025-08-19 02:36:14Z INFO ConfigurationManager] Is configured: True
+[2025-08-19 02:36:14Z INFO ConfigurationStore] Read setting file: 386 chars
+[2025-08-19 02:36:14Z INFO ConfigurationManager] Settings Loaded
+[2025-08-19 02:36:14Z INFO ConfigurationStore] IsServiceConfigured()
+[2025-08-19 02:36:14Z INFO ConfigurationStore] IsServiceConfigured: True
+[2025-08-19 02:36:14Z INFO CommandSettings] Command 'run': 'True'
+[2025-08-19 02:36:14Z INFO ConfigurationStore] IsConfigured()
+[2025-08-19 02:36:14Z INFO ConfigurationStore] IsConfigured: True
+[2025-08-19 02:36:14Z INFO ConfigurationManager] Is configured: True
+[2025-08-19 02:36:14Z INFO Runner] Set runner startup type - Service
+[2025-08-19 02:36:14Z INFO CommandSettings] Flag 'once': 'False'
+[2025-08-19 02:36:14Z INFO CommandSettings] Flag 'once': 'False'
+[2025-08-19 02:36:14Z INFO Runner] RunAsync
+[2025-08-19 02:36:14Z INFO ConfigurationManager] LoadMigratedSettings
+[2025-08-19 02:36:14Z INFO ConfigurationStore] IsMigratedConfigured()
+[2025-08-19 02:36:14Z INFO ConfigurationStore] IsMigratedConfigured: True
+[2025-08-19 02:36:14Z INFO ConfigurationStore] Read migrated setting file: 386 chars
+[2025-08-19 02:36:14Z INFO ConfigurationManager] Migrated Settings Loaded
+[2025-08-19 02:36:14Z INFO Runner] Loaded migrated settings from .runner_migrated file
+[2025-08-19 02:36:14Z INFO Runner] {
+  "AgentId": 22,
+  "AgentName": "JO",
+  "PoolId": 1,
+  "PoolName": "Default",
+  "ServerUrl": "https://pipelinesghubeus26.actions.githubusercontent.com/OTqsuixwcDOeboiI5ELPh9vt0loVA9erSQMzHOLYofkfIDGeBX/",
+  "GitHubUrl": "https://github.com/jauharimalik/sapapi",
+  "WorkFolder": "_work",
+  "UseV2Flow": true,
+  "ServerUrlV2": "https://broker.actions.githubusercontent.com/"
+}
+[2025-08-19 02:36:14Z INFO Runner] Attempting to create session using migrated settings
+[2025-08-19 02:36:14Z INFO Runner] Using BrokerMessageListener
+[2025-08-19 02:36:14Z INFO BrokerMessageListener] Using provided settings
+[2025-08-19 02:36:14Z INFO BrokerMessageListener] Using migrated settings from .runner_migrated
+[2025-08-19 02:36:14Z INFO BrokerMessageListener] {
+  "AgentId": 22,
+  "AgentName": "JO",
+  "PoolId": 1,
+  "PoolName": "Default",
+  "ServerUrl": "https://pipelinesghubeus26.actions.githubusercontent.com/OTqsuixwcDOeboiI5ELPh9vt0loVA9erSQMzHOLYofkfIDGeBX/",
+  "GitHubUrl": "https://github.com/jauharimalik/sapapi",
+  "WorkFolder": "_work",
+  "UseV2Flow": true,
+  "ServerUrlV2": "https://broker.actions.githubusercontent.com/"
+}
+[2025-08-19 02:36:14Z INFO BrokerMessageListener] Loading Credentials
+[2025-08-19 02:36:14Z INFO ConfigurationStore] HasCredentials()
+[2025-08-19 02:36:14Z INFO ConfigurationStore] stored True
+[2025-08-19 02:36:14Z INFO CredentialManager] GetCredentialProvider
+[2025-08-19 02:36:14Z INFO CredentialManager] Creating type OAuth
+[2025-08-19 02:36:14Z INFO CredentialManager] Creating credential type: OAuth
+[2025-08-19 02:36:14Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\actions-runner\bin'
+[2025-08-19 02:36:14Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\actions-runner'
+[2025-08-19 02:36:14Z INFO HostContext] Well known config file 'RSACredentials': 'C:\laragon\www\sapapi\actions-runner\.credentials_rsaparams'
+[2025-08-19 02:36:14Z INFO RSAEncryptedFileKeyManager] Loading RSA key parameters from file C:\laragon\www\sapapi\actions-runner\.credentials_rsaparams
+[2025-08-19 02:36:14Z INFO BrokerMessageListener] Attempt to create session.
+[2025-08-19 02:36:14Z INFO BrokerMessageListener] Connecting to the Broker Server...
+[2025-08-19 02:36:14Z INFO ConfigurationStore] HasCredentials()
+[2025-08-19 02:36:14Z INFO ConfigurationStore] stored True
+[2025-08-19 02:36:14Z INFO CredentialManager] GetCredentialProvider
+[2025-08-19 02:36:14Z INFO CredentialManager] Creating type OAuth
+[2025-08-19 02:36:14Z INFO CredentialManager] Creating credential type: OAuth
+[2025-08-19 02:36:14Z INFO RSAEncryptedFileKeyManager] Loading RSA key parameters from file C:\laragon\www\sapapi\actions-runner\.credentials_rsaparams
+[2025-08-19 02:36:14Z INFO BrokerMessageListener] VssConnection created
+[2025-08-19 02:36:14Z INFO BrokerMessageListener] Connecting to the Runner server...
+[2025-08-19 02:36:14Z INFO RunnerServer] EstablishVssConnection
+[2025-08-19 02:36:14Z INFO RunnerServer] Establish connection with 100 seconds timeout.
+[2025-08-19 02:36:14Z INFO GitHubActionsService] Starting operation Location.GetConnectionData
+[2025-08-19 02:36:15Z INFO RunnerServer] EstablishVssConnection
+[2025-08-19 02:36:15Z INFO RunnerServer] Establish connection with 60 seconds timeout.
+[2025-08-19 02:36:15Z INFO GitHubActionsService] Starting operation Location.GetConnectionData
+[2025-08-19 02:36:15Z INFO RunnerServer] EstablishVssConnection
+[2025-08-19 02:36:15Z INFO RunnerServer] Establish connection with 60 seconds timeout.
+[2025-08-19 02:36:15Z INFO GitHubActionsService] Starting operation Location.GetConnectionData
+[2025-08-19 02:36:16Z INFO GitHubActionsService] Finished operation Location.GetConnectionData
+[2025-08-19 02:36:16Z INFO GitHubActionsService] Finished operation Location.GetConnectionData
+[2025-08-19 02:36:17Z INFO GitHubActionsService] Finished operation Location.GetConnectionData
+[2025-08-19 02:36:17Z INFO BrokerMessageListener] VssConnection created
+[2025-08-19 02:36:17Z INFO Terminal] WRITE LINE: 
+[2025-08-19 02:36:17Z INFO Terminal] WRITE LINE: 
+[2025-08-19 02:36:18Z INFO RSAEncryptedFileKeyManager] Loading RSA key parameters from file C:\laragon\www\sapapi\actions-runner\.credentials_rsaparams
+[2025-08-19 02:36:18Z INFO RSAEncryptedFileKeyManager] Loading RSA key parameters from file C:\laragon\www\sapapi\actions-runner\.credentials_rsaparams
+[2025-08-19 02:36:20Z INFO GitHubActionsService] AAD Correlation ID for this token request: Unknown
+[2025-08-19 02:36:20Z WARN GitHubActionsService] Retrieving an AAD auth token took a long time (2.2157243 seconds)
+[2025-08-19 02:36:22Z INFO BrokerMessageListener] Session created.
+[2025-08-19 02:36:22Z INFO Runner] Successfully created session with migrated settings
+[2025-08-19 02:36:22Z INFO Terminal] WRITE LINE: Current runner version: '2.328.0'
+[2025-08-19 02:36:22Z INFO Terminal] WRITE LINE: 2025-08-19 02:36:22Z: Listening for Jobs
+[2025-08-19 02:36:22Z INFO JobDispatcher] Set runner/worker IPC timeout to 30 seconds.
+[2025-08-19 02:39:00Z INFO Runner] Refresh message received, kick-off selfupdate background process.
+[2025-08-19 02:39:02Z INFO RSAEncryptedFileKeyManager] Loading RSA key parameters from file C:\laragon\www\sapapi\actions-runner\.credentials_rsaparams
+[2025-08-19 02:39:02Z INFO RSAEncryptedFileKeyManager] Loading RSA key parameters from file C:\laragon\www\sapapi\actions-runner\.credentials_rsaparams
+[2025-08-19 02:39:03Z INFO GitHubActionsService] AAD Correlation ID for this token request: Unknown
+[2025-08-19 02:39:04Z INFO SelfUpdater] Version '2.328.0' of 'agent' package available in server.
+[2025-08-19 02:39:04Z INFO SelfUpdater] Current running runner version is 2.328.0
+[2025-08-19 02:39:04Z INFO SelfUpdater] Can't find available update package.
+[2025-08-19 02:39:04Z INFO Terminal] WRITE LINE: Runner update process finished.
+[2025-08-19 02:39:05Z INFO Runner] Auto update task finished at backend, there is no available runner update needs to apply, continue message queue looping.
+[2025-08-19 03:26:47Z INFO RSAEncryptedFileKeyManager] Loading RSA key parameters from file C:\laragon\www\sapapi\actions-runner\.credentials_rsaparams
+[2025-08-19 03:26:48Z INFO GitHubActionsService] AAD Correlation ID for this token request: Unknown
+[2025-08-19 03:48:19Z INFO Runner] Refresh message received, kick-off selfupdate background process.
+[2025-08-19 03:48:20Z INFO RSAEncryptedFileKeyManager] Loading RSA key parameters from file C:\laragon\www\sapapi\actions-runner\.credentials_rsaparams
+[2025-08-19 03:48:22Z INFO GitHubActionsService] AAD Correlation ID for this token request: Unknown
+[2025-08-19 03:48:22Z INFO SelfUpdater] Version '2.328.0' of 'agent' package available in server.
+[2025-08-19 03:48:22Z INFO SelfUpdater] Current running runner version is 2.328.0
+[2025-08-19 03:48:22Z INFO SelfUpdater] Can't find available update package.
+[2025-08-19 03:48:22Z INFO Terminal] WRITE LINE: Runner update process finished.
+[2025-08-19 03:48:22Z INFO Runner] Auto update task finished at backend, there is no available runner update needs to apply, continue message queue looping.
+[2025-08-19 04:16:49Z INFO RSAEncryptedFileKeyManager] Loading RSA key parameters from file C:\laragon\www\sapapi\actions-runner\.credentials_rsaparams
+[2025-08-19 04:16:50Z INFO GitHubActionsService] AAD Correlation ID for this token request: Unknown
+[2025-08-19 04:26:04Z WARN GitHubActionsService] Attempt 1 of GET request to https://broker.actions.githubusercontent.com/message?sessionId=08bd8b03-91d7-4727-b247-afcfa8e7b006&status=Online&runnerVersion=2.328.0&os=Windows&architecture=X64&disableUpdate=false failed (Socket Error: ConnectionReset). The operation will be retried in 11.063 seconds.
+[2025-08-19 05:07:30Z INFO RSAEncryptedFileKeyManager] Loading RSA key parameters from file C:\laragon\www\sapapi\actions-runner\.credentials_rsaparams
+[2025-08-19 05:07:31Z INFO GitHubActionsService] AAD Correlation ID for this token request: Unknown
+[2025-08-19 05:58:01Z INFO RSAEncryptedFileKeyManager] Loading RSA key parameters from file C:\laragon\www\sapapi\actions-runner\.credentials_rsaparams
+[2025-08-19 05:58:02Z INFO GitHubActionsService] AAD Correlation ID for this token request: Unknown
+[2025-08-19 06:48:30Z INFO RSAEncryptedFileKeyManager] Loading RSA key parameters from file C:\laragon\www\sapapi\actions-runner\.credentials_rsaparams
+[2025-08-19 06:48:31Z INFO GitHubActionsService] AAD Correlation ID for this token request: Unknown
+[2025-08-19 07:15:26Z WARN GitHubActionsService] Attempt 1 of GET request to https://broker.actions.githubusercontent.com/message?sessionId=08bd8b03-91d7-4727-b247-afcfa8e7b006&status=Online&runnerVersion=2.328.0&os=Windows&architecture=X64&disableUpdate=false failed (Socket Error: ConnectionReset). The operation will be retried in 11.097 seconds.
+[2025-08-19 07:39:07Z INFO RSAEncryptedFileKeyManager] Loading RSA key parameters from file C:\laragon\www\sapapi\actions-runner\.credentials_rsaparams
+[2025-08-19 07:39:08Z INFO GitHubActionsService] AAD Correlation ID for this token request: Unknown
+[2025-08-19 08:29:27Z INFO RSAEncryptedFileKeyManager] Loading RSA key parameters from file C:\laragon\www\sapapi\actions-runner\.credentials_rsaparams
+[2025-08-19 08:29:27Z INFO GitHubActionsService] AAD Correlation ID for this token request: Unknown
+[2025-08-19 09:19:46Z INFO RSAEncryptedFileKeyManager] Loading RSA key parameters from file C:\laragon\www\sapapi\actions-runner\.credentials_rsaparams
+[2025-08-19 09:19:47Z INFO GitHubActionsService] AAD Correlation ID for this token request: Unknown
+[2025-08-19 10:10:06Z INFO RSAEncryptedFileKeyManager] Loading RSA key parameters from file C:\laragon\www\sapapi\actions-runner\.credentials_rsaparams
+[2025-08-19 10:10:07Z INFO GitHubActionsService] AAD Correlation ID for this token request: Unknown
+[2025-08-19 11:00:25Z INFO RSAEncryptedFileKeyManager] Loading RSA key parameters from file C:\laragon\www\sapapi\actions-runner\.credentials_rsaparams
+[2025-08-19 11:00:26Z INFO GitHubActionsService] AAD Correlation ID for this token request: Unknown
+[2025-08-19 11:50:46Z INFO RSAEncryptedFileKeyManager] Loading RSA key parameters from file C:\laragon\www\sapapi\actions-runner\.credentials_rsaparams
+[2025-08-19 11:50:48Z INFO GitHubActionsService] AAD Correlation ID for this token request: Unknown
+[2025-08-19 12:41:06Z INFO RSAEncryptedFileKeyManager] Loading RSA key parameters from file C:\laragon\www\sapapi\actions-runner\.credentials_rsaparams
+[2025-08-19 12:41:08Z INFO GitHubActionsService] AAD Correlation ID for this token request: Unknown

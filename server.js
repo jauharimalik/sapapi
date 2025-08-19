@@ -21,8 +21,8 @@ async function initialize() {
       
       // Start periodic checks
       setInterval(() => doService.dnbund(pool), 1000); // 5 minutes
-      setInterval(() => doService.runAutoCheck(pool), 300000); // 5 minutes
-      setInterval(() => doService.recheckNullIswaDOs(pool), 3600000); // 1 hour
+      setInterval(() => doService.runAutoCheck(pool), 6000); // 5 minutes
+      setInterval(() => doService.recheckNullIswaDOs(pool), 360000); // 1 hour
       
       console.log('------------------------------------------------------------------------------------');
       app.listen(port, () => {

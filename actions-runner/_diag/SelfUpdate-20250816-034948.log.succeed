@@ -1,0 +1,22 @@
+[Sat 08/16/2025 10:49:48.95] --------whoami-------- 
+jo\program-002
+[Sat 08/16/2025 10:49:48.97] --------whoami-------- 
+[Sat 08/16/2025 10:49:48.98] Waiting for Runner.Listener.exe (23468) to complete 
+Runner.Listener.exe          23468 Services                   0     85,216 K
+[Sat 08/16/2025 10:49:49.12] Process 23468 still running, check again after 1 second. 
+Runner.Listener.exe          23468 Services                   0     85,716 K
+[Sat 08/16/2025 10:49:50.28] Process 23468 still running, check again after 1 second. 
+[Sat 08/16/2025 10:49:51.47] Process 23468 finished running 
+[Sat 08/16/2025 10:49:51.49] Sleep 1 more second to make sure process exited 
+[Sat 08/16/2025 10:49:52.54] Re-organize folders 
+[Sat 08/16/2025 10:49:52.58] move "C:\laragon\www\sapapi\actions-runner\bin" "C:\laragon\www\sapapi\actions-runner\bin.2.327.1" 
+        1 dir(s) moved.
+[Sat 08/16/2025 10:49:52.62] move "C:\laragon\www\sapapi\actions-runner\externals" "C:\laragon\www\sapapi\actions-runner\externals.2.327.1" 
+        1 dir(s) moved.
+[Sat 08/16/2025 10:49:52.63] Create junction bin folder 
+Junction created for C:\laragon\www\sapapi\actions-runner\bin <<===>> C:\laragon\www\sapapi\actions-runner\bin.2.328.0
+[Sat 08/16/2025 10:49:52.65] Create junction externals folder 
+Junction created for C:\laragon\www\sapapi\actions-runner\externals <<===>> C:\laragon\www\sapapi\actions-runner\externals.2.328.0
+[Sat 08/16/2025 10:49:52.67] Update succeed 
+[Sat 08/16/2025 10:49:52.68] update.finished file creation succeed 
+[Sat 08/16/2025 10:49:52.69] Rename "C:\laragon\www\sapapi\actions-runner\_diag\SelfUpdate-20250816-034948.log" to be "C:\laragon\www\sapapi\actions-runner\_diag\SelfUpdate-20250816-034948.log.succeed" 

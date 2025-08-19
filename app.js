@@ -9,8 +9,9 @@ app.use(cors({
     origin: [
         'http://albacore-direct-neatly.ngrok-free.app',
         'https://jauharimalik.github.io', 
+        'https://app2.pkserve.com', 
         'https://cute-mature-shrew.ngrok-free.app',
-        'https://cute-mature-shrew.ngrok-free.app','http://192.168.60.19',
+        'http://192.168.60.19',
         'https://jauharimalik.github.io/sapapi'],
     
     methods: ['GET', 'POST', 'OPTIONS'], // Tambahkan metode OPTIONS

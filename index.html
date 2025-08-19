@@ -2,21 +2,23 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Coldspace Data</title>
+    <meta name="viewport" content="initial-scale=1, minimum-scale=1, maximum-scale=5, width=device-width">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         body {
             background-color: #f0f2f5;
-            font-family: 'Roboto', sans-serif;
+            font-family: "Poppins", sans-serif;
             margin: 0;
             padding: 0;
             display: flex;
             flex-direction: column;
             height: 100vh;
-            overflow: hidden;
         }
         .app-container {
             flex-grow: 1;
@@ -53,7 +55,7 @@
             transform: translateY(-50%);
             color: #888;
         }
-        .header-bar .search-container input:focus{border:none!important;}
+        .header-bar .search-container input:focus{border:none!important;box-shadow:none!important;}
         .header-bar .search-container input:focus ~ i.material-icons {
             color: #075e54;
         }
@@ -77,7 +79,7 @@
             background-color: #ffffff;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             position: sticky;
-            top: 40px; 
+            top: 50px; 
             z-index: 90;
         }
         .tabs-container .tab-link {
@@ -131,14 +133,14 @@
             align-items: center;
         }
         .data-card .card-subtitle {
-            font-size: 14px;
+            font-size: 12px;
             color: #888;
             margin-bottom: 8px;
         }
         .data-card .card-info {
             display: flex;
             justify-content: space-between;
-            font-size: 13px;
+            font-size: 11px;
             color: #555;
         }
         .status-badge {
@@ -166,7 +168,7 @@
             border-top-right-radius: 16px;
             padding: 24px;
         }
-        .modal .modal-content {padding: 0!important; }
+        .modal .modal-content {padding: 0!important; margin-bottom:80px;}
         .modal .modal-content h4 {
             font-size: 20px;
             font-weight: bold;
@@ -179,7 +181,7 @@
         .modal .modal-content .detail-item {
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
+            padding: 10px;
             border-bottom: 1px solid #eee;
         }
         .modal .modal-content .detail-item strong {
@@ -504,7 +506,7 @@
                 }
                 
                 let notesClass = (col.key === 'note') ? 'notes-item' : '';
-                modalContent += `<div class="detail-item ${notesClass}"><strong>${col.label}:</strong><span>${value || '-'}</span></div>`;
+                modalContent += `<div class="detail-item ${notesClass}"><span>${value || '-'}</span></div>`;
             });
             document.getElementById('modalContent').innerHTML = modalContent;
             modalInstance.open();

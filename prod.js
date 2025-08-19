@@ -394,7 +394,7 @@ async function processProductionOrders() {
                     "DocumentLines": issueLines
                 };
 
-                console.log(`Payload Goods Issue untuk PO ${record.PO_NO}:`);
+                // console.log(`Payload Goods Issue untuk PO ${record.PO_NO}:`);
                 console.log(JSON.stringify(goodsIssuePayload, null, 2));
 
                 const totalIssuedQuantity = woData.ProductionOrderLines.reduce((sum, line) => sum + line.IssuedQuantity, 0);
@@ -406,7 +406,7 @@ async function processProductionOrders() {
                     await sendWhatsAppNotification(record.PO_NO, null, null, note, false);
                 } else {
                     const goodsIssueResult = await createGoodsIssue(goodsIssuePayload, sessionCookie);
-                    console.log(`Goods Issue berhasil dibuat untuk PO ${record.PO_NO} `);
+                    // console.log(`Goods Issue berhasil dibuat untuk PO ${record.PO_NO} `);
                 }
 
                 // --- BAGIAN GOODS RECEIPT ---
@@ -436,6 +436,7 @@ async function processProductionOrders() {
                     ]
                 };
 
+                console.log(JSON.stringify(goodsReceiptPayload, null, 2));
                 if (woData.CompletedQuantity >= woData.PlannedQuantity) {
                     const note = 'Tidak dapat melakukan Goods Receipt. Kuantitas selesai sudah memenuhi kuantitas yang direncanakan.';
                     console.error(note);
