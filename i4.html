@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -235,20 +234,6 @@
             border-radius: 20px;
             padding: 10px 20px;
         }
-        .notification-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background-color: #f44336;
-            color: white;
-            border-radius: 50%;
-            width: 18px;
-            height: 18px;
-            font-size: 12px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
         .refresh-btn {
             margin-right: 10px;
             color: #075e54;
@@ -273,7 +258,7 @@
         </div>
 
         <div class="content-container" id="content-container">
-            <div id="data-list-loader" class="center-align" style="padding-top: 50px; display: none;">
+            <div id="data-list-loader" class="center-align" style="padding-top: 50px;">
                 <div class="preloader-wrapper big active">
                     <div class="spinner-layer spinner-blue-only">
                         <div class="circle-clipper left"><div class="circle"></div></div>
@@ -333,12 +318,13 @@
         let maxReconnectAttempts = 5;
         let selectedItemForModal = null;
         let lastUpdateTime = null;
+        let API_BASE_URL = 'https://cute-mature-shrew.ngrok-free.app/api/';
+        let DN_ENDPOINT = API_BASE_URL + 'tarikandn';
+        let GR_ENDPOINT = API_BASE_URL + 'tarikangr';
 
-        // WebSocket connection setup
         function connectWebSocket() {
             try {
-                // Update for your WebSocket server URL
-                const WS_URL = 'ws://rightly-composed-marlin.ngrok-free.app:1948';
+                const WS_URL = 'ws://localhost:1948';
                 ws = new WebSocket(WS_URL);
 
                 ws.onopen = function() {
@@ -346,21 +332,15 @@
                     updateConnectionStatus(true);
                     reconnectAttempts = 0;
                     M.toast({html: 'Connected to server', classes: 'rounded'});
-                    
-                    // Request initial data
-                    showLoader();
-                    ws.send(JSON.stringify({type: 'request_data'}));
                 };
 
                 ws.onmessage = function(event) {
                     try {
                         const data = JSON.parse(event.data);
                         
-                        // Check if we have both DN and GR data
                         if (data.dn && data.grpo) {
                             processDataUpdate(data);
                         } else if (data.dn || data.grpo) {
-                            // Partial update - merge with existing data
                             if (data.dn) {
                                 processPartialUpdate(data.dn, 'dn');
                             }
@@ -377,7 +357,6 @@
                     console.log('WebSocket connection closed');
                     updateConnectionStatus(false);
                     
-                    // Attempt to reconnect
                     if (reconnectAttempts < maxReconnectAttempts) {
                         const delay = Math.pow(2, reconnectAttempts) * 1000;
                         reconnectAttempts++;
@@ -401,10 +380,8 @@
         }
 
         function processDataUpdate(data) {
-            // Store the update time
             lastUpdateTime = new Date();
             
-            // Update allData with new data
             if (data.dn) {
                 allData.dn = data.dn;
             }
@@ -412,10 +389,8 @@
                 allData.gr = data.grpo;
             }
             
-            // Show notification for new data
             showUpdateNotification();
             
-            // Refresh the current view if we have data for the active tab
             if ((currentTab === 'dn' && data.dn) || (currentTab === 'gr' && data.grpo)) {
                 applyFiltersAndSort();
             }
@@ -424,12 +399,9 @@
         }
 
         function processPartialUpdate(newData, type) {
-            // Store the update time
             lastUpdateTime = new Date();
             
-            // Merge new data with existing data
             if (type === 'dn') {
-                // For DN data, we need to merge by ID
                 newData.forEach(newItem => {
                     const existingIndex = allData.dn.findIndex(item => item.id === newItem.id);
                     if (existingIndex !== -1) {
@@ -439,7 +411,6 @@
                     }
                 });
             } else if (type === 'gr') {
-                // For GR data, we need to merge by ID
                 newData.forEach(newItem => {
                     const existingIndex = allData.gr.findIndex(item => item.id === newItem.id);
                     if (existingIndex !== -1) {
@@ -450,20 +421,15 @@
                 });
             }
             
-            // Show notification for updated data
             showUpdateNotification();
             
-            // Refresh the current view if we're viewing the updated tab
             if (currentTab === type) {
                 applyFiltersAndSort();
             }
         }
 
         function showUpdateNotification() {
-            // Only show notification if the user is not currently viewing the updated data
-            // or if the app is in the background (using Page Visibility API)
             if (document.hidden) {
-                // Show browser notification if supported
                 if ('Notification' in window && Notification.permission === 'granted') {
                     new Notification('Coldspace Data Updated', {
                         body: 'New data is available',
@@ -472,7 +438,6 @@
                 }
             }
             
-            // Show toast notification
             M.toast({
                 html: `Data updated at ${lastUpdateTime.toLocaleTimeString()}`,
                 classes: 'toast-update rounded'
@@ -490,7 +455,6 @@
             }
         }
 
-        // Request notification permission on page load
         document.addEventListener('DOMContentLoaded', function() {
             if ('Notification' in window) {
                 Notification.requestPermission();
@@ -500,16 +464,41 @@
         window.onload = function() {
             modalInstance = M.Modal.init(document.getElementById('detailModal'));
             
-            // Initialize WebSocket connection
+            loadInitialData();
             connectWebSocket();
             
-            // Set up periodic data refresh (as backup)
             setInterval(() => {
                 if (ws && ws.readyState === WebSocket.OPEN) {
                     ws.send(JSON.stringify({type: 'request_data'}));
                 }
-            }, 30000); // Request data every 30 seconds
+            }, 30000);
         };
+
+        function loadInitialData() {
+            showLoader();
+            
+            const requestHeaders = new Headers();
+            requestHeaders.append('ngrok-skip-browser-warning', 'true');
+            
+            Promise.all([
+                fetch(DN_ENDPOINT, { headers: requestHeaders }).then(response => response.json()),
+                fetch(GR_ENDPOINT, { headers: requestHeaders }).then(response => response.json())
+            ])
+            .then(([dnData, grData]) => {
+                if (Array.isArray(dnData)) {
+                    allData.dn = dnData;
+                }
+                if (Array.isArray(grData)) {
+                    allData.gr = grData;
+                }
+                applyFiltersAndSort();
+            })
+            .catch(error => {
+                console.error('Error loading initial data:', error);
+                hideLoader();
+                document.getElementById('data-list').innerHTML = '<p class="center-align red-text">Error loading data: ' + error.message + '</p>';
+            });
+        }
 
         let switchTab = function(tab) {
             currentTab = tab;
@@ -528,8 +517,7 @@
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({type: 'request_data'}));
             } else {
-                M.toast({ html: 'Not connected to server', classes: 'red rounded' });
-                hideLoader();
+                loadInitialData();
             }
         };
 
@@ -710,7 +698,6 @@
             const itemType = currentTab.toUpperCase();
             M.toast({ html: `Rechecking ${itemType} item ${itemId}...`, classes: 'rounded' });
             
-            // Send recheck request via WebSocket
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({
                     type: 'recheck',
