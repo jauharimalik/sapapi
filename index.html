@@ -9,7 +9,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         body {
             background-color: #f0f2f5;
@@ -234,11 +233,6 @@
             border-radius: 20px;
             padding: 10px 20px;
         }
-        .refresh-btn {
-            margin-right: 10px;
-            color: #075e54;
-            cursor: pointer;
-        }
     </style>
 </head>
 <body>
@@ -247,9 +241,8 @@
             <div class="search-container">
                 <i class="material-icons">search</i>
                 <input type="text" id="searchInput" placeholder="Search data..." oninput="handleSearch()">
+                <span class="material-icons close-icon" style="display: none; right: 10px; left: unset;"  onclick="clearSearch()" style="display: none;">close</span>
             </div>
-            <i class="material-icons refresh-btn" onclick="refreshData()" title="Refresh data">refresh</i>
-            <i class="material-icons" onclick="exportToExcel()" title="Export to Excel">download</i>
         </div>
 
         <div class="tabs-container">
@@ -285,780 +278,305 @@
     <div id="connectionStatus" class="connection-status disconnected" title="Disconnected"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-    
-    <script>
-        let formatDate = dateString =>
-        (dateString?.length === 6 && !isNaN(dateString))
-            ? `${dateString.substring(4, 6)}-${dateString.substring(2, 4)}-20${dateString.substring(0, 2)}`
-            : '-';
+<script>
+let formatDate = dateString =>
+    (dateString?.length === 6 && !isNaN(dateString))
+        ? `${dateString.substring(4, 6)}-${dateString.substring(2, 4)}-20${dateString.substring(0, 2)}`
+        : '-';
 
-        let levenshtein = (a, b) => {
-            let [an, bn] = [a.length, b.length];
-            let matrix = Array(bn + 1).fill(null).map(() => Array(an + 1).fill(null));
-            for (let i = 0; i <= an; i++) matrix[0][i] = i;
-            for (let j = 0; j <= bn; j++) matrix[j][0] = j;
-            for (let j = 1; j <= bn; j++) {
-                for (let i = 1; i <= an; i++) {
-                    let cost = a[i - 1] === b[j - 1] ? 0 : 1;
-                    matrix[j][i] = Math.min(matrix[j][i - 1] + 1, matrix[j - 1][i] + 1, matrix[j - 1][i - 1] + cost);
-                }
-            }
-            return matrix[bn][an];
+let levenshtein = (a, b) => {
+    let [an, bn] = [a.length, b.length];
+    let matrix = Array(bn + 1).fill(null).map(() => Array(an + 1).fill(null));
+    for (let i = 0; i <= an; i++) matrix[0][i] = i;
+    for (let j = 0; j <= bn; j++) matrix[j][0] = j;
+    for (let j = 1; j <= bn; j++) {
+        for (let i = 1; i <= an; i++) {
+            let cost = a[i - 1] === b[j - 1] ? 0 : 1;
+            matrix[j][i] = Math.min(matrix[j][i - 1] + 1, matrix[j - 1][i] + 1, matrix[j - 1][i - 1] + cost);
+        }
+    }
+    return matrix[bn][an];
+};
+
+let allData = { dn: [], gr: [] };
+let displayedData = [];
+let currentTab = 'dn';
+let modalInstance = null;
+let ws = null;
+let reconnectAttempts = 0;
+let maxReconnectAttempts = 5;
+let selectedItemForModal = null;
+let lastUpdateTime = null;
+let API_BASE_URL = 'https://cute-mature-shrew.ngrok-free.app/api/';
+let DN_ENDPOINT = API_BASE_URL + 'tarikandn';
+let GR_ENDPOINT = API_BASE_URL + 'tarikangr';
+
+let createCardHtml = (row, type) => {
+    let title, subtitle, mainInfo, subInfo;
+    let statusBadge = getStatusBadge(row.jo_status);
+    if (type === 'dn') {
+        [title, subtitle, mainInfo, subInfo] = [
+            row.DO_NO || '-',
+            `STO: ${row.STO_NO || '-'}`,
+            `SKU: ${row.SKU || '-'}`,
+            `Qty: ${row.QTY || '-'} | Exp: ${formatDate(row.expired_date)}`
+        ];
+    } else if (type === 'gr') {
+        [title, subtitle, mainInfo, subInfo] = [
+            row.PO_NO || '-',
+            `ASN: ${row.WMS_ASN_NO || '-'}`,
+            `Vendor: ${row.VENDOR || '-'}`,
+            `GR Qty: ${row.QTYGR || '-'} | Exp: ${formatDate(row.VFDAT)}`
+        ];
+    }
+    return `
+        <div class="data-card" onclick="showDetails('${row.id}')">
+            <div class="card-title">
+                <span>${title}</span>
+                <span>${statusBadge}</span>
+            </div>
+            <div class="card-subtitle">${subtitle}</div>
+            <div class="card-info">
+                <span>${mainInfo}</span>
+                <span>${subInfo}</span>
+            </div>
+        </div>`;
+};
+
+let connectWebSocket = () => {
+    try {
+        let WS_URL = 'wss://rightly-composed-marlin.ngrok-free.app';
+        ws = new WebSocket(WS_URL);
+        ws.onopen = () => {
+            console.log('WebSocket connection established');
+            updateConnectionStatus(true);
+            reconnectAttempts = 0;
+            M.toast({ html: 'Connected to server', classes: 'rounded' });
         };
-
-        let allData = { dn: [], gr: [] };
-        let displayedData = [];
-        let currentTab = 'dn';
-        let modalInstance = null;
-        let ws = null;
-        let reconnectAttempts = 0;
-        let maxReconnectAttempts = 5;
-        let selectedItemForModal = null;
-        let lastUpdateTime = null;
-        let API_BASE_URL = 'https://cute-mature-shrew.ngrok-free.app/api/';
-        let DN_ENDPOINT = API_BASE_URL + 'tarikandn';
-        let GR_ENDPOINT = API_BASE_URL + 'tarikangr';
-
-        let connectWebSocket = () => {
+        ws.onmessage = event => {
             try {
-                let WS_URL = 'wss://rightly-composed-marlin.ngrok-free.app';
-                ws = new WebSocket(WS_URL);
-                ws.onopen = () => {
-                    console.log('WebSocket connection established');
-                    updateConnectionStatus(true);
-                    reconnectAttempts = 0;
-                    M.toast({ html: 'Connected to server', classes: 'rounded' });
-                };
-                ws.onmessage = event => {
-                    try {
-                        let data = JSON.parse(event.data);
-                        (data.dn && data.grpo)
-                            ? processDataUpdate(data)
-                            : data.dn ? processPartialUpdate(data.dn, 'dn') : data.grpo && processPartialUpdate(data.grpo, 'gr');
-                    } catch (error) {
-                        console.error('Error processing WebSocket message:', error);
-                    }
-                };
-                ws.onclose = () => {
-                    console.log('WebSocket connection closed');
-                    updateConnectionStatus(false);
-                    if (reconnectAttempts < maxReconnectAttempts) {
-                        let delay = Math.pow(2, reconnectAttempts) * 1000;
-                        reconnectAttempts++;
-                        console.log(`Attempting to reconnect in ${delay / 1000} seconds (${reconnectAttempts}/${maxReconnectAttempts})`);
-                        setTimeout(connectWebSocket, delay);
-                    } else {
-                        M.toast({ html: 'Unable to connect to server', classes: 'red rounded' });
-                    }
-                };
-                ws.onerror = error => {
-                    console.error('WebSocket error:', error);
-                    updateConnectionStatus(false);
-                };
-            } catch (error) {
-                console.error('Error establishing WebSocket connection:', error);
-            }
-        };
-
-        let processDataUpdate = data => {
-            lastUpdateTime = new Date();
-            data.dn && (allData.dn = data.dn);
-            data.grpo && (allData.gr = data.grpo);
-            showUpdateNotification();
-            ((currentTab === 'dn' && data.dn) || (currentTab === 'gr' && data.grpo)) && applyFiltersAndSort();
-            hideLoader();
-        };
-
-        let processPartialUpdate = (newData, type) => {
-            lastUpdateTime = new Date();
-            newData.forEach(newItem => {
-                let existingIndex = allData[type].findIndex(item => item.id === newItem.id);
-                existingIndex !== -1 ? allData[type][existingIndex] = newItem : allData[type].push(newItem);
-            });
-            showUpdateNotification();
-            (currentTab === type) && applyFiltersAndSort();
-        };
-
-        let showUpdateNotification = () => {
-            if (document.hidden) {
-                ('Notification' in window && Notification.permission === 'granted') &&
-                    new Notification('Coldspace Data Updated', { body: 'New data is available', icon: '/favicon.ico' });
-            }
-            M.toast({ html: `Data updated at ${lastUpdateTime.toLocaleTimeString()}`, classes: 'toast-update rounded' });
-        };
-
-        let updateConnectionStatus = connected => {
-            let statusElement = document.getElementById('connectionStatus');
-            statusElement.className = connected ? 'connection-status connected' : 'connection-status disconnected';
-            statusElement.title = connected ? 'Connected' : 'Disconnected';
-        };
-
-        let loadInitialData = () => {
-            showLoader();
-            let requestHeaders = new Headers();
-            requestHeaders.append('ngrok-skip-browser-warning', 'true');
-            Promise.all([
-                fetch(DN_ENDPOINT, { headers: requestHeaders }).then(response => response.json()),
-                fetch(GR_ENDPOINT, { headers: requestHeaders }).then(response => response.json())
-            ])
-            .then(([dnData, grData]) => {
-                Array.isArray(dnData) && (allData.dn = dnData);
-                Array.isArray(grData) && (allData.gr = grData);
-                applyFiltersAndSort();
-            })
-            .catch(error => {
-                console.error('Error loading initial data:', error);
-                hideLoader();
-                document.getElementById('data-list').innerHTML = `<p class="center-align red-text">Error loading data: ${error.message}</p>`;
-            });
-        };
-
-        let switchTab = tab => {
-            currentTab = tab;
-            document.querySelectorAll('.tab-link').forEach(t => t.classList.remove('active'));
-            document.querySelector(`.tab-link[onclick="switchTab('${tab}')"]`).classList.add('active');
-            applyFiltersAndSort();
-        };
-
-        let refreshData = () => {
-            M.toast({ html: 'Requesting latest data...', classes: 'rounded' });
-            showLoader();
-            (ws && ws.readyState === WebSocket.OPEN) ? ws.send(JSON.stringify({ type: 'request_data' })) : loadInitialData();
-        };
-
-        let showLoader = () => {
-            document.getElementById('data-list').innerHTML = '';
-            document.getElementById('data-list-loader').style.display = 'block';
-        };
-
-        let hideLoader = () => {
-            document.getElementById('data-list-loader').style.display = 'none';
-        };
-
-        let renderDataCards = () => {
-            hideLoader();
-            let dataList = document.getElementById('data-list');
-            dataList.innerHTML = displayedData.length === 0 ? '<p class="center-align">No data found</p>' : '';
-            if (displayedData.length === 0) return;
-
-            displayedData.forEach(row => {
-                let title, subtitle, mainInfo, subInfo;
-                let statusBadge = getStatusBadge(row.jo_status);
-                if (currentTab === 'dn') {
-                    [title, subtitle, mainInfo, subInfo] = [
-                        row.DO_NO || '-',
-                        `STO: ${row.STO_NO || '-'}`,
-                        `SKU: ${row.SKU || '-'}`,
-                        `Qty: ${row.QTY || '-'} | Exp: ${formatDate(row.expired_date)}`
-                    ];
-                } else if (currentTab === 'gr') {
-                    [title, subtitle, mainInfo, subInfo] = [
-                        row.PO_NO || '-',
-                        `ASN: ${row.WMS_ASN_NO || '-'}`,
-                        `Vendor: ${row.VENDOR || '-'}`,
-                        `GR Qty: ${row.QTYGR || '-'} | Exp: ${formatDate(row.VFDAT)}`
-                    ];
-                }
-                dataList.innerHTML += `
-                    <div class="data-card" onclick="showDetails('${row.id}')">
-                        <div class="card-title">
-                            <span>${title}</span>
-                            <span>${statusBadge}</span>
-                        </div>
-                        <div class="card-subtitle">${subtitle}</div>
-                        <div class="card-info">
-                            <span>${mainInfo}</span>
-                            <span>${subInfo}</span>
-                        </div>
-                    </div>`;
-            });
-        };
-
-        let getStatusBadge = status => {
-            if (!status) return '';
-            let s = status.toString().toLowerCase();
-            return s.includes('complete') || s.includes('success') || s === '3'
-                ? '<span class="status-badge success">Completed</span>'
-                : s.includes('error') || s.includes('fail') || s === '0'
-                    ? '<span class="status-badge error">Failed</span>'
-                    : '<span class="status-badge warning">Processing</span>';
-        };
-
-        let handleSearch = () => {
-            clearTimeout(window.searchTimer);
-            window.searchTimer = setTimeout(applyFiltersAndSort, 300);
-        };
-
-        let applyFiltersAndSort = () => {
-            let data = [...allData[currentTab]];
-            let searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            let threshold = 0.3;
-            if (searchTerm) {
-                let searchKeywords = searchTerm.split(' ').filter(word => word.length > 1);
-                data = data.filter(row =>
-                    searchKeywords.every(keyword =>
-                        Object.values(row).some(value => {
-                            if (value === null || value === undefined) return false;
-                            let cellValue = String(value).toLowerCase();
-                            return cellValue.includes(keyword) ||
-                                cellValue.split(' ').some(word =>
-                                    (Math.max(word.length, keyword.length) > 0
-                                        ? levenshtein(word, keyword) / Math.max(word.length, keyword.length)
-                                        : 1) <= threshold
-                                );
-                        })
-                    )
-                );
-            }
-            displayedData = data;
-            renderDataCards();
-        };
-
-        let showDetails = id => {
-            let item = displayedData.find(i => i.id == id);
-            if (!item) return;
-            selectedItemForModal = item;
-            let isDN = currentTab === 'dn';
-            let columns = isDN
-                ? [{ key: 'DO_NO', label: 'DO Number' }, { key: 'STO_NO', label: 'STO Number' }, { key: 'COMP_CODE', label: 'Company Code' }, { key: 'PL_NP', label: 'PL Number' }, { key: 'DEL_DATE', label: 'Delivery Date' }, { key: 'SITE', label: 'Site' }, { key: 'SKU', label: 'SKU' }, { key: 'QTY', label: 'Quantity' }, { key: 'LOT', label: 'LOT' }, { key: 'expired_date', label: 'Expiry Date' }, { key: 'ismatch', label: 'Match Status' }, { key: 'jo_status', label: 'Status' }, { key: 'note', label: 'Notes' }]
-                : [{ key: 'PO_NO', label: 'PO Number' }, { key: 'WMS_ASN_NO', label: 'ASN Number' }, { key: 'COMP_CODE', label: 'Company Code' }, { key: 'RR_DATE', label: 'Receipt Date' }, { key: 'VENDOR', label: 'Vendor' }, { key: 'SKU', label: 'SKU' }, { key: 'QTYPO', label: 'PO Quantity' }, { key: 'QTYGR', label: 'GR Quantity' }, { key: 'SLOC', label: 'Storage Loc' }, { key: 'VFDAT', label: 'Expiry Date' }, { key: 'ismatch', label: 'Match Status' }, { key: 'jo_status', label: 'Status' }, { key: 'note', label: 'Notes' }];
-
-            let modalContent = columns.map(col => {
-                let value = item[col.key];
-                value = ['DEL_DATE', 'expired_date', 'VFDAT', 'RR_DATE'].includes(col.key)
-                    ? formatDate(value)
-                    : col.key === 'ismatch'
-                        ? (value ? 'Matched' : 'Mismatch')
-                        : value || '-';
-                return `<div class="detail-item ${col.key === 'note' ? 'notes-item' : ''}"><span>${col.label}: </span><span>${value}</span></div>`;
-            }).join('');
-            document.getElementById('modalContent').innerHTML = modalContent;
-            modalInstance.open();
-        };
-
-        let recheckItem = () => {
-            if (!selectedItemForModal) return;
-            let { id, currentTab } = selectedItemForModal;
-            M.toast({ html: `Rechecking ${currentTab.toUpperCase()} item ${id}...`, classes: 'rounded' });
-            (ws && ws.readyState === WebSocket.OPEN)
-                ? ws.send(JSON.stringify({ type: 'recheck', itemId: id, itemType: currentTab }))
-                : M.toast({ html: 'Not connected to server', classes: 'red rounded' });
-            modalInstance.close();
-        };
-
-        let exportToExcel = () => {
-            if (displayedData.length === 0) {
-                M.toast({ html: 'No data to export', classes: 'red rounded' });
-                return;
-            }
-            let isDN = currentTab === 'dn';
-            let columns = isDN
-                ? [{ key: 'DO_NO', label: 'DO Number' }, { key: 'STO_NO', label: 'STO Number' }, { key: 'COMP_CODE', label: 'Company Code' }, { key: 'DEL_DATE', label: 'Delivery Date' }, { key: 'SKU', label: 'SKU' }, { key: 'QTY', label: 'Quantity' }, { key: 'LOT', label: 'LOT' }, { key: 'expired_date', label: 'Expiry Date' }, { key: 'jo_status', label: 'Status' }, { key: 'note', label: 'Notes' }]
-                : [{ key: 'PO_NO', label: 'PO Number' }, { key: 'COMP_CODE', label: 'Company Code' }, { key: 'RR_DATE', label: 'Receipt Date' }, { key: 'VENDOR', label: 'Vendor' }, { key: 'SKU', label: 'SKU' }, { key: 'QTYGR', label: 'GR Quantity' }, { key: 'SLOC', label: 'Storage Loc' }, { key: 'VFDAT', label: 'Expiry Date' }, { key: 'jo_status', label: 'Status' }, { key: 'note', label: 'Notes' }];
-            let sheetName = isDN ? 'DeliveryNotes' : 'GoodsReceipts';
-            let excelData = [columns.map(col => col.label)];
-            displayedData.forEach(row => {
-                let rowData = columns.map(col => ['DEL_DATE', 'expired_date', 'VFDAT', 'RR_DATE'].includes(col.key) ? formatDate(row[col.key]) : row[col.key] || '');
-                excelData.push(rowData);
-            });
-            let wb = XLSX.utils.book_new();
-            let ws = XLSX.utils.aoa_to_sheet(excelData);
-            XLSX.utils.book_append_sheet(wb, ws, sheetName);
-            XLSX.writeFile(wb, `Coldspace_${sheetName}_Data.xlsx`);
-        };
-
-        document.addEventListener('DOMContentLoaded', () => {
-            if ('Notification' in window) Notification.requestPermission();
-        });
-
-        window.onload = () => {
-            modalInstance = M.Modal.init(document.getElementById('detailModal'));
-            loadInitialData();
-            connectWebSocket();
-            setInterval(() => {
-                (ws && ws.readyState === WebSocket.OPEN) && ws.send(JSON.stringify({ type: 'request_data' }));
-            }, 30000);
-        };
-    </script>
-    <!-- <script>
-        let formatDate = dateString => (dateString?.length === 6 && !isNaN(dateString)) ? `${dateString.substring(4, 6)}-${dateString.substring(2, 4)}-20${dateString.substring(0, 2)}` : '-';
-
-        function levenshtein(a, b) {
-            const an = a.length;
-            const bn = b.length;
-            const matrix = Array(bn + 1).fill(null).map(() => Array(an + 1).fill(null));
-            for (let i = 0; i <= an; i++) {
-                matrix[0][i] = i;
-            }
-            for (let j = 0; j <= bn; j++) {
-                matrix[j][0] = j;
-            }
-            for (let j = 1; j <= bn; j++) {
-                for (let i = 1; i <= an; i++) {
-                    const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-                    matrix[j][i] = Math.min(
-                        matrix[j][i - 1] + 1,
-                        matrix[j - 1][i] + 1,
-                        matrix[j - 1][i - 1] + cost
-                    );
-                }
-            }
-            return matrix[bn][an];
-        }
-
-        let allData = { dn: [], gr: [] };
-        let displayedData = [];
-        let currentTab = 'dn';
-        let modalInstance = null;
-        let ws = null;
-        let reconnectAttempts = 0;
-        let maxReconnectAttempts = 5;
-        let selectedItemForModal = null;
-        let lastUpdateTime = null;
-        let API_BASE_URL = 'https://cute-mature-shrew.ngrok-free.app/api/';
-        let DN_ENDPOINT = API_BASE_URL + 'tarikandn';
-        let GR_ENDPOINT = API_BASE_URL + 'tarikangr';
-
-        function connectWebSocket() {
-            try {
-                const WS_URL = 'wss://rightly-composed-marlin.ngrok-free.app';
-                ws = new WebSocket(WS_URL);
-
-                ws.onopen = function() {
-                    console.log('WebSocket connection established');
-                    updateConnectionStatus(true);
-                    reconnectAttempts = 0;
-                    M.toast({html: 'Connected to server', classes: 'rounded'});
-                };
-
-                ws.onmessage = function(event) {
-                    try {
-                        const data = JSON.parse(event.data);
-                        
-                        if (data.dn && data.grpo) {
-                            processDataUpdate(data);
-                        } else if (data.dn || data.grpo) {
-                            if (data.dn) {
-                                processPartialUpdate(data.dn, 'dn');
-                            }
-                            if (data.grpo) {
-                                processPartialUpdate(data.grpo, 'gr');
-                            }
-                        }
-                    } catch (error) {
-                        console.error('Error processing WebSocket message:', error);
-                    }
-                };
-
-                ws.onclose = function() {
-                    console.log('WebSocket connection closed');
-                    updateConnectionStatus(false);
-                    
-                    if (reconnectAttempts < maxReconnectAttempts) {
-                        const delay = Math.pow(2, reconnectAttempts) * 1000;
-                        reconnectAttempts++;
-                        console.log(`Attempting to reconnect in ${delay/1000} seconds (${reconnectAttempts}/${maxReconnectAttempts})`);
-                        
-                        setTimeout(() => {
-                            connectWebSocket();
-                        }, delay);
-                    } else {
-                        M.toast({html: 'Unable to connect to server', classes: 'red rounded'});
-                    }
-                };
-
-                ws.onerror = function(error) {
-                    console.error('WebSocket error:', error);
-                    updateConnectionStatus(false);
-                };
-            } catch (error) {
-                console.error('Error establishing WebSocket connection:', error);
-            }
-        }
-
-        function processDataUpdate(data) {
-            lastUpdateTime = new Date();
-            
-            if (data.dn) {
-                allData.dn = data.dn;
-            }
-            if (data.grpo) {
-                allData.gr = data.grpo;
-            }
-            
-            showUpdateNotification();
-            
-            if ((currentTab === 'dn' && data.dn) || (currentTab === 'gr' && data.grpo)) {
-                applyFiltersAndSort();
-            }
-            
-            hideLoader();
-        }
-
-        function processPartialUpdate(newData, type) {
-            lastUpdateTime = new Date();
-            
-            if (type === 'dn') {
-                newData.forEach(newItem => {
-                    const existingIndex = allData.dn.findIndex(item => item.id === newItem.id);
-                    if (existingIndex !== -1) {
-                        allData.dn[existingIndex] = newItem;
-                    } else {
-                        allData.dn.push(newItem);
-                    }
-                });
-            } else if (type === 'gr') {
-                newData.forEach(newItem => {
-                    const existingIndex = allData.gr.findIndex(item => item.id === newItem.id);
-                    if (existingIndex !== -1) {
-                        allData.gr[existingIndex] = newItem;
-                    } else {
-                        allData.gr.push(newItem);
-                    }
-                });
-            }
-            
-            showUpdateNotification();
-            
-            if (currentTab === type) {
-                applyFiltersAndSort();
-            }
-        }
-
-        function showUpdateNotification() {
-            if (document.hidden) {
-                if ('Notification' in window && Notification.permission === 'granted') {
-                    new Notification('Coldspace Data Updated', {
-                        body: 'New data is available',
-                        icon: '/favicon.ico'
-                    });
-                }
-            }
-            
-            M.toast({
-                html: `Data updated at ${lastUpdateTime.toLocaleTimeString()}`,
-                classes: 'toast-update rounded'
-            });
-        }
-
-        function updateConnectionStatus(connected) {
-            const statusElement = document.getElementById('connectionStatus');
-            if (connected) {
-                statusElement.className = 'connection-status connected';
-                statusElement.title = 'Connected';
-            } else {
-                statusElement.className = 'connection-status disconnected';
-                statusElement.title = 'Disconnected';
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            if ('Notification' in window) {
-                Notification.requestPermission();
-            }
-        });
-
-        window.onload = function() {
-            modalInstance = M.Modal.init(document.getElementById('detailModal'));
-            
-            loadInitialData();
-            connectWebSocket();
-            
-            setInterval(() => {
-                if (ws && ws.readyState === WebSocket.OPEN) {
-                    ws.send(JSON.stringify({type: 'request_data'}));
-                }
-            }, 30000);
-        };
-
-        function loadInitialData() {
-            showLoader();
-            
-            const requestHeaders = new Headers();
-            requestHeaders.append('ngrok-skip-browser-warning', 'true');
-            
-            Promise.all([
-                fetch(DN_ENDPOINT, { headers: requestHeaders }).then(response => response.json()),
-                fetch(GR_ENDPOINT, { headers: requestHeaders }).then(response => response.json())
-            ])
-            .then(([dnData, grData]) => {
-                if (Array.isArray(dnData)) {
-                    allData.dn = dnData;
-                }
-                if (Array.isArray(grData)) {
-                    allData.gr = grData;
-                }
-                applyFiltersAndSort();
-            })
-            .catch(error => {
-                console.error('Error loading initial data:', error);
-                hideLoader();
-                document.getElementById('data-list').innerHTML = '<p class="center-align red-text">Error loading data: ' + error.message + '</p>';
-            });
-        }
-
-        let switchTab = function(tab) {
-            currentTab = tab;
-            document.querySelectorAll('.tab-link').forEach(function(t) {
-                t.classList.remove('active');
-            });
-            document.querySelector('.tab-link[onclick="switchTab(\'' + tab + '\')"]').classList.add('active');
-            
-            applyFiltersAndSort();
-        };
-
-        let refreshData = function() {
-            M.toast({ html: 'Requesting latest data...', classes: 'rounded' });
-            showLoader();
-            
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({type: 'request_data'}));
-            } else {
-                loadInitialData();
-            }
-        };
-
-        let showLoader = function() {
-            document.getElementById('data-list').innerHTML = '';
-            document.getElementById('data-list-loader').style.display = 'block';
-        };
-
-        let hideLoader = function() {
-            document.getElementById('data-list-loader').style.display = 'none';
-        };
-
-
-        let renderDataCards = function() {
-            hideLoader();
-            const dataList = document.getElementById('data-list');
-            dataList.innerHTML = '';
-            if (displayedData.length === 0) {
-                dataList.innerHTML = '<p class="center-align">No data found</p>';
-                return;
-            }
-
-            displayedData.forEach(function(row) {
-                let title, subtitle, mainInfo, subInfo;
-                let statusBadge = getStatusBadge(row.jo_status);
-
-                if (currentTab === 'dn') {
-                    title = row.DO_NO || '-';
-                    subtitle = `STO: ${row.STO_NO || '-'}`;
-                    mainInfo = `SKU: ${row.SKU || '-'}`;
-                    subInfo = `Qty: ${row.QTY || '-'} | Exp: ${formatDate(row.expired_date)}`;
-                } else if (currentTab === 'gr') {
-                    title = row.PO_NO || '-';
-                    subtitle = `ASN: ${row.WMS_ASN_NO || '-'}`;
-                    mainInfo = `Vendor: ${row.VENDOR || '-'}`;
-                    subInfo = `GR Qty: ${row.QTYGR || '-'} | Exp: ${formatDate(row.VFDAT)}`;
+                let data = JSON.parse(event.data);
+                if (Array.isArray(data.dn)) {
+                    processPartialUpdate(data.dn, 'dn');
+                } else if (Array.isArray(data.grpo)) {
+                    processPartialUpdate(data.grpo, 'gr');
+                } else if (data.dn || data.grpo) {
+                    processDataUpdate(data);
                 } else {
-                    return;
+                    console.log('Received unknown message type:', data);
                 }
-
-                dataList.innerHTML += `
-                    <div class="data-card" onclick="showDetails('${row.id}')">
-                        <div class="card-title">
-                            <span>${title}</span>
-                            <span>${statusBadge}</span>
-                        </div>
-                        <div class="card-subtitle">${subtitle}</div>
-                        <div class="card-info">
-                            <span>${mainInfo}</span>
-                            <span>${subInfo}</span>
-                        </div>
-                    </div>
-                `;
-            });
+            } catch (error) {
+                console.error('Error processing WebSocket message:', error);
+            }
         };
-
-        let getStatusBadge = function(status) {
-            if (!status) return '';
-            status = status.toString().toLowerCase();
-            if (status.includes('complete') || status.includes('success') || status === '3') {
-                return '<span class="status-badge success">Completed</span>';
-            } else if (status.includes('error') || status.includes('fail') || status === '0') {
-                return '<span class="status-badge error">Failed</span>';
+        ws.onclose = () => {
+            console.log('WebSocket connection closed');
+            updateConnectionStatus(false);
+            if (reconnectAttempts < maxReconnectAttempts) {
+                let delay = Math.pow(2, reconnectAttempts) * 1000;
+                reconnectAttempts++;
+                console.log(`Attempting to reconnect in ${delay / 1000} seconds (${reconnectAttempts}/${maxReconnectAttempts})`);
+                setTimeout(connectWebSocket, delay);
             } else {
-                return '<span class="status-badge warning">Processing</span>';
+                M.toast({ html: 'Unable to connect to server', classes: 'red rounded' });
             }
         };
-
-        let handleSearch = function() {
-            clearTimeout(window.searchTimer);
-            window.searchTimer = setTimeout(function() {
-                applyFiltersAndSort();
-            }, 300);
+        ws.onerror = error => {
+            console.error('WebSocket error:', error);
+            updateConnectionStatus(false);
         };
+    } catch (error) {
+        console.error('Error establishing WebSocket connection:', error);
+    }
+};
 
-        let applyFiltersAndSort = function() {
-            let data = [...allData[currentTab]];
-            let searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const threshold = 0.3;
+let processDataUpdate = data => {
+    lastUpdateTime = new Date();
+    data.dn && (allData.dn = data.dn);
+    data.grpo && (allData.gr = data.grpo);
+    showUpdateNotification();
+    applyFiltersAndSort();
+    hideLoader();
+};
 
-            if (searchTerm) {
-                const searchKeywords = searchTerm.split(' ').filter(word => word.length > 1);
+let processPartialUpdate = (newData, type) => {
+    let hasNewItem = false;
+    newData.forEach(newItem => {
+        let existingIndex = allData[type].findIndex(item => item.id === newItem.id);
+        if (existingIndex !== -1) {
+            allData[type][existingIndex] = newItem;
+        } else {
+            hasNewItem = true;
+            allData[type].push(newItem);
+        }
+    });
 
-                data = data.filter(function(row) {
-                    return searchKeywords.every(keyword => {
-                        return Object.values(row).some(value => {
-                            if (value === null || value === undefined) return false;
-                            const cellValue = String(value).toLowerCase();
-                            
-                            if (cellValue.includes(keyword)) {
-                                return true;
-                            }
-                            
-                            const wordsInCell = cellValue.split(' ');
-                            return wordsInCell.some(word => {
-                                const distance = levenshtein(word, keyword);
-                                const maxLen = Math.max(word.length, keyword.length);
-                                const relativeDistance = maxLen > 0 ? distance / maxLen : 1;
-                                return relativeDistance <= threshold;
-                            });
-                        });
-                    });
-                });
-            }
-            displayedData = data;
-            renderDataCards();
-        };
+    if (currentTab === type) {
+        applyFiltersAndSort();
+    }
 
-        let showDetails = function(id) {
-            let item = displayedData.find(function(i) { return i.id == id; });
-            if (!item) return;
-            selectedItemForModal = item;
+    if (hasNewItem) {
+        showUpdateNotification();
+    }
+    lastUpdateTime = new Date();
+};
 
-            let modalContent = '';
-            let columns = [];
-            
-            if (currentTab === 'dn') {
-                columns = [
-                    { key: 'DO_NO', label: 'DO Number' },
-                    { key: 'STO_NO', label: 'STO Number' },
-                    { key: 'COMP_CODE', label: 'Company Code' },
-                    { key: 'PL_NP', label: 'PL Number' },
-                    { key: 'DEL_DATE', label: 'Delivery Date' },
-                    { key: 'SITE', label: 'Site' },
-                    { key: 'SKU', label: 'SKU' },
-                    { key: 'QTY', label: 'Quantity' },
-                    { key: 'LOT', label: 'LOT' },
-                    { key: 'expired_date', label: 'Expiry Date' },
-                    { key: 'ismatch', label: 'Match Status' },
-                    { key: 'jo_status', label: 'Status' },
-                    { key: 'note', label: 'Notes' },
-                ];
-            } else if (currentTab === 'gr') {
-                columns = [
-                    { key: 'PO_NO', label: 'PO Number' },
-                    { key: 'WMS_ASN_NO', label: 'ASN Number' },
-                    { key: 'COMP_CODE', label: 'Company Code' },
-                    { key: 'RR_DATE', label: 'Receipt Date' },
-                    { key: 'VENDOR', label: 'Vendor' },
-                    { key: 'SKU', label: 'SKU' },
-                    { key: 'QTYPO', label: 'PO Quantity' },
-                    { key: 'QTYGR', label: 'GR Quantity' },
-                    { key: 'SLOC', label: 'Storage Loc' },
-                    { key: 'VFDAT', label: 'Expiry Date' },
-                    { key: 'ismatch', label: 'Match Status' },
-                    { key: 'jo_status', label: 'Status' },
-                    { key: 'note', label: 'Notes' }
-                ];
-            }
+let showUpdateNotification = () => {
+    if (document.hidden) {
+        ('Notification' in window && Notification.permission === 'granted') &&
+            new Notification('Coldspace Data Updated', { body: 'New data is available', icon: '/favicon.ico' });
+    }
+    M.toast({ html: `Data updated at ${lastUpdateTime.toLocaleTimeString()}`, classes: 'toast-update rounded' });
+};
 
-            columns.forEach(function(col) {
-                let value = item[col.key];
-                if (col.key.includes('DATE') || col.key.includes('expired_date') || col.key.includes('VFDAT')) {
-                    value = formatDate(value);
-                } else if (col.key === 'ismatch') {
-                    value = value ? 'Matched' : 'Mismatch';
-                }
-                
-                let notesClass = (col.key === 'note') ? 'notes-item' : '';
-                modalContent += `<div class="detail-item ${notesClass}"><span>${value || '-'}</span></div>`;
-            });
-            document.getElementById('modalContent').innerHTML = modalContent;
-            modalInstance.open();
-        };
+let updateConnectionStatus = connected => {
+    let statusElement = document.getElementById('connectionStatus');
+    statusElement.className = connected ? 'connection-status connected' : 'connection-status disconnected';
+    statusElement.title = connected ? 'Connected' : 'Disconnected';
+};
 
-        let recheckItem = function() {
-            if (!selectedItemForModal) return;
-            const itemId = selectedItemForModal.id;
-            const itemType = currentTab.toUpperCase();
-            M.toast({ html: `Rechecking ${itemType} item ${itemId}...`, classes: 'rounded' });
-            
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
-                    type: 'recheck',
-                    itemId: itemId,
-                    itemType: currentTab
-                }));
-            } else {
-                M.toast({ html: 'Not connected to server', classes: 'red rounded' });
-            }
-            
-            modalInstance.close();
-        };
+let loadInitialData = () => {
+    showLoader();
+    let requestHeaders = new Headers();
+    requestHeaders.append('ngrok-skip-browser-warning', 'true');
+    Promise.all([
+        fetch(DN_ENDPOINT, { headers: requestHeaders }).then(response => response.json()),
+        fetch(GR_ENDPOINT, { headers: requestHeaders }).then(response => response.json())
+    ])
+    .then(([dnData, grData]) => {
+        Array.isArray(dnData) && (allData.dn = dnData);
+        Array.isArray(grData) && (allData.gr = grData);
+        applyFiltersAndSort();
+    })
+    .catch(error => {
+        console.error('Error loading initial data:', error);
+        hideLoader();
+        document.getElementById('data-list').innerHTML = `<p class="center-align red-text">Error loading data: ${error.message}</p>`;
+    });
+};
 
-        let exportToExcel = function() {
-            if (displayedData.length === 0) {
-                M.toast({ html: 'No data to export', classes: 'red rounded' });
-                return;
-            }
-            
-            let columns;
-            let sheetName;
-            if (currentTab === 'dn') {
-                columns = [
-                    { key: 'DO_NO', label: 'DO Number' },
-                    { key: 'STO_NO', label: 'STO Number' },
-                    { key: 'COMP_CODE', label: 'Company Code' },
-                    { key: 'DEL_DATE', label: 'Delivery Date' },
-                    { key: 'SKU', label: 'SKU' },
-                    { key: 'QTY', label: 'Quantity' },
-                    { key: 'LOT', label: 'LOT' },
-                    { key: 'expired_date', label: 'Expiry Date' },
-                    { key: 'jo_status', label: 'Status' },
-                    { key: 'note', label: 'Notes' }
-                ];
-                sheetName = 'DeliveryNotes';
-            } else if (currentTab === 'gr') {
-                columns = [
-                    { key: 'PO_NO', label: 'PO Number' },
-                    { key: 'COMP_CODE', label: 'Company Code' },
-                    { key: 'RR_DATE', label: 'Receipt Date' },
-                    { key: 'VENDOR', label: 'Vendor' },
-                    { key: 'SKU', label: 'SKU' },
-                    { key: 'QTYGR', label: 'GR Quantity' },
-                    { key: 'SLOC', label: 'Storage Loc' },
-                    { key: 'VFDAT', label: 'Expiry Date' },
-                    { key: 'jo_status', label: 'Status' },
-                    { key: 'note', label: 'Notes' }
-                ];
-                sheetName = 'GoodsReceipts';
-            } else {
-                 return;
-            }
+let switchTab = tab => {
+    currentTab = tab;
+    document.querySelectorAll('.tab-link').forEach(t => t.classList.remove('active'));
+    document.querySelector(`.tab-link[onclick="switchTab('${tab}')"]`).classList.add('active');
+    applyFiltersAndSort();
+};
 
-            let excelData = [
-                columns.map(function(col) { return col.label; })
-            ];
+let showLoader = () => {
+    let dataList = document.getElementById('data-list');
+    dataList.innerHTML = '';
+    document.getElementById('data-list-loader').style.display = 'block';
+};
 
-            displayedData.forEach(function(row) {
-                let rowData = columns.map(function(col) {
-                    let value = row[col.key];
-                    if (col.key.includes('DATE') || col.key.includes('expired_date') || col.key.includes('VFDAT')) {
-                        return formatDate(value);
-                    }
-                    return value || '';
-                });
-                excelData.push(rowData);
-            });
-            
-            let wb = XLSX.utils.book_new();
-            let ws = XLSX.utils.aoa_to_sheet(excelData);
-            XLSX.utils.book_append_sheet(wb, ws, sheetName);
-            XLSX.writeFile(wb, 'Coldspace_' + sheetName + '_Data.xlsx');
-        };
-    </script> -->
+let hideLoader = () => {
+    document.getElementById('data-list-loader').style.display = 'none';
+};
+
+let renderDataCards = () => {
+    let dataList = document.getElementById('data-list');
+    dataList.innerHTML = displayedData.length === 0 ? '<p class="center-align">No data found</p>' : displayedData.map(row => createCardHtml(row, currentTab)).join('');
+};
+
+let getStatusBadge = status => {
+    if (!status) return '';
+    let s = status.toString().toLowerCase();
+    return s.includes('complete') || s.includes('success') || s === '3'
+        ? '<span class="status-badge success">Completed</span>'
+        : s.includes('error') || s.includes('fail') || s === '0'
+            ? '<span class="status-badge error">Failed</span>'
+            : '<span class="status-badge warning">Processing</span>';
+};
+
+let handleSearch = () => {
+    clearTimeout(window.searchTimer);
+    window.searchTimer = setTimeout(() => {
+        applyFiltersAndSort();
+    }, 300);
+    const searchInput = document.getElementById('searchInput');
+    const closeIcon = document.querySelector('.close-icon');
+    if (searchInput.value) {
+        closeIcon.style.display = 'inline-block';
+    } else {
+        closeIcon.style.display = 'none';
+    }
+};
+
+let clearSearch = () => {
+    const searchInput = document.getElementById('searchInput');
+    searchInput.value = '';
+    handleSearch();
+};
+
+let applyFiltersAndSort = () => {
+    let data = [...allData[currentTab]];
+    let searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    let threshold = 0.3;
+    if (searchTerm) {
+        let searchKeywords = searchTerm.split(' ').filter(word => word.length > 1);
+        data = data.filter(row =>
+            searchKeywords.every(keyword =>
+                Object.values(row).some(value => {
+                    if (value === null || value === undefined) return false;
+                    let cellValue = String(value).toLowerCase();
+                    return cellValue.includes(keyword) ||
+                        cellValue.split(' ').some(word =>
+                            (Math.max(word.length, keyword.length) > 0
+                                ? levenshtein(word, keyword) / Math.max(word.length, keyword.length)
+                                : 1) <= threshold
+                        );
+                })
+            )
+        );
+    }
+    displayedData = data;
+    renderDataCards();
+    hideLoader();
+};
+
+let showDetails = id => {
+    let item = displayedData.find(i => i.id == id);
+    if (!item) {
+        item = allData[currentTab].find(i => i.id == id);
+        if (!item) return;
+    }
+    selectedItemForModal = item;
+    let isDN = currentTab === 'dn';
+    let columns = isDN
+        ? [{ key: 'DO_NO', label: 'DO Number' }, { key: 'STO_NO', label: 'STO Number' }, { key: 'COMP_CODE', label: 'Company Code' }, { key: 'PL_NP', label: 'PL Number' }, { key: 'DEL_DATE', label: 'Delivery Date' }, { key: 'SITE', label: 'Site' }, { key: 'SKU', label: 'SKU' }, { key: 'QTY', label: 'Quantity' }, { key: 'LOT', label: 'LOT' }, { key: 'expired_date', label: 'Expiry Date' }, { key: 'ismatch', label: 'Match Status' }, { key: 'jo_status', label: 'Status' }, { key: 'note', label: 'Notes' }]
+        : [{ key: 'PO_NO', label: 'PO Number' }, { key: 'WMS_ASN_NO', label: 'ASN Number' }, { key: 'COMP_CODE', label: 'Company Code' }, { key: 'RR_DATE', label: 'Receipt Date' }, { key: 'VENDOR', label: 'Vendor' }, { key: 'SKU', label: 'SKU' }, { key: 'QTYPO', label: 'PO Quantity' }, { key: 'QTYGR', label: 'GR Quantity' }, { key: 'SLOC', label: 'Storage Loc' }, { key: 'VFDAT', label: 'Expiry Date' }, { key: 'ismatch', label: 'Match Status' }, { key: 'jo_status', label: 'Status' }, { key: 'note', label: 'Notes' }];
+
+    let modalContent = columns.map(col => {
+        let value = item[col.key];
+        value = ['DEL_DATE', 'expired_date', 'VFDAT', 'RR_DATE'].includes(col.key)
+            ? formatDate(value)
+            : col.key === 'ismatch'
+                ? (value ? 'Matched' : 'Mismatch')
+                : value || '-';
+        return `<div class="detail-item ${col.key === 'note' ? 'notes-item' : ''}"><span>${value}</span></div>`;
+    }).join('');
+    document.getElementById('modalContent').innerHTML = modalContent;
+    modalInstance.open();
+};
+
+let recheckItem = () => {
+    if (!selectedItemForModal) return;
+    let { id, currentTab } = selectedItemForModal;
+    M.toast({ html: `Rechecking ${currentTab.toUpperCase()} item ${id}...`, classes: 'rounded' });
+    (ws && ws.readyState === WebSocket.OPEN)
+        ? ws.send(JSON.stringify({ type: 'recheck', itemId: id, itemType: currentTab }))
+        : M.toast({ html: 'Not connected to server', classes: 'red rounded' });
+    modalInstance.close();
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    if ('Notification' in window) Notification.requestPermission();
+});
+
+window.onload = () => {
+    modalInstance = M.Modal.init(document.getElementById('detailModal'));
+    loadInitialData();
+    connectWebSocket();
+};
+</script>
 </body>
 </html>
