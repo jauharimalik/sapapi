@@ -211,6 +211,34 @@
             border-top-left-radius: 16px;
             border-top-right-radius: 16px;
         }
+        .connection-status {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            z-index: 1000;
+        }
+        .connected {
+            background-color: #4CAF50;
+            box-shadow: 0 0 8px #4CAF50;
+        }
+        .disconnected {
+            background-color: #f44336;
+            box-shadow: 0 0 8px #f44336;
+        }
+        .toast-update {
+            background-color: #075e54;
+            color: white;
+            border-radius: 20px;
+            padding: 10px 20px;
+        }
+        .refresh-btn {
+            margin-right: 10px;
+            color: #075e54;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -220,6 +248,8 @@
                 <i class="material-icons">search</i>
                 <input type="text" id="searchInput" placeholder="Search data..." oninput="handleSearch()">
             </div>
+            <i class="material-icons refresh-btn" onclick="refreshData()" title="Refresh data">refresh</i>
+            <i class="material-icons" onclick="exportToExcel()" title="Export to Excel">download</i>
         </div>
 
         <div class="tabs-container">
@@ -228,7 +258,7 @@
         </div>
 
         <div class="content-container" id="content-container">
-            <div id="data-list-loader" class="center-align" style="padding-top: 50px; display: none;">
+            <div id="data-list-loader" class="center-align" style="padding-top: 50px;">
                 <div class="preloader-wrapper big active">
                     <div class="spinner-layer spinner-blue-only">
                         <div class="circle-clipper left"><div class="circle"></div></div>
@@ -251,6 +281,8 @@
             <a href="#!" class="modal-close waves-effect waves-grey btn-flat">Close</a>
         </div>
     </div>
+
+    <div id="connectionStatus" class="connection-status disconnected" title="Disconnected"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <script>
@@ -281,15 +313,192 @@
         let displayedData = [];
         let currentTab = 'dn';
         let modalInstance = null;
+        let ws = null;
+        let reconnectAttempts = 0;
+        let maxReconnectAttempts = 5;
+        let selectedItemForModal = null;
+        let lastUpdateTime = null;
         let API_BASE_URL = 'https://cute-mature-shrew.ngrok-free.app/api/';
         let DN_ENDPOINT = API_BASE_URL + 'tarikandn';
         let GR_ENDPOINT = API_BASE_URL + 'tarikangr';
-        let selectedItemForModal = null;
+
+        function connectWebSocket() {
+            try {
+                const WS_URL = 'ws://localhost:1948';
+                ws = new WebSocket(WS_URL);
+
+                ws.onopen = function() {
+                    console.log('WebSocket connection established');
+                    updateConnectionStatus(true);
+                    reconnectAttempts = 0;
+                    M.toast({html: 'Connected to server', classes: 'rounded'});
+                };
+
+                ws.onmessage = function(event) {
+                    try {
+                        const data = JSON.parse(event.data);
+                        
+                        if (data.dn && data.grpo) {
+                            processDataUpdate(data);
+                        } else if (data.dn || data.grpo) {
+                            if (data.dn) {
+                                processPartialUpdate(data.dn, 'dn');
+                            }
+                            if (data.grpo) {
+                                processPartialUpdate(data.grpo, 'gr');
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error processing WebSocket message:', error);
+                    }
+                };
+
+                ws.onclose = function() {
+                    console.log('WebSocket connection closed');
+                    updateConnectionStatus(false);
+                    
+                    if (reconnectAttempts < maxReconnectAttempts) {
+                        const delay = Math.pow(2, reconnectAttempts) * 1000;
+                        reconnectAttempts++;
+                        console.log(`Attempting to reconnect in ${delay/1000} seconds (${reconnectAttempts}/${maxReconnectAttempts})`);
+                        
+                        setTimeout(() => {
+                            connectWebSocket();
+                        }, delay);
+                    } else {
+                        M.toast({html: 'Unable to connect to server', classes: 'red rounded'});
+                    }
+                };
+
+                ws.onerror = function(error) {
+                    console.error('WebSocket error:', error);
+                    updateConnectionStatus(false);
+                };
+            } catch (error) {
+                console.error('Error establishing WebSocket connection:', error);
+            }
+        }
+
+        function processDataUpdate(data) {
+            lastUpdateTime = new Date();
+            
+            if (data.dn) {
+                allData.dn = data.dn;
+            }
+            if (data.grpo) {
+                allData.gr = data.grpo;
+            }
+            
+            showUpdateNotification();
+            
+            if ((currentTab === 'dn' && data.dn) || (currentTab === 'gr' && data.grpo)) {
+                applyFiltersAndSort();
+            }
+            
+            hideLoader();
+        }
+
+        function processPartialUpdate(newData, type) {
+            lastUpdateTime = new Date();
+            
+            if (type === 'dn') {
+                newData.forEach(newItem => {
+                    const existingIndex = allData.dn.findIndex(item => item.id === newItem.id);
+                    if (existingIndex !== -1) {
+                        allData.dn[existingIndex] = newItem;
+                    } else {
+                        allData.dn.push(newItem);
+                    }
+                });
+            } else if (type === 'gr') {
+                newData.forEach(newItem => {
+                    const existingIndex = allData.gr.findIndex(item => item.id === newItem.id);
+                    if (existingIndex !== -1) {
+                        allData.gr[existingIndex] = newItem;
+                    } else {
+                        allData.gr.push(newItem);
+                    }
+                });
+            }
+            
+            showUpdateNotification();
+            
+            if (currentTab === type) {
+                applyFiltersAndSort();
+            }
+        }
+
+        function showUpdateNotification() {
+            if (document.hidden) {
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    new Notification('Coldspace Data Updated', {
+                        body: 'New data is available',
+                        icon: '/favicon.ico'
+                    });
+                }
+            }
+            
+            M.toast({
+                html: `Data updated at ${lastUpdateTime.toLocaleTimeString()}`,
+                classes: 'toast-update rounded'
+            });
+        }
+
+        function updateConnectionStatus(connected) {
+            const statusElement = document.getElementById('connectionStatus');
+            if (connected) {
+                statusElement.className = 'connection-status connected';
+                statusElement.title = 'Connected';
+            } else {
+                statusElement.className = 'connection-status disconnected';
+                statusElement.title = 'Disconnected';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if ('Notification' in window) {
+                Notification.requestPermission();
+            }
+        });
 
         window.onload = function() {
             modalInstance = M.Modal.init(document.getElementById('detailModal'));
-            loadData('dn');
+            
+            loadInitialData();
+            connectWebSocket();
+            
+            setInterval(() => {
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({type: 'request_data'}));
+                }
+            }, 30000);
         };
+
+        function loadInitialData() {
+            showLoader();
+            
+            const requestHeaders = new Headers();
+            requestHeaders.append('ngrok-skip-browser-warning', 'true');
+            
+            Promise.all([
+                fetch(DN_ENDPOINT, { headers: requestHeaders }).then(response => response.json()),
+                fetch(GR_ENDPOINT, { headers: requestHeaders }).then(response => response.json())
+            ])
+            .then(([dnData, grData]) => {
+                if (Array.isArray(dnData)) {
+                    allData.dn = dnData;
+                }
+                if (Array.isArray(grData)) {
+                    allData.gr = grData;
+                }
+                applyFiltersAndSort();
+            })
+            .catch(error => {
+                console.error('Error loading initial data:', error);
+                hideLoader();
+                document.getElementById('data-list').innerHTML = '<p class="center-align red-text">Error loading data: ' + error.message + '</p>';
+            });
+        }
 
         let switchTab = function(tab) {
             currentTab = tab;
@@ -298,47 +507,18 @@
             });
             document.querySelector('.tab-link[onclick="switchTab(\'' + tab + '\')"]').classList.add('active');
             
-            if (allData[tab].length === 0) {
-                loadData(tab);
-            } else {
-                applyFiltersAndSort();
-            }
-        };
-
-        let loadData = function(type) {
-            showLoader();
-            let endpoint = type === 'dn' ? DN_ENDPOINT : GR_ENDPOINT;
-            const requestHeaders = new Headers();
-            requestHeaders.append('ngrok-skip-browser-warning', 'true');
-
-            fetch(endpoint, { headers: requestHeaders })
-                .then(function(response) {
-                    if (!response.ok) {
-                        throw new Error('HTTP error! status: ' + response.status);
-                    }
-                    return response.json();
-                })
-                .then(function(data) {
-                    if (Array.isArray(data)) {
-                        allData[type] = data;
-                        if (currentTab === type) {
-                            applyFiltersAndSort();
-                        }
-                    } else {
-                        throw new Error('API did not return array data');
-                    }
-                })
-                .catch(function(error) {
-                    console.error('Error loading data:', error);
-                    hideLoader();
-                    document.getElementById('data-list').innerHTML = '<p class="center-align red-text">Error loading data: ' + error.message + '</p>';
-                });
+            applyFiltersAndSort();
         };
 
         let refreshData = function() {
-            M.toast({ html: 'Refreshing data...', classes: 'rounded' });
-            allData[currentTab] = [];
-            loadData(currentTab);
+            M.toast({ html: 'Requesting latest data...', classes: 'rounded' });
+            showLoader();
+            
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({type: 'request_data'}));
+            } else {
+                loadInitialData();
+            }
         };
 
         let showLoader = function() {
@@ -517,8 +697,18 @@
             const itemId = selectedItemForModal.id;
             const itemType = currentTab.toUpperCase();
             M.toast({ html: `Rechecking ${itemType} item ${itemId}...`, classes: 'rounded' });
+            
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'recheck',
+                    itemId: itemId,
+                    itemType: currentTab
+                }));
+            } else {
+                M.toast({ html: 'Not connected to server', classes: 'red rounded' });
+            }
+            
             modalInstance.close();
-            // Implement API call for recheck here
         };
 
         let exportToExcel = function() {
