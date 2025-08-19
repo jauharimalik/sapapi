@@ -1,4 +1,4 @@
-name: Stop, Build, dan Jalankan Ulang Aplikasi Go
+name: Deploy to csxpk
 
 on:
   push:
@@ -7,37 +7,46 @@ on:
 
 jobs:
   deploy:
-    runs-on: windows-latest
+    runs-on: self-hosted
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Setup Go
-        uses: actions/setup-go@v4
         with:
-          go-version: '1.23'
+          repository: jauharimalik/sapapi
+          token: ${{ secrets.GITHUB_TOKEN }}
+          submodules: false # Mengabaikan submodule untuk mencegah error
 
-      # Langkah ini akan mencari dan menghentikan proses 'pk-fiber.exe' yang sedang berjalan.
-      # Taskkill adalah perintah Windows untuk menghentikan proses.
-      - name: Stop running Go application
+      - name: Set HOMEPATH for PM2
         run: |
-          taskkill /IM "pk-fiber.exe" /F || exit 0
-        shell: cmd
+          echo "HOMEPATH=C:\Users\PROGRAM-002" | Out-File -FilePath $env:GITHUB_ENV -Append
+        shell: powershell
 
-      - name: Lakukan Build Aplikasi Go
-        # Perintah ini akan mengompilasi ulang kode Anda menjadi file biner yang baru.
+      - name: Add npm global to PATH
+        run: echo "C:\Users\PROGRAM-002\AppData\Roaming\npm" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+        shell: powershell
+        
+      - name: Install PM2 and dependencies
         run: |
-          go mod tidy
-          go build -o pk-fiber.exe
+          npm install -g pm2
+          npm install
+      - name: Delete existing PM2 processes
+        run: pm2 delete all
+        continue-on-error: true
 
-      - name: Jalankan Aplikasi Go yang Baru
-        # Perintah ini akan menjalankan server Go yang sudah di-build,
-        # dan akan terus berjalan.
-        # Catatan: Job ini tidak akan selesai sampai Anda menghentikan proses secara manual.
+      - name: Start all Node.js applications with PM2
         run: |
-          start pk-fiber.exe
-        shell: cmd
-
-      - name: Pesan Sukses Deployment
-        run: echo "Deployment selesai, aplikasi Go yang baru sudah berjalan."
+          pm2 start prod.js --name "prod-service" --watch --ignore-watch "node_modules"
+          pm2 start grpo.js --name "grpo-service" --watch --ignore-watch "node_modules"
+          pm2 start guling.js --name "guling-service" --watch --ignore-watch "node_modules"
+          pm2 start retur.js --name "retur-service" --watch --ignore-watch "node_modules"
+          pm2 start rijek.js --name "rijek-service" --watch --ignore-watch "node_modules"
+          pm2 start sto.js --name "sto-service" --watch --ignore-watch "node_modules"
+          pm2 start server.js --name "server-service" --watch --ignore-watch "node_modules"
+        shell: powershell
+        
+      - name: Save PM2 process list
+        run: pm2 save
+      
+      - name: Show PM2 process status
+        run: pm2 list
