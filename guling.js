@@ -4,6 +4,8 @@ const sql = require('mssql');
 const FormData = require('form-data');
 const { stringify } = require('querystring');
 
+const notificationService = require('./services/notificationService'); // Tambahkan ini
+
 const SAP_CONFIG = {
     BASE_URL: 'https://192.168.101.254:50000/b1s/v2',
     COMPANY_DB: 'TEST',
@@ -63,6 +65,7 @@ const processTradeinTradeout = async () => {
                 AND t0x.TRK_TYPE = 'rplc'`);
 
         if (result.recordset.length === 0) {
+            console.log('Tidak ada data tukar guling yang perlu diproses.');
             return;
         }
 
@@ -78,6 +81,7 @@ const processTradeinTradeout = async () => {
                     const note = 'Kuantitas nol atau tidak valid';
                     await updateRecordStatus(record.id, 0, note, null, null, pool);
                     await sendWhatsAppNotification(record.PO_NO, null, null, `Gagal: ${note}`, false, pool);
+                    await notificationService.sendTelegramNotification(`Tukar Guling - Gagal: ${note}`, false);
                     continue;
                 }
 
@@ -91,18 +95,15 @@ const processTradeinTradeout = async () => {
                     console.log(`Error-2: Not Found Docnum OIGE: ${record.PO_NO}`);
                     await updateRecordStatus(record.id, 0, note, null, null, pool);
                     await sendWhatsAppNotification(record.PO_NO, null, null, `Gagal: ${note}`, false, pool);
+                    await notificationService.sendTelegramNotification(`Tukar Guling - Gagal: ${note}`, false);
                     continue;
                 }
                 const goodsIssueData = await getGoodsIssueFromSAP(docEntry, sessionCookie);
 
-                
-                
                 let validationResult = validateVfdatWithExpDate(record, goodsIssueData);
-                // const vendor = record.VENDOR === 'VIRTUAL' ? 'CS-03' : record.VENDOR;
-                
 
                 let warehouseCode;
-                let dfltwh = await getDfltwhForSKU(record.sub_vendor); 
+                let dfltwh = await getDfltwhForSKU(record.sub_vendor);
                 if (record.sub_vendor === 'VIRTUAL') {
                     warehouseCode = 'CS-03';
                 } else {
@@ -119,17 +120,17 @@ const processTradeinTradeout = async () => {
                             }
                             break;
                         case 'N':
-                            warehouseCode = record.sub_vendor; 
+                            warehouseCode = record.sub_vendor;
                             break;
                         default:
-                            warehouseCode = record.sub_vendor; 
+                            warehouseCode = record.sub_vendor;
                             break;
                     }
                 }
 
                 const vendor = warehouseCode === 'VIRTUAL' ? 'CS-03' : warehouseCode;
                 if (!validationResult.isValid || !validationResult.batchData) {
-                    const batchDataFromOBTN = await getBatchDataFromOBTN(record.SKU, vendor,  record.VFDAT,pool);
+                    const batchDataFromOBTN = await getBatchDataFromOBTN(record.SKU, vendor, record.VFDAT, pool);
                     
                     if (!batchDataFromOBTN) {
                         const note = 'Batch data tidak ditemukan untuk SKU';
@@ -138,28 +139,22 @@ const processTradeinTradeout = async () => {
                         
                         await updateRecordStatus(record.id, 0, note, null, null, pool);
                         await sendWhatsAppNotification(record.PO_NO, null, null, `Gagal: ${note}`, false, pool);
+                        await notificationService.sendTelegramNotification(`Tukar Guling - Gagal: ${note}`, false);
                         continue;
                     }
                     validationResult = { isValid: true, batchData: batchDataFromOBTN };
                 }
 
-                
-
-
                 const goodsReceiptPayload = await createGoodsReceiptPayload(record, validationResult.batchData, goodsIssueData, pool);
                 const pcc = await postGoodsReceiptToSAP(goodsReceiptPayload, sessionCookie);
 
                 if (pcc?.error) {
-                    
                     const status = pcc.message.includes('closed') ? 3 : 0;
                     const note = status === 3 ? `Berhasil diproses Tukar Guling` : `Gagal: ${pcc.message}`;
-                    // await updateRecordStatus(record.id, status, returnsPostResult.message, null, null, pool);
-                    // await sendWhatsAppNotification(record.PO_NO, null, null, note, false, pool);
                     
-                    // console.log('------------------------------------------------------------------------------------');
-                    // console.log(`DocEntry Returns: ${ReturnsDocEntry} | DocNum Returns: ${ReturnsDocNum}`);
                     await updateRecordStatus(record.id, status, note, null, null, pool);
                     await sendWhatsAppNotification(record.PO_NO, null, null, note, true, pool);
+                    await notificationService.sendTelegramNotification(`Tukar Guling - ${status === 3 ? 'Berhasil' : 'Gagal'}: ${note}`, status === 3);
                     continue;
                 }
 
@@ -172,10 +167,12 @@ const processTradeinTradeout = async () => {
                     console.log(`DocEntry: ${GoodsReceiptDocEntry} | DocNum: ${GoodsReceiptDocNum}`);
                     await updateRecordStatus(record.id, 3, successNote, GoodsReceiptDocNum, GoodsReceiptDocEntry, pool);
                     await sendWhatsAppNotification(record.PO_NO, GoodsReceiptDocNum, GoodsReceiptDocEntry, successNote, true, pool);
+                    await notificationService.sendTelegramNotification(`Tukar Guling - Berhasil: PO No. ${record.PO_NO}, Doc Num: ${GoodsReceiptDocNum}`, true);
                 } else {
                     const note = 'Gagal: Goods Receipt tidak ditemukan setelah posting';
                     await updateRecordStatus(record.id, 0, note, null, null, pool);
                     await sendWhatsAppNotification(record.PO_NO, null, null, `Gagal: ${note}`, false, pool);
+                    await notificationService.sendTelegramNotification(`Tukar Guling - Gagal: ${note}`, false);
                 }
 
             } catch (error) {
@@ -185,11 +182,13 @@ const processTradeinTradeout = async () => {
                 const status = note.includes('already closed') ? 4 : 0;
                 await updateRecordStatus(record.id, status, note, null, null, pool);
                 await sendWhatsAppNotification(record.PO_NO, null, null, `Gagal: ${note}`, false, pool);
+                await notificationService.sendTelegramNotification(`Tukar Guling - Gagal: ${note}`, false);
             }
         }
 
     } catch (error) {
         console.error('Error dalam proses utama:', error);
+        await notificationService.sendTelegramNotification(`Error utama Tukar Guling: ${error.message}`, false);
     } finally {
         if (pool) await pool.close();
     }
@@ -210,7 +209,9 @@ const loginToSAP = async () => {
         );
         return response.headers['set-cookie'].join('; ');
     } catch (error) {
-        throw new Error(`Gagal login ke SAP: ${error.response?.data?.error?.message || error.message}`);
+        const note = `Gagal login ke SAP: ${error.response?.data?.error?.message || error.message}`;
+        await notificationService.sendTelegramNotification(note, false);
+        throw new Error(note);
     }
 };
 
@@ -230,6 +231,7 @@ const getDocEntryFromOIGE = async (poNo, pool) => {
         console.log(`Process: ${poNo} | Error-1: ${error.message}`);
         await updateRecordStatus(null, 0, error.message, null, null, pool, poNo);
         await sendWhatsAppNotification(poNo, null, null, `Gagal: ${error.message}`, false, pool);
+        await notificationService.sendTelegramNotification(`Tukar Guling - Gagal: ${error.message}`, false);
         return null;
     }
 };
@@ -300,7 +302,6 @@ const getBatchDataFromOBTN = async (itemCode, whsCode, ExpDate, pool) => {
             AND t1.batchnum  like '${ExpDate}%'
             ORDER BY T1.ExpDate ASC`;
 
-            
         const result = await pool.request()
             .input('itemCode', sql.VarChar, itemCode)
             .input('whsCode', sql.VarChar, whsCode)
@@ -326,21 +327,27 @@ const getGoodsReceiptSeries = async (pool) => {
     
     try {
         const result = await pool.request().query(query);
-        return result.recordset[0]?.series || 686; // Gunakan 686 sebagai fallback jika tidak ada hasil
+        return result.recordset[0]?.series || 686;
     } catch (error) {
         console.error('Gagal mendapatkan series dari database:', error.message);
-        return 686; // Gunakan 686 sebagai fallback jika terjadi error
+        return 686;
     }
 };
 
-const createGoodsReceiptPayload = async (record, batchData, goodsIssue, pool) => {
+const getDfltwhForSKU = async (vendor, pool) => {
+    // Implementasi fungsi ini perlu ada
+    // Contoh dummy:
+    return 'BS03';
+};
 
+
+const createGoodsReceiptPayload = async (record, batchData, goodsIssue, pool) => {
     const lineItem = goodsIssue.DocumentLines.find(line =>
         line.ItemCode === record.SKU && line.LineNum.toString() === record.LINE_NO.toString()
     );
     
     let warehouseCode;
-    let dfltwh = await getDfltwhForSKU(record.sub_vendor); 
+    let dfltwh = await getDfltwhForSKU(record.sub_vendor);
     if (record.sub_vendor === 'VIRTUAL') {
         warehouseCode = 'CS-03';
     } else {
@@ -357,10 +364,10 @@ const createGoodsReceiptPayload = async (record, batchData, goodsIssue, pool) =>
                 }
                 break;
             case 'N':
-                warehouseCode = record.sub_vendor; 
+                warehouseCode = record.sub_vendor;
                 break;
             default:
-                warehouseCode = record.sub_vendor; 
+                warehouseCode = record.sub_vendor;
                 break;
         }
     }
@@ -405,7 +412,7 @@ const createGoodsReceiptPayload = async (record, batchData, goodsIssue, pool) =>
         Comments: `Penerimaan Barang berdasarkan Pengeluaran Barang #${goodsIssue.DocNum}`,
         JournalMemo: "Goods Receipt",
         DocTime: new Date().toLocaleTimeString('id-ID', { hour12: false }),
-        Series: goodsReceiptSeries, // Menggunakan nilai series dari database
+        Series: goodsReceiptSeries,
         TaxDate: new Date().toISOString().split('T')[0],
         DocObjectCode: "oInventoryGenEntry",
         DocumentLines: documentLines,
@@ -429,8 +436,6 @@ const createGoodsReceiptPayload = async (record, batchData, goodsIssue, pool) =>
 };
 
 const postGoodsReceiptToSAP = async (payload, sessionCookie) => {
-    // console.log(JSON.stringify(payload,null,2));
-
     try {
         const response = await axios.post(
             `${SAP_CONFIG.BASE_URL}/InventoryGenEntries`,
@@ -467,7 +472,6 @@ const getFinalGoodsReceiptData = async (goodsIssueDocEntry, pool) => {
             T1.DocEntry, T1.DocNum;
     `;
 
-    // console.log(query);
     const result = await pool.request().query(query);
     return result.recordset.length > 0 ? result.recordset[0] : null;
 };
@@ -491,7 +495,9 @@ const updateRecordStatus = async (id, joStatus, note, docNum, docEntry, pool, po
                 WHERE id = @id OR (@PO_NO IS NOT NULL AND PO_NO = @PO_NO);
             `);
     } catch (error) {
-        throw new Error(`Gagal update status record: ${error.message}`);
+        const updateNote = `Gagal update status record: ${error.message}`;
+        await notificationService.sendTelegramNotification(updateNote, false);
+        throw new Error(updateNote);
     }
 };
 
@@ -568,6 +574,7 @@ const initialize = async () => {
             console.log('------------------------------------------------------------------------------------');
             console.log(`Error: ${error}`);
             console.log('------------------------------------------------------------------------------------');
+            notificationService.sendTelegramNotification(`Error Tukar Guling: ${error.message}`, false);
         });
 
         console.log('------------------------------------------------------------------------------------');
@@ -577,6 +584,7 @@ const initialize = async () => {
         });
     } catch (error) {
         console.error('Startup failed:', error);
+        notificationService.sendTelegramNotification(`Startup Tukar Guling failed: ${error.message}`, false);
         process.exit(1);
     }
 };

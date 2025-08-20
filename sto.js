@@ -36,13 +36,29 @@ const WHATSAPP_CONFIG = {
     failureGroup: '120363421138507049@g.us'
 };
 
-exports.getDfltwhForSKU = async (sku)=>{
+// --- Konfigurasi Telegram yang diperbarui ---
+const TELEGRAM_CONFIG = {
+    successUrl: 'http://192.168.60.14:40200/group-cs-success',
+    failureUrl: 'http://192.168.60.14:40200/group-cs-error'
+};
+
+// Fungsi untuk mengirim notifikasi Telegram
+const sendTelegramNotification = async (message, isSuccess) => {
+    const apiUrl = isSuccess ? TELEGRAM_CONFIG.successUrl : TELEGRAM_CONFIG.failureUrl;
+    try {
+        await axios.post(apiUrl, { message });
+        console.log(`Notifikasi Telegram ${isSuccess ? 'berhasil' : 'gagal'} terkirim.`);
+    } catch (error) {
+        console.error(`Gagal mengirim notifikasi Telegram: ${error.message}`);
+    }
+};
+
+exports.getDfltwhForSKU = async (sku) => {
     if (sku === 'G502') return 'BS03';
     if (sku === 'K102') return 'BS04';
     if (sku === 'F001') return 'BS02';
     return null;
 };
-
 
 async function getDfltwhForSKU(sku) {
     if (sku === 'G502') return 'BS03';
@@ -53,17 +69,14 @@ async function getDfltwhForSKU(sku) {
 
 function convertDate(dateString) {
     if (typeof dateString !== 'string' || dateString.length !== 6) {
-      return 'Invalid date format. Please use "yymmdd".';
+        return 'Invalid date format. Please use "yymmdd".';
     }
-  
     const year = "20" + dateString.substring(0, 2);
     const month = dateString.substring(2, 4);
     const day = dateString.substring(4, 6);
-  
     return `${day}-${month}-${year}`;
 }
 
-  
 const processStockTransferOrders = async () => {
     let pool;
     try {
@@ -105,7 +118,7 @@ const processStockTransferOrders = async () => {
                 if (record.QTYPO <= 0) {
                     const note = 'Kuantitas nol atau tidak valid';
                     await updateRecordStatus(record.id, 0, note, null, null, pool);
-                    await sendWhatsAppNotification(record.PO_NO, null, null, `Gagal: ${note}`, false, pool);
+                    await sendAllNotifications(record.PO_NO, null, null, `Gagal: ${note}`, false, pool);
                     continue;
                 }
                 const docEntry = await getDocEntryFromOWTQ(record.PO_NO, pool);
@@ -114,37 +127,27 @@ const processStockTransferOrders = async () => {
                 if (!docEntry) {
                     const note = 'DocEntry STO tidak ditemukan di OWTQ';
                     await updateRecordStatus(record.id, 0, note, null, null, pool);
-                    await sendWhatsAppNotification(record.PO_NO, null, null, `Gagal: ${note}`, false, pool);
+                    await sendAllNotifications(record.PO_NO, null, null, `Gagal: ${note}`, false, pool);
                     continue;
                 }
                 const inventoryTransferRequest = await getInventoryTransferRequestFromSAP(docEntry, sessionCookie);
-                // let validationResult = validateVfdatWithExpDate(record, inventoryTransferRequest);
-                // if (!validationResult.isValid || !validationResult.batchData) {
-                    const batchDataFromOBTN = await getBatchDataFromOBTN(record.SKU, inventoryTransferRequest.FromWarehouse, record.VFDAT, pool);
-                    if (!batchDataFromOBTN) {
-                        const note = 'Batch data tidak ditemukan untuk SKU';
-                        console.log('------------------------------------------------------------------------------------');
-                        console.log(`SKU: ${record.SKU} | WHS: ${inventoryTransferRequest.FromWarehouse} | Error: ${note}`);
-                        await updateRecordStatus(record.id, 0, note, null, null, pool);
-                        await sendWhatsAppNotification(record.PO_NO, null, null, `Gagal: ${note}`, false, pool);
-                        continue;
-                    }
-                    validationResult = { isValid: true, batchData: batchDataFromOBTN };
-                // }
+                const batchDataFromOBTN = await getBatchDataFromOBTN(record.SKU, inventoryTransferRequest.FromWarehouse, record.VFDAT, pool);
+                if (!batchDataFromOBTN) {
+                    const note = 'Batch data tidak ditemukan untuk SKU';
+                    console.log('------------------------------------------------------------------------------------');
+                    console.log(`SKU: ${record.SKU} | WHS: ${inventoryTransferRequest.FromWarehouse} | Error: ${note}`);
+                    await updateRecordStatus(record.id, 0, note, null, null, pool);
+                    await sendAllNotifications(record.PO_NO, null, null, `Gagal: ${note}`, false, pool);
+                    continue;
+                }
+                const validationResult = { isValid: true, batchData: batchDataFromOBTN };
                 const stockTransferPayload = createStockTransferPayload(record, inventoryTransferRequest, validationResult.batchData);
                 const postResult = await postStockTransferToSAP(stockTransferPayload, sessionCookie);
                 if (postResult?.error) {
-                    // const status = postResult.message.includes('closed') ? 4 : 0;
-                    // const note = status === 4 ? `Gagal: ${postResult.message}` : `Gagal: ${postResult.message}`;
-                    // await updateRecordStatus(record.id, status, postResult.message, null, null, pool);
-                    // await sendWhatsAppNotification(record.PO_NO, null, null, note, false, pool);
-                    // continue;
-
-                    
                     const status = postResult.message.includes('closed') ? 3 : 0;
                     const note = status === 3 ? `Berhasil diproses Tukar Guling` : `Gagal: ${postResult.message}`;
                     await updateRecordStatus(record.id, status, note, null, null, pool);
-                    await sendWhatsAppNotification(record.PO_NO, null, null, note, true, pool);
+                    await sendAllNotifications(record.PO_NO, null, null, note, true, pool);
                     continue;
                 }
                 const { DocEntry, DocNum } = postResult;
@@ -152,7 +155,7 @@ const processStockTransferOrders = async () => {
                 console.log('------------------------------------------------------------------------------------');
                 console.log(`Stock Transfer berhasil dibuat! DocEntry: ${DocEntry} | DocNum: ${DocNum}`);
                 await updateRecordStatus(record.id, 3, successNote, DocNum, DocEntry, pool);
-                await sendWhatsAppNotification(record.PO_NO, DocNum, DocEntry, successNote, true, pool);
+                await sendAllNotifications(record.PO_NO, DocNum, DocEntry, successNote, true, pool);
             } catch (error) {
                 const note = error.message.includes('already exists') || error.message.includes('already closed')
                     ? 'Dokumen sudah ada/closed di SAP'
@@ -160,7 +163,7 @@ const processStockTransferOrders = async () => {
                 const status = note.includes('already closed') ? 4 : 0;
                 console.error(`Error processing record ${record.PO_NO}:`, error);
                 await updateRecordStatus(record.id, status, note, null, null, pool);
-                await sendWhatsAppNotification(record.PO_NO, null, null, `Gagal: ${note}`, false, pool);
+                await sendAllNotifications(record.PO_NO, null, null, `Gagal: ${note}`, false, pool);
             }
         }
     } catch (error) {
@@ -202,8 +205,6 @@ const getDocEntryFromOWTQ = async (poNo, pool) => {
     }
 };
 
-
-
 const getInventoryTransferRequestFromSAP = async (docEntry, sessionCookie) => {
     try {
         const response = await axios.get(
@@ -243,18 +244,8 @@ const validateVfdatWithExpDate = (record, inventoryTransferRequest) => {
     } : { isValid: false, batchData: null };
 };
 
-const getBatchDataFromOBTN = async (itemCode, whsCode,ExpDate, pool) => {
+const getBatchDataFromOBTN = async (itemCode, whsCode, ExpDate, pool) => {
     try {
-        // const query = `
-        //     SELECT TOP 1
-        //         T1.BatchNum AS BatchNumber,
-        //         T1.Quantity AS AvailableQuantity,
-        //         T0.ExpDate AS ExpirationDate
-        //     FROM [pksrv-sap].test.dbo.OBTN T0
-        //     INNER JOIN [pksrv-sap].test.dbo.OIBT T1 ON T0.AbsEntry = T1.BaseEntry
-        //     WHERE T1.ItemCode = @itemCode AND T1.WhsCode = @whsCode AND T1.Quantity > 0
-        //     ORDER BY T0.ExpDate ASC`;
-        
         const query = `
             SELECT TOP 1
                 isnull(T1.BatchNum,'${ExpDate}') AS BatchNumber,
@@ -264,7 +255,7 @@ const getBatchDataFromOBTN = async (itemCode, whsCode,ExpDate, pool) => {
             inner join [pksrv-sap].test.dbo.oitm t2 on t1.itemcode = t2.itemcode
             WHERE T1.ItemCode = '${itemCode}' AND 
             (T1.WhsCode = '${whsCode}' or t1.whscode = t2.dfltwh) AND T1.Quantity > 0
-            AND t1.batchnum  like '${ExpDate}%'
+            AND t1.batchnum like '${ExpDate}%'
             ORDER BY T1.ExpDate ASC
         `;
         const result = await pool.request()
@@ -285,48 +276,6 @@ const getBatchDataFromOBTN = async (itemCode, whsCode,ExpDate, pool) => {
         throw new Error(`Gagal mendapatkan batch data dari OBTN: ${error.message}`);
     }
 };
-// const createStockTransferPayload = (record, invTransferRequest, batchData) => {
-//     console.log(JSON.stringify(invTransferRequest,null,2));
-
-//     const lineItem = invTransferRequest.StockTransferLines.find(line =>
-//         line.ItemCode.toLowerCase() === record.SKU.toLowerCase() && line.LineNum.toString() === record.LINE_NO.toString()
-//     );
-
-//     // if (!lineItem) {
-//     //     throw new Error(`Item ${record.SKU} tidak ditemukan pada line ${record.LINE_NO} di Inventory Transfer Request.`);
-//     // }
-
-//     const batchNumbers = [{
-//         BatchNumber: batchData.BatchNumber,
-//         ManufacturerSerialNumber: batchData.ManufacturerSerialNumber,
-//         InternalSerialNumber: batchData.InternalSerialNumber,
-//         ExpiryDate: batchData.ExpiryDate,
-//         AddmisionDate: batchData.AddmisionDate,
-//         Quantity: record.QTYPO,
-//         BaseLineNumber: 0
-//     }];
-
-//     return {
-//         DocDate: invTransferRequest.DocDate,
-//         DueDate: invTransferRequest.DueDate,
-//         Comments: `KIRIM Based On Inventory Transfer Request ${invTransferRequest.DocNum}.`,
-//         FromWarehouse: invTransferRequest.FromWarehouse,
-//         ToWarehouse: invTransferRequest.ToWarehouse,
-//         DocObjectCode: "67",
-//         U_IDU_RequestType: "IT",
-//         StockTransferLines: [{
-//             ItemCode: lineItem.ItemCode,
-//             Quantity: lineItem.Quantity,
-//             WarehouseCode: lineItem.WarehouseCode,
-//             FromWarehouseCode: lineItem.FromWarehouseCode,
-//             BaseType: "1250000001",
-//             BaseLine: lineItem.LineNum,
-//             BaseEntry: invTransferRequest.DocEntry,
-//             BatchNumbers: batchNumbers,
-//             StockTransferLinesBinAllocations: []
-//         }]
-//     };
-// };
 
 const createStockTransferPayload = (record, invTransferRequest, batchData) => {
     const lineItem = invTransferRequest.StockTransferLines.find(line =>
@@ -334,12 +283,9 @@ const createStockTransferPayload = (record, invTransferRequest, batchData) => {
     );
     
     if (!lineItem) {
-        
         console.error(`Error: No matching line item found for SKU: ${record.SKU} and LINE_NO: ${record.LINE_NO}`);
         throw new Error('Matching delivery note line item not found.');
-        //throw new Error(`Item ${record.SKU} with line number ${record.LINE_NO} not found in the Inventory Transfer Request.`);
-    }else{
-
+    } else {
         const batchNumbers = [{
             BatchNumber: batchData.BatchNumber,
             ManufacturerSerialNumber: batchData.ManufacturerSerialNumber,
@@ -359,19 +305,18 @@ const createStockTransferPayload = (record, invTransferRequest, batchData) => {
             DocObjectCode: "67",
             U_IDU_RequestType: "IT",
             StockTransferLines: [{
-              ItemCode: lineItem.ItemCode,
-              Quantity: lineItem.Quantity,
-              WarehouseCode: lineItem.WarehouseCode,
-              FromWarehouseCode: lineItem.FromWarehouseCode,
-              BaseType: "1250000001",
-              BaseLine: lineItem.LineNum,
-              BaseEntry: invTransferRequest.DocEntry,
-              BatchNumbers: batchNumbers,
-              StockTransferLinesBinAllocations: []
+                ItemCode: lineItem.ItemCode,
+                Quantity: lineItem.Quantity,
+                WarehouseCode: lineItem.WarehouseCode,
+                FromWarehouseCode: lineItem.FromWarehouseCode,
+                BaseType: "1250000001",
+                BaseLine: lineItem.LineNum,
+                BaseEntry: invTransferRequest.DocEntry,
+                BatchNumbers: batchNumbers,
+                StockTransferLinesBinAllocations: []
             }]
         };
     }
-    
 };
 
 const postStockTransferToSAP = async (payload, sessionCookie) => {
@@ -414,7 +359,7 @@ const updateRecordStatus = async (id, joStatus, note, docNum, docEntry, pool, po
                 WHERE id = @id OR (@PO_NO IS NOT NULL AND PO_NO = @PO_NO);
             `);
 
-            await pool.request()
+        await pool.request()
             .input('DO_NO', sql.Int, pono)
             .input('joStatus', sql.Int, joStatus)
             .input('note', sql.NVarChar, note)
@@ -434,19 +379,54 @@ const updateRecordStatus = async (id, joStatus, note, docNum, docEntry, pool, po
     }
 };
 
-const sendWhatsAppNotification = async (poNo, existingDocNum, existingDocEntry, note, isSuccess, pool) => {
+// Mengubah sendWhatsAppNotification menjadi sendAllNotifications
+const sendAllNotifications = async (poNo, existingDocNum, existingDocEntry, note, isSuccess, pool) => {
     let finalDocNum = existingDocNum;
     let finalDocEntry = existingDocEntry;
     const finalNote = note;
+
     if (isSuccess && (!finalDocNum || !finalDocEntry) && poNo) {
         try {
             const docEntryFromOwtq = await getDocEntryFromOWTQ(poNo, pool);
             if (docEntryFromOwtq) {
+                // Tambahkan logika untuk mendapatkan DocNum dan DocEntry dari Stock Transfer jika diperlukan
+            }
+        } catch (queryError) {
+            console.error(`Gagal mencari DocNum/DocEntry di dalam sendAllNotifications: ${queryError.message}`);
+        }
+    }
+
+    const whatsappStatusText = isSuccess ? 'SUCCESS' : 'FAILED';
+    const whatsappMessage = formatWhatsAppMessage(poNo, finalDocNum, finalDocEntry, finalNote, isSuccess, whatsappStatusText);
+    const telegramMessage = `*STO Processing - ${isSuccess ? 'SUCCESS' : 'FAILED'}*\n\n*DocNum (OWTQ):* ${poNo}\n*DocNum (OWTR):* ${finalDocNum || 'N/A'}\n*DocEntry (OWTR):* ${finalDocEntry || 'N/A'}\n\n*Details:*\n${finalNote}`;
+
+    // Kirim notifikasi WhatsApp
+    const whatsappResult = await sendWhatsAppNotification(poNo, finalDocNum, finalDocEntry, finalNote, isSuccess, pool);
+
+    // Kirim notifikasi Telegram
+    await sendTelegramNotification(telegramMessage, isSuccess);
+
+    return {
+        whatsapp: whatsappResult
+    };
+};
+
+const sendWhatsAppNotification = async (poNo, existingDocNum, existingDocEntry, note, isSuccess, pool) => {
+    let finalDocNum = existingDocNum;
+    let finalDocEntry = existingDocEntry;
+    const finalNote = note;
+
+    if (isSuccess && (!finalDocNum || !finalDocEntry) && poNo) {
+        try {
+            const docEntryFromOwtq = await getDocEntryFromOWTQ(poNo, pool);
+            if (docEntryFromOwtq) {
+                // Tambahkan logika untuk mendapatkan DocNum dan DocEntry dari Stock Transfer jika diperlukan
             }
         } catch (queryError) {
             console.error(`Gagal mencari DocNum/DocEntry di dalam sendWhatsAppNotification: ${queryError.message}`);
         }
     }
+
     const groupId = isSuccess ? WHATSAPP_CONFIG.successGroup : WHATSAPP_CONFIG.failureGroup;
     const statusText = isSuccess ? 'SUCCESS' : 'FAILED';
     const message = formatWhatsAppMessage(poNo, finalDocNum, finalDocEntry, finalNote, isSuccess, statusText);
@@ -461,13 +441,6 @@ const sendWhatsAppNotification = async (poNo, existingDocNum, existingDocEntry, 
             },
             timeout: 10000
         });
-        // console.log('------------------------------------------------------------------------------------');
-        // console.log('Notifikasi WhatsApp terkirim:', {
-        //     poNo,
-        //     docNum: finalDocNum,
-        //     status: statusText,
-        //     messageId: response.data?.id || null
-        // });
         return { success: true, messageId: response.data?.id || null };
     } catch (error) {
         console.log('------------------------------------------------------------------------------------');
@@ -493,9 +466,8 @@ const resetNotificationStatus = async (poNo, pool) => {
         await pool.request()
             .input('poNo', sql.VarChar, poNo)
             .query('UPDATE r_grpo_coldspace SET iswa = NULL WHERE PO_NO = @poNo');
-
         
-            await pool.request()
+        await pool.request()
             .input('poNo', sql.VarChar, poNo)
             .query('UPDATE r_dn_coldspace SET iswa = NULL WHERE DO_NO = @poNo');
     } catch (error) {

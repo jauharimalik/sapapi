@@ -37,9 +37,13 @@ const WHATSAPP_CONFIG = {
     failureGroup: '120363421138507049@g.us'
 };
 
+const TELEGRAM_CONFIG = {
+    successUrl: 'http://192.168.60.14:40200/group-cs-success',
+    failureUrl: 'http://192.168.60.14:40200/group-cs-error'
+};
+
 const httpsAgent = new https.Agent({ rejectUnauthorized: false });
 
-// Helper function to convert date format yymmdd to yyyy-mm-dd
 function convertVfdatToExpiryDate(vfdat) {
     if (!vfdat || vfdat.length !== 6) {
         return null;
@@ -50,7 +54,6 @@ function convertVfdatToExpiryDate(vfdat) {
     return `${year}-${month}-${day}`;
 }
 
-// Function to get Goods Receipt series from the database
 async function getGoodsReceiptSeries(pool) {
     try {
         const query = `
@@ -70,7 +73,6 @@ async function getGoodsReceiptSeries(pool) {
     }
 }
 
-// Function to get Goods Issue series from the database
 async function getGoodsIssueSeries(pool) {
     try {
         const query = `
@@ -211,7 +213,7 @@ async function createGoodsIssue(issueData, sessionCookie) {
         );
         return response.data;
     } catch (error) {
-        // throw new Error(`Gagal membuat Goods Issue: ${error.response?.data?.error?.message?.value || error.message}`);
+        throw new Error(`Gagal membuat Goods Issue: ${error.response?.data?.error?.message?.value || error.message}`);
     }
 }
 
@@ -290,6 +292,19 @@ async function sendWhatsAppNotification(poNo, docNum, docEntry, note, isSuccess)
     }
 }
 
+async function sendTelegramNotification(note, isSuccess) {
+    const url = isSuccess ? TELEGRAM_CONFIG.successUrl : TELEGRAM_CONFIG.failureUrl;
+    note = note.replace(/\n/g, ' ');
+    try {
+        await axios.post(url, { message: note }, { timeout: 10000 });
+        console.log(`Notifikasi Telegram berhasil dikirim ke endpoint ${url}`);
+        return { success: true };
+    } catch (error) {
+        console.error(`Gagal mengirim notifikasi Telegram ke endpoint ${url}:`, error.message);
+        return { success: false, error: error.message };
+    }
+}
+
 function formatWhatsAppMessage(poNo, docNum, docEntry, note, statusText) {
     const header = `*Production Order Processing - ${statusText}*`;
     let docInfo = `*Production Order Number:* ${poNo}`;
@@ -319,7 +334,6 @@ async function processProductionOrders() {
             return;
         }
 
-        // Get the dynamic series numbers once before the loop
         const goodsReceiptSeries = await getGoodsReceiptSeries(pool);
         const goodsIssueSeries = await getGoodsIssueSeries(pool);
 
@@ -328,7 +342,9 @@ async function processProductionOrders() {
                 if (record.QTYPO <= 0) {
                     const note = 'Kuantitas nol atau tidak valid';
                     await updateRecordStatus(record.id, record.PO_NO, 0, note, null, null, pool);
+                    await sendTelegramNotification(note, false);
                     await sendWhatsAppNotification(record.PO_NO, null, null, note, false);
+                    
                     continue;
                 }
 
@@ -336,6 +352,7 @@ async function processProductionOrders() {
                 
                 if (woDataResult.error) {
                     await updateRecordStatus(record.id, record.PO_NO, 0, woDataResult.error, null, null, pool);
+                    await sendTelegramNotification(woDataResult.error, false);
                     await sendWhatsAppNotification(record.PO_NO, null, null, woDataResult.error, false);
                     continue;
                 }
@@ -344,6 +361,7 @@ async function processProductionOrders() {
                 if (woData.ProductionOrderStatus === 'boposClosed') {
                     const note = 'Dokumen Production Order sudah selesai (closed).';
                     await updateRecordStatus(record.id, record.PO_NO, 3, note, woData.DocumentNumber, woData.AbsoluteEntry, pool);
+                    await sendTelegramNotification(note, true);
                     await sendWhatsAppNotification(record.PO_NO, woData.DocumentNumber, woData.AbsoluteEntry, note, true);
                     continue;
                 }
@@ -358,7 +376,6 @@ async function processProductionOrders() {
                 const hhmmss = `${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
                 const expiryDate = convertVfdatToExpiryDate(record.VFDAT);
 
-                // --- BAGIAN GOODS ISSUE ---
                 const issueLines = [];
                 for (const line of woData.ProductionOrderLines) {
                     if (line.PlannedQuantity > 0) {
@@ -388,13 +405,13 @@ async function processProductionOrders() {
                 const goodsIssuePayload = {
                     "DocDate": docDate,
                     "DocDueDate": docDate,
-                    "Series": goodsIssueSeries, // Menggunakan series dinamis
+                    "Series": goodsIssueSeries,
                     "FromWarehouse": woData.Warehouse,
                     "JournalMemo": `Production Order - ${woData.ItemNo}`,
                     "DocumentLines": issueLines
                 };
 
-                // console.log(`Payload Goods Issue untuk PO ${record.PO_NO}:`);
+                console.log(`Payload Goods Issue untuk PO ${record.PO_NO}:`);
                 console.log(JSON.stringify(goodsIssuePayload, null, 2));
 
                 const totalIssuedQuantity = woData.ProductionOrderLines.reduce((sum, line) => sum + line.IssuedQuantity, 0);
@@ -403,15 +420,15 @@ async function processProductionOrders() {
                     const note = 'Tidak dapat melakukan Goods Issue. Semua bahan baku yang dibutuhkan sudah dikeluarkan.';
                     console.error(note);
                     await updateRecordStatus(record.id, record.PO_NO, 0, note, null, null, pool);
+                    await sendTelegramNotification(note, false);
                     await sendWhatsAppNotification(record.PO_NO, null, null, note, false);
                 } else {
                     const goodsIssueResult = await createGoodsIssue(goodsIssuePayload, sessionCookie);
-                    // console.log(`Goods Issue berhasil dibuat untuk PO ${record.PO_NO} `);
+                    console.log(`Goods Issue berhasil dibuat untuk PO ${record.PO_NO} `);
                 }
 
-                // --- BAGIAN GOODS RECEIPT ---
                 const goodsReceiptPayload = {
-                    "Series": goodsReceiptSeries, // Menggunakan series dinamis
+                    "Series": goodsReceiptSeries,
                     "FromWarehouse": woData.Warehouse,
                     "JournalMemo": woData.JournalRemarks,
                     "DocumentLines": [
@@ -441,6 +458,7 @@ async function processProductionOrders() {
                     const note = 'Tidak dapat melakukan Goods Receipt. Kuantitas selesai sudah memenuhi kuantitas yang direncanakan.';
                     console.error(note);
                     await updateRecordStatus(record.id, record.PO_NO, 0, note, null, null, pool);
+                    await sendTelegramNotification(note, false);
                     await sendWhatsAppNotification(record.PO_NO, null, null, note, false);
                     continue;
                 }else{
@@ -448,7 +466,8 @@ async function processProductionOrders() {
                     console.log(`Goods Receipt berhasil dibuat untuk PO ${record.PO_NO}`);
                     const successNote = `Berhasil memproses Production Order ${record.PO_NO}`;
                     await updateRecordStatus(record.id, record.PO_NO, 3, successNote, null, null, pool);
-                    await sendWhatsAppNotification(record.PO_NO, null, null, successNote, true);    
+                    await sendTelegramNotification(successNote, true);
+                    await sendWhatsAppNotification(record.PO_NO, null, null, successNote, true);    
                 }
 
             } catch (error) {
@@ -457,11 +476,13 @@ async function processProductionOrders() {
                     note = `Berhasil memproses Production Order ${record.PO_NO} (Disassembly)`;
                     status = 3;
                     console.log(`Goods Receipt berhasil dibuat untuk PO ${record.PO_NO}`);
+                    await sendTelegramNotification(note, true);
                     await sendWhatsAppNotification(record.PO_NO, null, null, note, true);
                 } else {
                     note = `Gagal memproses Production Order ${record.PO_NO}: ${error.message}`;
                     status = error.message.includes('already exists') ? 4 : 0;
                     console.error(`Error processing record ${record.PO_NO}:`, note);
+                    await sendTelegramNotification(note, false);
                     await sendWhatsAppNotification(record.PO_NO, null, null, note, false);
                 }
                 await updateRecordStatus(record.id, record.PO_NO, status, note, null, null, pool);

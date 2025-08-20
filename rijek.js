@@ -36,8 +36,62 @@ const WHATSAPP_CONFIG = {
     failureGroup: '120363421138507049@g.us'
 };
 
+// --- Konfigurasi Telegram yang diperbarui ---
+const TELEGRAM_CONFIG = {
+    successUrl: 'http://192.168.60.14:40200/group-cs-success',
+    failureUrl: 'http://192.168.60.14:40200/group-cs-error'
+};
 
-async function getDfltwhForSKU(sku) {
+
+// Fungsi untuk mengirim notifikasi Telegram
+const sendTelegramNotification = async (message, isSuccess) => {
+    const apiUrl = isSuccess ? TELEGRAM_CONFIG.successUrl : TELEGRAM_CONFIG.failureUrl;
+    try {
+        await axios.post(apiUrl, { message });
+        console.log(`Notifikasi Telegram ${isSuccess ? 'berhasil' : 'gagal'} terkirim.`);
+    } catch (error) {
+        console.error(`Gagal mengirim notifikasi Telegram: ${error.message}`);
+    }
+};
+
+
+// Perbaikan dalam fungsi sendAllNotifications
+const sendAllNotifications = async (poNo, existingDocNum, existingDocEntry, note, isSuccess, pool) => {
+    let finalDocNum = existingDocNum;
+    let finalDocEntry = existingDocEntry;
+    const finalNote = note;
+
+    if (isSuccess && (!finalDocNum || !finalDocEntry) && poNo) {
+        try {
+            const docEntryFromDN = await getDocEntryFromDeliveryNote(poNo, pool);
+            if (docEntryFromDN) {
+                const finalData = await getFinalReturnsData(docEntryFromDN, pool);
+                if (finalData) {
+                    finalDocEntry = finalData.ReturnsDocEntry;
+                    finalDocNum = finalData.ReturnsDocNum;
+                }
+            }
+        } catch (queryError) {
+            console.error(`Gagal mencari DocNum/DocEntry di dalam sendAllNotifications: ${queryError.message}`);
+        }
+    }
+
+    const whatsappStatusText = isSuccess ? 'SUCCESS' : 'FAILED';
+    const whatsappMessage = formatWhatsAppMessage(poNo, finalDocNum, finalDocEntry, finalNote, isSuccess, whatsappStatusText);
+    const telegramMessage = `*GR Rejection COLDSPACE PROCESSING - ${isSuccess ? 'SUCCESS' : 'FAILED'}*\n\n*PO No:* ${poNo}\n*Returns Doc Num:* ${finalDocNum || 'N/A'}\n*Returns Doc Entry:* ${finalDocEntry || 'N/A'}\n\n*Details:*\n${finalNote}`;
+
+    // Kirim notifikasi WhatsApp
+    const whatsappResult = await sendWhatsAppNotification(poNo, finalDocNum, finalDocEntry, finalNote, isSuccess, pool);
+
+    // Kirim notifikasi Telegram
+    await sendTelegramNotification(telegramMessage, isSuccess);
+
+    return {
+        whatsapp: whatsappResult
+    };
+};
+
+function getDfltwhForSKU(sku) {
     if (sku === 'G502') return 'BS03';
     if (sku === 'K102') return 'BS04';
     if (sku === 'F001') return 'BS02';
@@ -48,18 +102,15 @@ function convertDate(dateString) {
     if (typeof dateString !== 'string' || dateString.length !== 6) {
       return 'Invalid date format. Please use "yymmdd".';
     }
-  
     const year = "20" + dateString.substring(0, 2);
     const month = dateString.substring(2, 4);
     const day = dateString.substring(4, 6);
-  
     return `${day}-${month}-${year}`;
-  }
+}
 
 const processReturnsColdspace = async () => {
     let pool;
     try {
-
         pool = await sql.connect(DB_CONFIG);
         const result = await pool.request()
             .query(`SELECT 
@@ -100,7 +151,7 @@ const processReturnsColdspace = async () => {
                 if (record.QTYPO <= 0) {
                     const note = 'Kuantitas nol atau tidak valid';
                     await updateRecordStatus(record.id, 0, note, null, null, pool);
-                    await sendWhatsAppNotification(record.PO_NO, null, null, `Gagal: ${note}`, false, pool);
+                    await sendAllNotifications(record.PO_NO, null, null, `Gagal: ${note}`, false, pool);
                     continue;
                 }
 
@@ -115,13 +166,12 @@ const processReturnsColdspace = async () => {
                     sukses = 1;
                     
                     await updateRecordStatus(record.id, 0, note, null, null, pool);
-                    await sendWhatsAppNotification(record.PO_NO, null, null, `Gagal: ${note}`, false, pool);
+                    await sendAllNotifications(record.PO_NO, null, null, `Gagal: ${note}`, false, pool);
                     continue;
                 }
 
                 const deliveryNote = await getDeliveryNoteFromSAP(docEntry, sessionCookie);
                 let validationResult = validateVfdatWithExpDate(record, deliveryNote);
-                
                 
                 let warehouseCode;
                 let dfltwh = await getDfltwhForSKU(record.sub_vendor); 
@@ -158,7 +208,7 @@ const processReturnsColdspace = async () => {
                         console.log('------------------------------------------------------------------------------------');
                         console.log(`SKU: ${record.SKU} | WHS: ${vendor} | Error-4: ${note}`);
                         await updateRecordStatus(record.id, 0, note, null, null, pool);
-                        await sendWhatsAppNotification(record.PO_NO, null, null, `Gagal: ${note}`, false, pool);
+                        await sendAllNotifications(record.PO_NO, null, null, `Gagal: ${note}`, false, pool);
                         continue;
                     }
                     validationResult = { isValid: true, batchData: batchDataFromOBTN };
@@ -170,13 +220,9 @@ const processReturnsColdspace = async () => {
                 if (returnsPostResult?.error) {
                     const status = returnsPostResult.message.includes('closed') ? 3 : 0;
                     const note = status === 3 ? `Berhasil diproses sebagai Returns` : `Gagal: ${returnsPostResult.message}`;
-                    // await updateRecordStatus(record.id, status, returnsPostResult.message, null, null, pool);
-                    // await sendWhatsAppNotification(record.PO_NO, null, null, note, false, pool);
                     
-                    // console.log('------------------------------------------------------------------------------------');
-                    // console.log(`DocEntry Returns: ${ReturnsDocEntry} | DocNum Returns: ${ReturnsDocNum}`);
                     await updateRecordStatus(record.id, status, note, ReturnsDocNum, ReturnsDocEntry, pool);
-                    await sendWhatsAppNotification(record.PO_NO, ReturnsDocNum, ReturnsDocEntry, note, true, pool);
+                    await sendAllNotifications(record.PO_NO, ReturnsDocNum, ReturnsDocEntry, note, true, pool);
                     continue;
                 }
 
@@ -188,11 +234,11 @@ const processReturnsColdspace = async () => {
                     console.log('------------------------------------------------------------------------------------');
                     console.log(`DocEntry Returns: ${ReturnsDocEntry} | DocNum Returns: ${ReturnsDocNum}`);
                     await updateRecordStatus(record.id, 3, successNote, ReturnsDocNum, ReturnsDocEntry, pool);
-                    await sendWhatsAppNotification(record.PO_NO, ReturnsDocNum, ReturnsDocEntry, successNote, true, pool);
+                    await sendAllNotifications(record.PO_NO, ReturnsDocNum, ReturnsDocEntry, successNote, true, pool);
                 } else {
                     const note = 'Gagal: Returns tidak ditemukan setelah posting';
                     await updateRecordStatus(record.id, 0, note, null, null, pool);
-                    await sendWhatsAppNotification(record.PO_NO, null, null, `Gagal: ${note}`, false, pool);
+                    await sendAllNotifications(record.PO_NO, null, null, `Gagal: ${note}`, false, pool);
                 }
 
             } catch (error) {
@@ -201,7 +247,7 @@ const processReturnsColdspace = async () => {
                     : error.message;
                 const status = note.includes('already closed') ? 4 : 0;
                 await updateRecordStatus(record.id, status, note, null, null, pool);
-                await sendWhatsAppNotification(record.PO_NO, null, null, `Gagal: ${note}`, false, pool);
+                await sendAllNotifications(record.PO_NO, null, null, `Gagal: ${note}`, false, pool);
             }
         }
 
@@ -248,7 +294,7 @@ const getDocEntryFromDeliveryNote = async (poNo, pool) => {
         console.log('------------------------------------------------------------------------------------');
         console.log(`Process: ${poNo} | Error-1: ${error.message}`);
         await updateRecordStatus(null, 0, error.message, null, null, pool, poNo);
-        await sendWhatsAppNotification(poNo, null, null, `Gagal: ${error.message}`, false, pool);
+        await sendAllNotifications(poNo, null, null, `Gagal: ${error.message}`, false, pool);
         return null;
     }
 };
@@ -294,7 +340,6 @@ const validateVfdatWithExpDate = (record, deliveryNote) => {
 };
 
 const getBatchDataFromOBTN = async (itemCode, whsCode, ExpDate, pool) => {
-
     try {
         const query = `
             SELECT TOP 1
@@ -305,7 +350,7 @@ const getBatchDataFromOBTN = async (itemCode, whsCode, ExpDate, pool) => {
             inner join [pksrv-sap].test.dbo.oitm t2 on t1.itemcode = t2.itemcode
             WHERE T1.ItemCode = '${itemCode}' AND 
             (T1.WhsCode = '${whsCode}' or t1.whscode = t2.dfltwh) AND T1.Quantity > 0
-            AND t1.batchnum  like '${ExpDate}%'
+            AND t1.batchnum like '${ExpDate}%'
             ORDER BY T1.ExpDate ASC
         `;
 
@@ -401,9 +446,9 @@ const postReturnsToSAP = async (payload, sessionCookie,record=null,pool) => {
         return response.data;
     } catch (error) {
         const errorMessage = error.response?.data?.error?.message?.value ||
-                             error.response?.statusText ||
-                             error.message ||
-                             'Terjadi kesalahan tidak dikenal.';
+                                     error.response?.statusText ||
+                                     error.message ||
+                                     'Terjadi kesalahan tidak dikenal.';
         
         console.log('------------------------------------------------------------------------------------');
         console.log('Error-3:', errorMessage);
@@ -412,8 +457,8 @@ const postReturnsToSAP = async (payload, sessionCookie,record=null,pool) => {
         console.log('------------------------------------------------------------------------------------');
         console.log(`DocEntry Returns: ${ReturnsDocEntry} | DocNum Returns: ${null}`);
         await updateRecordStatus(record.id, 3, successNote, null, null, pool);
-        await sendWhatsAppNotification(record.PO_NO, null, null, successNote, true, pool);
-       
+        await sendAllNotifications(record.PO_NO, null, null, successNote, true, pool);
+        
         return { error: true, message: errorMessage };
     }
 };
@@ -496,21 +541,10 @@ const sendWhatsAppNotification = async (poNo, existingDocNum, existingDocEntry, 
             timeout: 10000
         });
 
-        // console.log('------------------------------------------------------------------------------------');
-        // console.log('Notifikasi WhatsApp terkirim:', {
-        //     poNo,
-        //     docNum: finalDocNum,
-        //     status: statusText,
-        //     messageId: response.data?.id || null
-        // });
-
         return { success: true, messageId: response.data?.id || null };
     } catch (error) {
-
         console.log('------------------------------------------------------------------------------------');
         console.log('Gagal mengirim notifikasi WhatsApp:');
-        // console.log('------------------------------------------------------------------------------------');
-        // console.log('Gagal mengirim notifikasi WhatsApp:', error);
         if (isSuccess) await resetNotificationStatus(poNo, pool);
         return { success: false, error: error.message };
     }
@@ -543,6 +577,7 @@ const initialize = async () => {
             console.log('------------------------------------------------------------------------------------');
             console.log(`Error: ${error}`);
             console.log('------------------------------------------------------------------------------------');
+            // sendTelegramNotification(`Startup Tukar Guling failed: ${error.message}`, false);
         });
 
         console.log('------------------------------------------------------------------------------------');
@@ -552,6 +587,7 @@ const initialize = async () => {
         });
     } catch (error) {
         console.error('Startup failed:', error);
+        // sendTelegramNotification(`Startup Tukar Guling failed: ${error.message}`, false);
         process.exit(1);
     }
 };
