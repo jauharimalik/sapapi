@@ -38,8 +38,8 @@ const WHATSAPP_CONFIG = {
 
 // --- Konfigurasi Telegram yang diperbarui ---
 const TELEGRAM_CONFIG = {
-    successUrl: 'http://192.168.60.14:40200/group-cs-success',
-    failureUrl: 'http://192.168.60.14:40200/group-cs-error'
+    successUrl: 'http://192.168.100.202:40200/group-cs-success',
+    failureUrl: 'http://192.168.100.202:40200/group-cs-error'
 };
 
 

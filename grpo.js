@@ -2,8 +2,9 @@ const app = require('./app');
 const axios = require('axios');
 const sql = require('mssql');
 const FormData = require('form-data');
-const notificationService = require('./services/notificationService'); // Tambahkan ini
+const notificationService = require('./services/notificationService');
 
+// Konfigurasi
 const SAP_CONFIG = {
     BASE_URL: 'https://192.168.101.254:50000/b1s/v2',
     COMPANY_DB: 'TEST',
@@ -37,8 +38,42 @@ const WHATSAPP_CONFIG = {
     failureGroup: '120363421138507049@g.us'
 };
 
+// Logger utility
+const logger = {
+    info: (message, data = null) => {
+        console.log(`[INFO] ${new Date().toISOString()}: ${message}`);
+        if (data) console.log('Data:', JSON.stringify(data, null, 2));
+    },
+    
+    error: (message, error = null) => {
+        console.error(`[ERROR] ${new Date().toISOString()}: ${message}`);
+        if (error) {
+            console.error('Error details:', error.response?.data || error.message);
+        }
+    },
+    
+    warn: (message) => {
+        console.warn(`[WARN] ${new Date().toISOString()}: ${message}`);
+    },
+    
+    separator: () => {
+        console.log('─'.repeat(80));
+    },
+    
+    section: (title) => {
+        logger.separator();
+        console.log(`📋 ${title.toUpperCase()}`);
+        logger.separator();
+    },
+    
+    poProcessing: (poNumber, action) => {
+        console.log(`📦 PO ${poNumber}: ${action}`);
+    }
+};
+
 async function loginToSAP() {
     try {
+        logger.info('Attempting SAP login...');
         const response = await axios.post(
             `${SAP_CONFIG.BASE_URL}/Login`,
             {
@@ -50,9 +85,14 @@ async function loginToSAP() {
                 httpsAgent: new (require('https').Agent)({ rejectUnauthorized: false })
             }
         );
+        
+        logger.info('SAP login successful');
         return response.headers['set-cookie'].join('; ');
     } catch (error) {
-        const note = `Gagal login ke SAP: ${error.response?.data?.error?.message?.value || error.message}`;
+        const errorMessage = error.response?.data?.error?.message?.value || error.message;
+        const note = `Gagal login ke SAP: ${errorMessage}`;
+        
+        logger.error('SAP login failed', error);
         await notificationService.sendTelegramNotification(note, false);
         throw new Error(note);
     }
@@ -61,27 +101,32 @@ async function loginToSAP() {
 async function getPODataFromSAP(poNumber, sessionCookie) {
     const pool = await sql.connect(DB_CONFIG);
     let query = `SELECT DocEntry FROM [pksrv-sap].test.dbo.OPOR WHERE DocNum = '${poNumber}'`;
+    
+    logger.info(`Querying SAP for PO: ${poNumber}`);
     const result = await pool.request().query(query);
 
     if (result.recordset.length === 0) {
-        const note = `Error: PO ${poNumber} Tidak Ditemukan`;
-        console.log('------------------------------------------------------------------------------------');
-        console.log(note);
+        const note = `PO ${poNumber} Tidak Ditemukan di SAP`;
+        
+        logger.warn(note);
+        logger.separator();
         
         await pool.request()
-        .input('PO_NO', sql.Int, poNumber)
-        .input('note', sql.NVarChar, note)
-        .query(`
-            UPDATE r_grpo_coldspace
-            SET jo_status = 0, note = @note, iswa = 1
-            WHERE PO_NO = @PO_NO;
-        `);
+            .input('PO_NO', sql.Int, poNumber)
+            .input('note', sql.NVarChar, note)
+            .query(`
+                UPDATE r_grpo_coldspace
+                SET jo_status = 0, note = @note, iswa = 1
+                WHERE PO_NO = @PO_NO;
+            `);
         
         await sendWhatsAppNotification(poNumber, null, null, note, false, pool);
         await notificationService.sendTelegramNotification(note, false);
         return null;
     } else {
         const docEntry = result.recordset[0].DocEntry;
+        logger.info(`Found PO ${poNumber} with DocEntry: ${docEntry}`);
+        
         const response = await axios.get(
             `${SAP_CONFIG.BASE_URL}/PurchaseOrders(${docEntry})`,
             {
@@ -89,6 +134,8 @@ async function getPODataFromSAP(poNumber, sessionCookie) {
                 httpsAgent: new (require('https').Agent)({ rejectUnauthorized: false })
             }
         );
+        
+        logger.info(`Successfully retrieved PO data for ${poNumber}`);
         return response.data;
     }
 }
@@ -99,14 +146,18 @@ async function getPOItemsFromDB(poNumber) {
     (select top 1 t1.NumPerMsr from [pksrv-sap].test.dbo.POR1 T1 where T0.SKU collate database_default = T1.ItemCode and t0.SKU collate database_default = t1.itemcode)as NumPerMsr
     FROM r_grpo_coldspace t0
     WHERE t0.PO_NO = '${poNumber}' AND t0.TRK_TYPE = 'ITEM' and jo_status is null `;
-    console.log(query);
-
+    
+    logger.info(`Querying database items for PO: ${poNumber}`);
     const result = await pool.request().query(query);
+    
+    logger.info(`Found ${result.recordset.length} items for PO ${poNumber}`);
     return result.recordset;
 }
 
 async function createGRPODraft(grpoData, sessionCookie, poNumber, pool) {
     try {
+        logger.poProcessing(poNumber, 'Creating GRPO draft...');
+        
         const cleanGrpoData = {
             DocObjectCode: grpoData.DocObjectCode,
             CardCode: grpoData.CardCode,
@@ -135,20 +186,25 @@ async function createGRPODraft(grpoData, sessionCookie, poNumber, pool) {
                 httpsAgent: new (require('https').Agent)({ rejectUnauthorized: false })
             }
         );
+        
+        logger.poProcessing(poNumber, 'GRPO draft created successfully');
         return response.data;
     } catch (error) {
         const errorMessage = error.response?.data?.error?.message?.value || error.message;
-        console.log('------------------------------------------------------------------------------------');
-        console.log('Error details:', error.response?.data || error.message);
+        
+        logger.error(`Error creating draft for PO ${poNumber}`, error);
 
         if (errorMessage.includes('closed')) {
             const successNote = 'Berhasil memproses GRPO. Dokumen dasar sudah ditutup.';
+            logger.poProcessing(poNumber, successNote);
+            
             await updateMultipleRecordsStatus(poNumber, 3, successNote, null, null, pool);
             await sendWhatsAppNotification(poNumber, null, null, successNote, true, pool);
             await notificationService.sendTelegramNotification(successNote, true);
         } else {
             const errorNote = `Error saat membuat GRPO draft: ${errorMessage}`;
-            console.error(`Error processing PO ${poNumber}: ${errorNote}`);
+            logger.poProcessing(poNumber, errorNote);
+            
             await updateMultipleRecordsStatus(poNumber, 4, errorNote, null, null, pool);
             await sendWhatsAppNotification(poNumber, null, null, errorNote, false, pool);
             await notificationService.sendTelegramNotification(errorNote, false);
@@ -157,8 +213,10 @@ async function createGRPODraft(grpoData, sessionCookie, poNumber, pool) {
     }
 }
 
-async function createGRPOFromDraft(grpoData, sessionCookie) {
+async function createGRPOFromDraft(grpoData, sessionCookie, poNumber) {
     try {
+        logger.poProcessing(poNumber, 'Creating final GRPO from draft...');
+        
         const cardCode = grpoData.CardCode;
         const docDate = grpoData.DocDate;
         const docDueDate = grpoData.DocDueDate;
@@ -221,17 +279,19 @@ async function createGRPOFromDraft(grpoData, sessionCookie) {
             throw new Error("Gagal membuat GRPO - tidak mendapatkan DocEntry dari response");
         }
 
+        logger.poProcessing(poNumber, `GRPO created successfully - DocEntry: ${response.data.DocEntry}, DocNum: ${response.data.DocNum}`);
         return response.data;
     } catch (error) {
         const errorMessage = error.response?.data?.error?.message?.value || error.message;
-        console.log('------------------------------------------------------------------------------------');
-        console.log('Error details:', error.response?.data || error.message);
+        logger.error(`Error creating final GRPO for PO ${poNumber}`, error);
         throw new Error(`Error saat membuat GRPO: ${errorMessage}`);
     }
 }
 
 async function updateMultipleRecordsStatus(poNumber, joStatus, note, docNum, docEntry, pool) {
     try {
+        logger.info(`Updating status for PO ${poNumber} to ${joStatus}`);
+        
         await pool.request()
             .input('PO_NO', sql.Int, poNumber)
             .input('joStatus', sql.Int, joStatus)
@@ -247,8 +307,11 @@ async function updateMultipleRecordsStatus(poNumber, joStatus, note, docNum, doc
                     iswa = CASE WHEN @joStatus = 3 THEN 1 ELSE 0 END
                 WHERE PO_NO = @PO_NO AND TRK_TYPE = 'ITEM';
             `);
+            
+        logger.info(`Status updated successfully for PO ${poNumber}`);
     } catch (error) {
         const updateNote = `Gagal update multiple records status: ${error.message}`;
+        logger.error(updateNote, error);
         await notificationService.sendTelegramNotification(updateNote, false);
         throw new Error(updateNote);
     }
@@ -264,13 +327,16 @@ async function sendWhatsAppNotification(poNo, docNum, docEntry, note, isSuccess,
     form.append('message', message);
     
     try {
+        logger.info(`Sending WhatsApp notification for PO ${poNo} - Status: ${statusText}`);
         await axios.post(WHATSAPP_CONFIG.apiUrl, form, {
             headers: form.getHeaders(),
             timeout: 10000
         });
+        
+        logger.info(`WhatsApp notification sent successfully for PO ${poNo}`);
         return { success: true };
     } catch (error) {
-        console.error('Gagal mengirim notifikasi WhatsApp:', error.message);
+        logger.error(`Failed to send WhatsApp notification for PO ${poNo}`, error);
         return { success: false, error: error.message };
     }
 }
@@ -295,29 +361,40 @@ async function processGRPO() {
     let pool;
     try {
         pool = await sql.connect(DB_CONFIG);
-        console.log('Memulai proses GRPO...');
+        logger.section('Starting GRPO Processing');
         
         const poListResult = await pool.request()
             .query(`SELECT DISTINCT PO_NO FROM r_grpo_coldspace WHERE TRK_TYPE = 'ITEM' AND (iswa IS NULL OR jo_status IS NULL)`);
         
         if (poListResult.recordset.length === 0) {
-            console.log('Tidak ada data GRPO yang perlu diproses.');
+            logger.info('No GRPO data needs processing');
             return;
         }
         
+        logger.info(`Found ${poListResult.recordset.length} PO(s) to process`);
+        
         const sessionCookie = await loginToSAP();
         if (!sessionCookie) {
-            console.error('Gagal login ke SAP.');
+            logger.error('Failed to login to SAP - aborting process');
             return;
         }
         
         for (const po of poListResult.recordset) {
             const poNumber = po.PO_NO;
+            logger.section(`Processing PO ${poNumber}`);
+            
             try {
                 const poData = await getPODataFromSAP(poNumber, sessionCookie);
                 if (!poData) continue;
 
                 const poItems = await getPOItemsFromDB(poNumber);
+                
+                if (poItems.length === 0) {
+                    logger.warn(`No items found for PO ${poNumber} - skipping`);
+                    continue;
+                }
+                
+                logger.info(`Processing ${poItems.length} items for PO ${poNumber}`);
                 
                 const documentLines = poItems.map(item => {
                     return {
@@ -355,7 +432,7 @@ async function processGRPO() {
                 };
 
                 const draftResult = await createGRPODraft(grpoPayload, sessionCookie, poNumber, pool);
-                const grpoResult = await createGRPOFromDraft(draftResult, sessionCookie);
+                const grpoResult = await createGRPOFromDraft(draftResult, sessionCookie, poNumber);
                 
                 const successNote = 'Berhasil memproses GRPO';
                 const docNum = grpoResult?.DocNum || null;
@@ -365,7 +442,7 @@ async function processGRPO() {
                 await sendWhatsAppNotification(poNumber, docNum, docEntry, successNote, true, pool);
                 await notificationService.sendTelegramNotification(successNote, true);
 
-                console.log(`GRPO berhasil dibuat untuk PO ${poNumber} dengan ${poItems.length} item`);
+                logger.poProcessing(poNumber, `Successfully processed with ${poItems.length} items`);
                 
             } catch (error) {
                 const note = error.message.includes('already exists') 
@@ -373,32 +450,41 @@ async function processGRPO() {
                     : error.message;
                 
                 const status = note.includes('already exists') ? 4 : 0;
-                console.error(`Error processing PO ${poNumber}:`, error);
+                logger.error(`Error processing PO ${poNumber}`, error);
                 
                 await updateMultipleRecordsStatus(poNumber, status, note, null, null, pool);
                 await sendWhatsAppNotification(poNumber, null, null, `Gagal: ${note}`, false, pool);
                 await notificationService.sendTelegramNotification(`Gagal: ${note}`, false);
+            } finally {
+                logger.separator();
             }
         }
+        
+        logger.section('GRPO Processing Completed');
     } catch (error) {
-        console.error('Error dalam proses utama GRPO:', error);
+        logger.error('Error in main GRPO process', error);
         await notificationService.sendTelegramNotification(`Error utama GRPO: ${error.message}`, false);
     } finally {
         if (pool) await pool.close();
+        logger.info('Database connection closed');
     }
 }
 
 // Inisialisasi dan penjadwalan
 const initialize = async () => {
     try {
+        logger.section('Application Startup');
         await processGRPO();
+        
+        // Jadwalkan proses setiap 20 detik
         setInterval(processGRPO, 20000);
+        logger.info('GRPO processor scheduled to run every 20 seconds');
         
         app.listen(32100, () => {
-            console.log('Server ready on port 32100');
+            logger.info('Server ready on port 32100');
         });
     } catch (error) {
-        console.error('Startup failed:', error);
+        logger.error('Startup failed', error);
         await notificationService.sendTelegramNotification(`Startup GRPO failed: ${error.message}`, false);
         process.exit(1);
     }

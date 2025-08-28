@@ -5,8 +5,8 @@ const sql = require('mssql');
 
 // --- Konfigurasi Telegram ---
 const TELEGRAM_CONFIG = {
-    successUrl: 'http://192.168.60.14:40200/group-cs-success',
-    failureUrl: 'http://192.168.60.14:40200/group-cs-error'
+    successUrl: 'http://192.168.100.202:40200/group-cs-success',
+    failureUrl: 'http://192.168.100.202:40200/group-cs-error'
 };
 // --- Akhir Konfigurasi ---
 
@@ -38,6 +38,31 @@ exports.sendNotification = async (doNo, docNum, docEntry, note, isSuccess, pool)
 
     } catch (error) {
         console.error(`Terjadi kesalahan fatal saat mengirim notifikasi untuk DO ${doNo}:`, error.message);
+        return {
+            success: false,
+            error: error.message
+        };
+    }
+};
+
+/**
+ * Mengirim notifikasi ke Telegram saja
+ */
+exports.sendTelegramNotification = async (note, isSuccess) => {
+    try {
+        const url = isSuccess ? TELEGRAM_CONFIG.successUrl : TELEGRAM_CONFIG.failureUrl;
+        const message = note.replace(/\n/g, ' '); // Ganti baris baru dengan spasi untuk Telegram
+        
+        await axios.post(url, { message }, {
+            timeout: 10000
+        });
+
+        console.log(`Notifikasi Telegram berhasil dikirim ke endpoint ${url}`);
+        return {
+            success: true
+        };
+    } catch (error) {
+        console.error(`Gagal mengirim notifikasi Telegram ke endpoint ${url}:`, error.message);
         return {
             success: false,
             error: error.message
