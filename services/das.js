@@ -11,11 +11,11 @@ exports.checkSingleDO = async (doNo, pool) => {
     // 1. Cek informasi dokumen
     const docInfoQuery = `
       SELECT t3.docentry as doc_entry, t3.DocNum as doc_num
-      FROM [pksrv-sap].test.dbo.ORDR T0 WITH (NOLOCK)
-      INNER JOIN [pksrv-sap].test.dbo.RDR1 T1 WITH (NOLOCK) ON T0.DocEntry = T1.DocEntry 
-      LEFT JOIN [pksrv-sap].test.dbo
+      FROM [pksrv-sap].pandurasa_live.dbo.ORDR T0 WITH (NOLOCK)
+      INNER JOIN [pksrv-sap].pandurasa_live.dbo.RDR1 T1 WITH (NOLOCK) ON T0.DocEntry = T1.DocEntry 
+      LEFT JOIN [pksrv-sap].pandurasa_live.dbo
       .DLN1 T2 WITH (NOLOCK) ON T2.BaseEntry = T1.DocEntry AND T2.BaseLine = T1.LineNum AND T2.BaseType = 17
-      LEFT JOIN [pksrv-sap].test.dbo.ODLN T3 WITH (NOLOCK) ON T2.DocEntry = T3.DocEntry
+      LEFT JOIN [pksrv-sap].pandurasa_live.dbo.ODLN T3 WITH (NOLOCK) ON T2.DocEntry = T3.DocEntry
       WHERE t0.docnum = @doNo`;
     
     const docInfoResult = await pool.request()
@@ -92,16 +92,16 @@ exports.checkSingleDO = async (doNo, pool) => {
             WHEN T10.SeriesName LIKE 'LS%' THEN 682
             WHEN T10.SeriesName LIKE 'TG%' THEN 685
           END Series
-        FROM [PKSRV-SAP].[test].DBO.OWTR T2 WITH (NOLOCK)
-        INNER JOIN [PKSRV-SAP].[test].DBO.WTR1 T3 WITH (NOLOCK) ON T2.[DocEntry] = T3.[DocEntry]
-        INNER JOIN [PKSRV-SAP].[test].DBO.OITM T5 WITH (NOLOCK) ON T3.ItemCode = T5.ItemCode
-        LEFT JOIN [PKSRV-SAP].[test].DBO.OWHS T11 WITH (NOLOCK) ON T3.FromWhsCod = T11.WhsCode AND T11.[Location] IS NOT NULL
-        INNER JOIN [PKSRV-SAP].[test].DBO.NNM1 T10 WITH (NOLOCK) ON T2.Series = T10.Series
+        FROM [PKSRV-SAP].[PANDURASA_LIVE].DBO.OWTR T2 WITH (NOLOCK)
+        INNER JOIN [PKSRV-SAP].[PANDURASA_LIVE].DBO.WTR1 T3 WITH (NOLOCK) ON T2.[DocEntry] = T3.[DocEntry]
+        INNER JOIN [PKSRV-SAP].[PANDURASA_LIVE].DBO.OITM T5 WITH (NOLOCK) ON T3.ItemCode = T5.ItemCode
+        LEFT JOIN [PKSRV-SAP].[PANDURASA_LIVE].DBO.OWHS T11 WITH (NOLOCK) ON T3.FromWhsCod = T11.WhsCode AND T11.[Location] IS NOT NULL
+        INNER JOIN [PKSRV-SAP].[PANDURASA_LIVE].DBO.NNM1 T10 WITH (NOLOCK) ON T2.Series = T10.Series
         LEFT JOIN (
           SELECT T6.ITEMCODE, BATCHNUM, BASEENTRY, BASENUM, BSDOCENTRY, BASELINNUM, T6.Quantity, BASETYPE
-          FROM [PKSRV-SAP].[test].DBO.IBT1 T6 WITH (NOLOCK)
+          FROM [PKSRV-SAP].[PANDURASA_LIVE].DBO.IBT1 T6 WITH (NOLOCK)
         ) T6 ON T3.DocEntry = T6.BaseEntry AND T6.BaseType = 67 AND T3.ItemCode = T6.ItemCode and T6.BaseType = 67 
-        LEFT JOIN [PKSRV-SAP].[test].DBO.OBTN T7 WITH (NOLOCK) ON T6.ItemCode = T7.ItemCode AND T6.BatchNum = T7.DistNumber
+        LEFT JOIN [PKSRV-SAP].[PANDURASA_LIVE].DBO.OBTN T7 WITH (NOLOCK) ON T6.ItemCode = T7.ItemCode AND T6.BatchNum = T7.DistNumber
         WHERE T2.Docnum = @doNo and CONVERT(date, T2.DocDate) > '2025-07-01'
         GROUP BY T3.[ItemCode], T5.FrgnName, T2.DocDueDate, T3.[Dscription], T5.[FrgnName], T3.[WhsCode], T2.Filler, T11.WhsName, 
           T3.LineNum, T6.BatchNum, T3.UomCode, PRICE, CardName, T2.[DocDate], T2.[DocNum], T7.ExpDate, T5.ItemName, 
@@ -212,7 +212,7 @@ exports.checkSingleDO = async (doNo, pool) => {
         const currentDoNo = doNo;
         const getDocEntryQuery = `
             SELECT DocEntry
-            FROM [pksrv-sap].test.dbo.OIGE
+            FROM [pksrv-sap].pandurasa_live.dbo.OIGE
             WHERE Comments LIKE '%${currentDoNo}%'`;
 
         let docEntryFromOIGE = null;
@@ -447,7 +447,7 @@ exports.dnbund = async (pool) => {
   try {
       const docEntryQuery = `
           SELECT T0.DocEntry, T1.DO_NO, T1.doc_num
-          FROM [pksrv-sap].test.dbo.ODLN T0 WITH (NOLOCK)
+          FROM [pksrv-sap].pandurasa_live.dbo.ODLN T0 WITH (NOLOCK)
           INNER JOIN r_dn_coldspace T1 WITH (NOLOCK) ON T0.DocEntry = T1.doc_entry
           WHERE T1.ORDER_TYPE LIKE '%bund%'
           AND T0.U_BUNDLING_CS IS NULL;

@@ -1,10 +1,10 @@
 const notificationService = require('../services/notificationService');
 
-exports.sendTestNotification = async (req, res) => {
+exports.sendPANDURASA_LIVENotification = async (req, res) => {
   try {
     const form = new FormData();
     form.append('id_group', req.config.successGroup);
-    form.append('message', 'TEST FORM DATA dari NodeJS');
+    form.append('message', 'PANDURASA_LIVE FORM DATA dari NodeJS');
 
     const response = await notificationService.sendWhatsAppMessage(form);
     res.json({
@@ -12,7 +12,7 @@ exports.sendTestNotification = async (req, res) => {
       responseData: response.data
     });
   } catch (error) {
-    console.error('Test Error:', error);
+    console.error('PANDURASA_LIVE Error:', error);
     res.status(500).json({
       status: 'error',
       error: {

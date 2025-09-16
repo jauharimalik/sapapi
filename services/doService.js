@@ -40,6 +40,50 @@ exports.getgrColdspaceData = async (pool, params = {}) => {
 };
 
 exports.checkSingleDO = async (doNo, pool) => {  
+    const statusCheck = await pool.request()
+        .input('doNo', sql.Int, doNo)
+        .query(`SELECT jo_status, iswa, note, doc_entry, doc_num 
+                FROM r_dn_coldspace 
+                WHERE DO_NO = @doNo`);
+
+    if (statusCheck.recordset.length > 0) {
+        const doStatus = statusCheck.recordset[0];
+        
+        // Jika sudah sukses (status 3) DAN sudah dikirim notifikasi (iswa = 1)
+        if (doStatus.jo_status === 3 && doStatus.iswa === 1) {
+            console.log(`DO ${doNo} already processed successfully, skipping...`);
+            return { status: 'already_processed', message: 'Already processed' };
+        }
+        
+        // Jika sudah sukses tapi belum dikirim notifikasi
+        if (doStatus.jo_status === 3 && doStatus.iswa !== 1) {
+            console.log(`DO ${doNo} processed but notification not sent, sending...`);
+            await notificationService.sendNotification(
+                doNo,
+                doStatus.doc_num,
+                doStatus.doc_entry,
+                doStatus.note || 'Successfully posted to SAP',
+                true,
+                pool
+            );
+            return { status: 'notification_sent', message: 'Notification sent for processed DO' };
+        }
+        
+        // Jika note mengandung 'closed' atau sudah sukses di SAP
+        if (doStatus.note && (
+            doStatus.note.toLowerCase().includes('closed') || 
+            doStatus.note.includes('Successfully posted to SAP')
+        )) {
+            console.log(`DO ${doNo} is closed/successful, updating status...`);
+            await this.updateDOStatusWithNote(doNo, null, 3, {
+                type: 'CLOSED_DOCUMENT',
+                message: 'Successfully posted to SAP',
+                docEntry: doStatus.doc_entry,
+                docNum: doStatus.doc_num
+            }, pool);
+            return { status: 'closed', message: 'Document was closed' };
+        }
+    }
     let docEntry, docNum;
     let rdn_data = [];
     try {
@@ -56,10 +100,10 @@ exports.checkSingleDO = async (doNo, pool) => {  
 
         const docInfoQuery = `
             SELECT t3.docentry as doc_entry, t3.DocNum as doc_num
-            FROM [pksrv-sap].test.dbo.ORDR T0 WITH (NOLOCK)
-            INNER JOIN [pksrv-sap].test.dbo.RDR1 T1 WITH (NOLOCK) ON T0.DocEntry = T1.DocEntry 
-            LEFT JOIN [pksrv-sap].test.dbo.DLN1 T2 WITH (NOLOCK) ON T2.BaseEntry = T1.DocEntry AND T2.BaseLine = T1.LineNum AND T2.BaseType = 17
-            LEFT JOIN [pksrv-sap].test.dbo.ODLN T3 WITH (NOLOCK) ON T2.DocEntry = T3.DocEntry
+            FROM [pksrv-sap].pandurasa_live.dbo.ORDR T0 WITH (NOLOCK)
+            INNER JOIN [pksrv-sap].pandurasa_live.dbo.RDR1 T1 WITH (NOLOCK) ON T0.DocEntry = T1.DocEntry 
+            LEFT JOIN [pksrv-sap].pandurasa_live.dbo.DLN1 T2 WITH (NOLOCK) ON T2.BaseEntry = T1.DocEntry AND T2.BaseLine = T1.LineNum AND T2.BaseType = 17
+            LEFT JOIN [pksrv-sap].pandurasa_live.dbo.ODLN T3 WITH (NOLOCK) ON T2.DocEntry = T3.DocEntry
             WHERE t0.docnum = @doNo`;
         
         const docInfoResult = await pool.request().input('doNo', sql.Int, doNo).query(docInfoQuery);
@@ -132,16 +176,16 @@ exports.checkSingleDO = async (doNo, pool) => {  
                         WHEN T10.SeriesName LIKE 'LS%' THEN 682
                         WHEN T10.SeriesName LIKE 'TG%' THEN 685
                     END Series
-                FROM [PKSRV-SAP].[test].DBO.OWTR T2 WITH (NOLOCK)
-                INNER JOIN [PKSRV-SAP].[test].DBO.WTR1 T3 WITH (NOLOCK) ON T2.[DocEntry] = T3.[DocEntry]
-                INNER JOIN [PKSRV-SAP].[test].DBO.OITM T5 WITH (NOLOCK) ON T3.ItemCode = T5.ItemCode
-                LEFT JOIN [PKSRV-SAP].[test].DBO.OWHS T11 WITH (NOLOCK) ON T3.FromWhsCod = T11.WhsCode AND T11.[Location] IS NOT NULL
-                INNER JOIN [PKSRV-SAP].[test].DBO.NNM1 T10 WITH (NOLOCK) ON T2.Series = T10.Series
+                FROM [PKSRV-SAP].[pandurasa_live].DBO.OWTR T2 WITH (NOLOCK)
+                INNER JOIN [PKSRV-SAP].[pandurasa_live].DBO.WTR1 T3 WITH (NOLOCK) ON T2.[DocEntry] = T3.[DocEntry]
+                INNER JOIN [PKSRV-SAP].[pandurasa_live].DBO.OITM T5 WITH (NOLOCK) ON T3.ItemCode = T5.ItemCode
+                LEFT JOIN [PKSRV-SAP].[pandurasa_live].DBO.OWHS T11 WITH (NOLOCK) ON T3.FromWhsCod = T11.WhsCode AND T11.[Location] IS NOT NULL
+                INNER JOIN [PKSRV-SAP].[pandurasa_live].DBO.NNM1 T10 WITH (NOLOCK) ON T2.Series = T10.Series
                 LEFT JOIN (
                     SELECT T6.ITEMCODE, BATCHNUM, BASEENTRY, BASENUM, BSDOCENTRY, BASELINNUM, T6.Quantity, BASETYPE
-                    FROM [PKSRV-SAP].[test].DBO.IBT1 T6 WITH (NOLOCK)
+                    FROM [PKSRV-SAP].[pandurasa_live].DBO.IBT1 T6 WITH (NOLOCK)
                 ) T6 ON T3.DocEntry = T6.BaseEntry AND T6.BaseType = 67 AND T3.ItemCode = T6.ItemCode and T6.BaseType = 67 
-                LEFT JOIN [PKSRV-SAP].[test].DBO.OBTN T7 WITH (NOLOCK) ON T6.ItemCode = T7.ItemCode AND T6.BatchNum = T7.DistNumber
+                LEFT JOIN [PKSRV-SAP].[pandurasa_live].DBO.OBTN T7 WITH (NOLOCK) ON T6.ItemCode = T7.ItemCode AND T6.BatchNum = T7.DistNumber
                 WHERE T2.Docnum = @doNo and CONVERT(date, T2.DocDate) > '2025-07-01'
                 GROUP BY T3.[ItemCode], T5.FrgnName, T2.DocDueDate, T3.[Dscription], T5.[FrgnName], T3.[WhsCode], T2.Filler, T11.WhsName, 
                     T3.LineNum, T6.BatchNum, T3.UomCode, PRICE, CardName, T2.[DocDate], T2.[DocNum], T7.ExpDate, T5.ItemName, 
@@ -240,7 +284,7 @@ exports.checkSingleDO = async (doNo, pool) => {  
             const currentDoNo = doNo;
             const getDocEntryQuery = `
                 SELECT DocEntry
-                FROM [pksrv-sap].test.dbo.OIGE
+                FROM [pksrv-sap].pandurasa_live.dbo.OIGE
                 WHERE Comments LIKE '%${currentDoNo}%'`;
 
             let docEntryFromOIGE = null;
@@ -304,11 +348,116 @@ exports.checkSingleDO = async (doNo, pool) => {  
     }
 };
 
+// exports.dnbund = async (pool) => {
+//     try {
+//         const docEntryQuery = `
+//             SELECT T0.DocEntry, T1.DO_NO, T1.doc_num
+//             FROM [pksrv-sap].pandurasa_live.dbo.ODLN T0 WITH (NOLOCK)
+//             INNER JOIN r_dn_coldspace T1 WITH (NOLOCK) ON T0.DocEntry = T1.doc_entry
+//             WHERE T1.ORDER_TYPE LIKE '%bund%'
+//             AND T0.U_BUNDLING_CS IS NULL;
+//         `;
+
+//         const result = await pool.request().query(docEntryQuery);
+//         const docsToUpdate = result.recordset.map(row => ({
+//             docEntry: row.DocEntry,
+//             doNo: row.DO_NO,
+//             docNum: row.doc_num
+//         }));
+
+//         if (docsToUpdate.length === 0) {
+//             return { status: 'empty', message: 'No pending bundling DOs found.' };
+//         }
+
+//         const sessionCookie = await sapService.loginToB1ServiceLayer();
+
+//         const successfulUpdates = [];
+//         const failedUpdates = [];
+
+//         for (const doc of docsToUpdate) {
+//             const patchPayload = {
+//                 "U_BUNDLING_CS": "Y"
+//             };
+//             const patchUrl = `${sapService.SAP_CONFIG.BASE_URL}/DeliveryNotes(${doc.docEntry})`;
+
+//             try {
+//                 await sapService.makeApiRequest(
+//                     patchUrl,
+//                     'PATCH',
+//                     sessionCookie,
+//                     patchPayload
+//                 );
+//                 successfulUpdates.push(doc.docEntry);
+//                 console.log(`Successfully patched DeliveryNote DocEntry: ${doc.docEntry}`);
+
+//                 const successNote = `Successfully updated U_BUNDLING_CS for DocEntry ${doc.docEntry}. DO ${doc.doNo}`;
+//                 await notificationService.sendWhatsApp(doc.doNo, doc.docNum, doc.docEntry, successNote, true, pool);
+//                 await notificationService.sendTelegramNotification(successNote, true);
+
+//             } catch (patchError) {
+//                 let errorMessage = 'Unknown error during patch.';
+//                 let sapErrorMessage = '';
+//                 try {
+//                     const parsedError = JSON.parse(patchError.message);
+//                     if (parsedError && parsedError.sapError && parsedError.sapError.message && typeof parsedError.sapError.message.value === 'string') {
+//                         sapErrorMessage = parsedError.sapError.message.value;
+//                         errorMessage = `SAP Error: ${sapErrorMessage}`;
+//                     } else {
+//                         errorMessage = patchError.message;
+//                     }
+//                 } catch (parseErr) {
+//                     errorMessage = patchError.message;
+//                 }
+
+//                 console.log('------------------------------------------------------------------------------------');
+//                 console.log(`Process : ${doc.doNo} | Error Patching DocEntry ${doc.docEntry}: ${errorMessage}`);
+
+//                 failedUpdates.push({ docEntry: doc.docEntry, error: errorMessage });
+//                 const failureNote = `Failed to update U_BUNDLING_CS for DocEntry ${doc.docEntry}. Details: ${errorMessage}`;
+//                 await notificationService.sendWhatsApp(doc.doNo, doc.docNum, doc.docEntry, failureNote, false, pool);
+//                 await notificationService.sendTelegramNotification(failureNote, false);
+//             }
+//         }
+
+//         console.log('------------------------------------------------------------------------------------');
+//         console.log(`Process : Bundling Complete. Total processed: ${docsToUpdate.length}`);
+//         console.log(`Successful updates: ${successfulUpdates.length}`);
+//         console.log(`Failed updates: ${failedUpdates.length}`);
+
+//         return {
+//             status: 'complete',
+//             processedCount: docsToUpdate.length,
+//             successfulUpdates: successfulUpdates,
+//             failedUpdates: failedUpdates
+//         };
+//     } catch (error) {
+//         let generalErrorMessage = 'Unknown error in dnbund function.';
+//         let sapErrorMessage = '';
+//         try {
+//             const parsedError = JSON.parse(error.message);
+//             if (parsedError && parsedError.sapError && parsedError.sapError.message && typeof parsedError.sapError.message.value === 'string') {
+//                 sapErrorMessage = parsedError.sapError.message.value;
+//                 generalErrorMessage = `SAP Error during initial query or login: ${sapErrorMessage}`;
+//             } else {
+//                 generalErrorMessage = error.message;
+//             }
+//         } catch (parseErr) {
+//             generalErrorMessage = error.message;
+//         }
+
+//         const note = `General Error in dnbund: ${generalErrorMessage}`;
+//         await notificationService.sendTelegramNotification(note, false);
+//         console.log('------------------------------------------------------------------------------------');
+//         console.log(`Process : Bundling | General Error: ${generalErrorMessage}`);
+//         return { status: 'error', message: generalErrorMessage };
+//     }
+// };
+
 exports.dnbund = async (pool) => {
     try {
         const docEntryQuery = `
             SELECT T0.DocEntry, T1.DO_NO, T1.doc_num
-            FROM [pksrv-sap].test.dbo.ODLN T0 WITH (NOLOCK)
+            FROM [pksrv-sap].pandurasa_live.dbo.ODLN T0 WITH (NOLOCK)
             INNER JOIN r_dn_coldspace T1 WITH (NOLOCK) ON T0.DocEntry = T1.doc_entry
             WHERE T1.ORDER_TYPE LIKE '%bund%'
             AND T0.U_BUNDLING_CS IS NULL;
@@ -326,6 +475,7 @@ exports.dnbund = async (pool) => {
         }
 
         const sessionCookie = await sapService.loginToB1ServiceLayer();
+        const baseUrl = sapService.SAP_CONFIG.BASE_URL; // Menggunakan SAP_CONFIG yang sudah diekspor
 
         const successfulUpdates = [];
         const failedUpdates = [];
@@ -334,7 +484,7 @@ exports.dnbund = async (pool) => {
             const patchPayload = {
                 "U_BUNDLING_CS": "Y"
             };
-            const patchUrl = `${sapService.SAP_CONFIG.BASE_URL}/DeliveryNotes(${doc.docEntry})`;
+            const patchUrl = `${baseUrl}/DeliveryNotes(${doc.docEntry})`;
 
             try {
                 await sapService.makeApiRequest(
@@ -347,7 +497,7 @@ exports.dnbund = async (pool) => {
                 console.log(`Successfully patched DeliveryNote DocEntry: ${doc.docEntry}`);
 
                 const successNote = `Successfully updated U_BUNDLING_CS for DocEntry ${doc.docEntry}. DO ${doc.doNo}`;
-                await notificationService.sendWhatsAppNotification(doc.doNo, doc.docNum, doc.docEntry, successNote, true, pool);
+                await notificationService.sendWhatsApp(doc.doNo, doc.docNum, doc.docEntry, successNote, true, pool);
                 await notificationService.sendTelegramNotification(successNote, true);
 
             } catch (patchError) {
@@ -370,7 +520,7 @@ exports.dnbund = async (pool) => {
 
                 failedUpdates.push({ docEntry: doc.docEntry, error: errorMessage });
                 const failureNote = `Failed to update U_BUNDLING_CS for DocEntry ${doc.docEntry}. Details: ${errorMessage}`;
-                await notificationService.sendWhatsAppNotification(doc.doNo, doc.docNum, doc.docEntry, failureNote, false, pool);
+                await notificationService.sendWhatsApp(doc.doNo, doc.docNum, doc.docEntry, failureNote, false, pool);
                 await notificationService.sendTelegramNotification(failureNote, false);
             }
         }
@@ -413,7 +563,8 @@ exports.runAutoCheck = async (pool) => {
     try {
         const result = await pool.request()
             .query(`SELECT DISTINCT DO_NO FROM r_dn_coldspace WITH (NOLOCK) 
-                    WHERE ORDER_TYPE != 'N-STO' and order_type != 'PROD' and ismatch = 1 and (jo_status IS NULL)`);
+                    WHERE ORDER_TYPE != 'N-STO' and order_type != 'PROD' 
+                    and ismatch = 1 and (jo_status IS NULL) AND iswa IS NULL`);
         
         const doList = result.recordset.map(row => row.DO_NO);
         if (doList.length === 0) { 
@@ -439,7 +590,8 @@ exports.recheckNullIswaDOs = async (pool) => {
     try {
         const result = await pool.request()
             .query(`SELECT DISTINCT DO_NO FROM r_dn_coldspace WITH (NOLOCK) 
-                    WHERE ORDER_TYPE != 'N-STO' and order_type != 'PROD' and ismatch = 1 and jo_status is null and iswa IS NULL AND del_date >= '2025-07-01'`);
+                    WHERE ORDER_TYPE != 'N-STO' and order_type != 'PROD' and ismatch = 1 and 
+                    jo_status is null and iswa IS NULL `);
         
         const doList = result.recordset.map(row => row.DO_NO);
         if (doList.length === 0) {
@@ -479,12 +631,14 @@ exports.updateDOStatusWithNote = async (doNo, lineNum, status, errorDetails, poo
 
             const request = new sql.Request(transaction);
             const noteMessage = buildNoteMessage(status, errorDetails);
+            
+            // Kirim notifikasi Telegram berdasarkan status
             await notificationService.sendTelegramNotification(noteMessage, status === 3);
 
             let query = `UPDATE r_dn_coldspace SET 
                 jo_status = @status, 
                 note = @note,
-                iswa = CASE WHEN @status IN (1,3) THEN 1 ELSE iswa END`;
+                iswa = 1`;  // SELALU set iswa = 1 untuk SEMUA status (baik success maupun error)
             
             request.input('status', sql.Int, status);
             request.input('note', sql.NVarChar, noteMessage);
@@ -509,8 +663,9 @@ exports.updateDOStatusWithNote = async (doNo, lineNum, status, errorDetails, poo
             await request.query(query);
             await transaction.commit();
 
+            // Kirim notifikasi WhatsApp untuk status 2 (error) dan 3 (success)
             if ([2, 3].includes(status)) {
-                await notificationService.sendWhatsAppNotification(
+                await notificationService.sendWhatsApp(
                     doNo,
                     errorDetails?.docNum,
                     errorDetails?.docEntry,

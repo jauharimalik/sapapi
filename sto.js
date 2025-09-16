@@ -5,7 +5,7 @@ const FormData = require('form-data');
 
 const SAP_CONFIG = {
     BASE_URL: 'https://192.168.101.254:50000/b1s/v2',
-    COMPANY_DB: 'TEST',
+    COMPANY_DB: 'PANDURASA_LIVE',
     CREDENTIALS: {
         username: 'manager',
         password: 'Password#1'
@@ -67,13 +67,13 @@ async function getDfltwhForSKU(sku) {
     return null;
 }
 
-function convertDate(dateString) {
-    if (typeof dateString !== 'string' || dateString.length !== 6) {
+function convertDate(daPANDURASA_LIVEring) {
+    if (typeof daPANDURASA_LIVEring !== 'string' || daPANDURASA_LIVEring.length !== 6) {
         return 'Invalid date format. Please use "yymmdd".';
     }
-    const year = "20" + dateString.substring(0, 2);
-    const month = dateString.substring(2, 4);
-    const day = dateString.substring(4, 6);
+    const year = "20" + daPANDURASA_LIVEring.substring(0, 2);
+    const month = daPANDURASA_LIVEring.substring(2, 4);
+    const day = daPANDURASA_LIVEring.substring(4, 6);
     return `${day}-${month}-${year}`;
 }
 
@@ -99,7 +99,7 @@ const processStockTransferOrders = async () => {
             FROM 
                 r_grpo_coldspace t0x
             INNER JOIN 
-                [pksrv-sap].test.dbo.oitm t2 ON t0x.sku collate database_default = t2.itemcode collate database_default 
+                [pksrv-sap].pandurasa_live.dbo.oitm t2 ON t0x.sku collate database_default = t2.itemcode collate database_default 
             WHERE 
                 (t0x.iswa IS NULL OR t0x.jo_status IS NULL) 
                 AND t0x.TRK_TYPE = 'N-STO'`);
@@ -141,7 +141,7 @@ const processStockTransferOrders = async () => {
                     continue;
                 }
                 const validationResult = { isValid: true, batchData: batchDataFromOBTN };
-                const stockTransferPayload = createStockTransferPayload(record, inventoryTransferRequest, validationResult.batchData);
+                const stockTransferPayload = creaPANDURASA_LIVEockTransferPayload(record, inventoryTransferRequest, validationResult.batchData);
                 const postResult = await postStockTransferToSAP(stockTransferPayload, sessionCookie);
                 if (postResult?.error) {
                     const status = postResult.message.includes('closed') ? 3 : 0;
@@ -196,7 +196,7 @@ const getDocEntryFromOWTQ = async (poNo, pool) => {
     try {
         const result = await pool.request()
             .input('poNo', sql.Int, poNo)
-            .query('SELECT TOP 1 DocEntry FROM [pksrv-sap].test.dbo.OWTQ WHERE DocNum = @poNo');
+            .query('SELECT TOP 1 DocEntry FROM [pksrv-sap].pandurasa_live.dbo.OWTQ WHERE DocNum = @poNo');
         return result.recordset[0]?.DocEntry || null;
     } catch (error) {
         console.log('------------------------------------------------------------------------------------');
@@ -251,8 +251,8 @@ const getBatchDataFromOBTN = async (itemCode, whsCode, ExpDate, pool) => {
                 isnull(T1.BatchNum,'${ExpDate}') AS BatchNumber,
                 T1.Quantity AS AvailableQuantity,
                 isnull(T1.ExpDate,'${ExpDate}') AS ExpirationDate
-            FROM [pksrv-sap].test.dbo.OIBT T1
-            inner join [pksrv-sap].test.dbo.oitm t2 on t1.itemcode = t2.itemcode
+            FROM [pksrv-sap].pandurasa_live.dbo.OIBT T1
+            inner join [pksrv-sap].pandurasa_live.dbo.oitm t2 on t1.itemcode = t2.itemcode
             WHERE T1.ItemCode = '${itemCode}' AND 
             (T1.WhsCode = '${whsCode}' or t1.whscode = t2.dfltwh) AND T1.Quantity > 0
             AND t1.batchnum like '${ExpDate}%'
@@ -277,7 +277,7 @@ const getBatchDataFromOBTN = async (itemCode, whsCode, ExpDate, pool) => {
     }
 };
 
-const createStockTransferPayload = (record, invTransferRequest, batchData) => {
+const creaPANDURASA_LIVEockTransferPayload = (record, invTransferRequest, batchData) => {
     const lineItem = invTransferRequest.StockTransferLines.find(line =>
         line.ItemCode.toLowerCase() === record.SKU.toLowerCase() && line.LineNum.toString() === record.LINE_NO.toString()
     );

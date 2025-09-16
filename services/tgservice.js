@@ -9,7 +9,7 @@ async function getDynamicSeries(pool) {
         const result = await pool.request()
             .query(`
                 SELECT TOP 1 series
-                FROM [pksrv-sap].test.dbo.nnm1
+                FROM [pksrv-sap].pandurasa_live.dbo.nnm1
                 WHERE series = 686 OR (seriesname LIKE '%tg%' AND indicator = YEAR(GETDATE()))
             `);
         
@@ -97,7 +97,7 @@ const processTradeinTradeout = async (pool) => {
                 CASE WHEN t0x.SKU_qUALITY = 'n' THEN t2.dfltwh ELSE t0x.vendor collate database_default END AS vendor,
                 CASE WHEN t0x.SKU_qUALITY = 'n' THEN t2.dfltwh ELSE t0x.vendor collate database_default END AS sub_vendor
                 FROM r_grpo_coldspace t0x
-                INNER JOIN [pksrv-sap].test.dbo.oitm t2 ON t0x.sku collate database_default = t2.itemcode collate database_default
+                INNER JOIN [pksrv-sap].pandurasa_live.dbo.oitm t2 ON t0x.sku collate database_default = t2.itemcode collate database_default
                 WHERE (t0x.iswa IS NULL OR t0x.jo_status IS NULL) AND t0x.TRK_TYPE = 'rplc'`);
 
         if (result.recordset.length === 0) return;

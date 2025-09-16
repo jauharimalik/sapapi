@@ -6,7 +6,7 @@ const https = require('https');
 
 const SAP_CONFIG = {
     BASE_URL: 'https://192.168.101.254:50000/b1s/v1',
-    COMPANY_DB: 'TEST',
+    COMPANY_DB: 'PANDURASA_LIVE',
     CREDENTIALS: {
         username: 'manager',
         password: 'Password#1'
@@ -58,7 +58,7 @@ async function getGoodsReceiptSeries(pool) {
     try {
         const query = `
             SELECT TOP 1 series 
-            FROM [pksrv-sap].test.dbo.nnm1 t0
+            FROM [pksrv-sap].pandurasa_live.dbo.nnm1 t0
             WHERE seriesname LIKE '%wd%' 
               AND objectcode = '59' 
               AND indicator = YEAR(GETDATE());
@@ -77,7 +77,7 @@ async function getGoodsIssueSeries(pool) {
     try {
         const query = `
             SELECT TOP 1 series 
-            FROM [pksrv-sap].test.dbo.nnm1 t0
+            FROM [pksrv-sap].pandurasa_live.dbo.nnm1 t0
             WHERE seriesname LIKE '%gi%' 
               AND objectcode = '60' 
               AND indicator = YEAR(GETDATE());
@@ -111,7 +111,7 @@ async function loginToSAP() {
 
 async function getProductionOrderData(poNumber, sessionCookie, pool) {
     try {
-        let query = `SELECT DocEntry, DocNum FROM [pksrv-sap].test.dbo.OWOR WHERE DocNum = '${poNumber}'`;
+        let query = `SELECT DocEntry, DocNum FROM [pksrv-sap].pandurasa_live.dbo.OWOR WHERE DocNum = '${poNumber}'`;
         const result = await pool.request().query(query);
 
         if (result.recordset.length === 0) {
@@ -179,8 +179,8 @@ const getBatchDataFromOIBT = async (itemCode, whsCode, ExpDate, pool) => {
                 ISNULL(T1.BatchNum,'${ExpDate}') AS BatchNumber,
                 T1.Quantity AS AvailableQuantity,
                 ISNULL(T1.ExpDate,'${convertVfdatToExpiryDate(ExpDate)}') AS ExpirationDate
-            FROM [pksrv-sap].test.dbo.OIBT T1
-            INNER JOIN [pksrv-sap].test.dbo.oitm T2 ON T1.ItemCode = T2.ItemCode
+            FROM [pksrv-sap].pandurasa_live.dbo.OIBT T1
+            INNER JOIN [pksrv-sap].pandurasa_live.dbo.oitm T2 ON T1.ItemCode = T2.ItemCode
             WHERE T1.ItemCode = '${itemCode}'
             AND (T1.WhsCode = '${whsCode}')
             AND T1.Quantity > 0

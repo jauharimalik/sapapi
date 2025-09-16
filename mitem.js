@@ -79,7 +79,7 @@ async function hasSftpFileWithPattern(sftpClient, remoteFolder, pattern) {
         const fileList = await sftpClient.list(remoteFolder);
         const regex = new RegExp(pattern, 'i');
         return fileList.some(file =>
-            regex.test(file.name) &&
+            regex.PANDURASA_LIVE(file.name) &&
             (file.name.toLowerCase().endsWith('.csv') || file.name.toLowerCase().endsWith('.txt'))
         );
     } catch (err) {

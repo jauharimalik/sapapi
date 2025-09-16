@@ -8,7 +8,7 @@ const notificationService = require('./services/notificationService'); // Tambah
 
 const SAP_CONFIG = {
     BASE_URL: 'https://192.168.101.254:50000/b1s/v2',
-    COMPANY_DB: 'TEST',
+    COMPANY_DB: 'PANDURASA_LIVE',
     CREDENTIALS: {
         username: 'manager',
         password: 'Password#1'
@@ -59,7 +59,7 @@ const processTradeinTradeout = async () => {
             FROM 
                 r_grpo_coldspace t0x
             INNER JOIN 
-                [pksrv-sap].test.dbo.oitm t2 ON t0x.sku collate database_default = t2.itemcode collate database_default 
+                [pksrv-sap].pandurasa_live.dbo.oitm t2 ON t0x.sku collate database_default = t2.itemcode collate database_default 
             WHERE 
                 (t0x.iswa IS NULL OR t0x.jo_status IS NULL) 
                 AND t0x.TRK_TYPE = 'rplc'`);
@@ -219,7 +219,7 @@ const getDocEntryFromOIGE = async (poNo, pool) => {
     try {
         const query = `
             SELECT TOP 1 T0.DocEntry
-            FROM [pksrv-sap].test.dbo.OIGE T0
+            FROM [pksrv-sap].pandurasa_live.dbo.OIGE T0
             WHERE T0.Docnum = @poNo
             ORDER BY T0.DocDate DESC`;
         const result = await pool.request()
@@ -254,7 +254,7 @@ const getGoodsIssueFromSAP = async (docEntry, sessionCookie) => {
 const getBinAbsEntry = async (whsCode, pool) => {
     const query = `
         SELECT TOP 1 T0.AbsEntry 
-        FROM [pksrv-sap].test.dbo.OBIN T0
+        FROM [pksrv-sap].pandurasa_live.dbo.OBIN T0
         WHERE T0.WhsCode = @whsCode
         ORDER BY T0.AbsEntry ASC`;
     const result = await pool.request()
@@ -295,8 +295,8 @@ const getBatchDataFromOBTN = async (itemCode, whsCode, ExpDate, pool) => {
                 isnull(T1.BatchNum,'${ExpDate}') AS BatchNumber,
                 T1.Quantity AS AvailableQuantity,
                 isnull(T1.ExpDate,'${ExpDate}') AS ExpirationDate
-            FROM [pksrv-sap].test.dbo.OIBT T1
-            inner join [pksrv-sap].test.dbo.oitm t2 on t1.itemcode = t2.itemcode
+            FROM [pksrv-sap].pandurasa_live.dbo.OIBT T1
+            inner join [pksrv-sap].pandurasa_live.dbo.oitm t2 on t1.itemcode = t2.itemcode
             WHERE T1.ItemCode = '${itemCode}' AND 
             (T1.WhsCode = '${whsCode}' or t1.whscode = t2.dfltwh) AND T1.Quantity > 0
             AND t1.batchnum  like '${ExpDate}%'
@@ -322,7 +322,7 @@ const getBatchDataFromOBTN = async (itemCode, whsCode, ExpDate, pool) => {
 
 const getGoodsReceiptSeries = async (pool) => {
     const query = `
-        select series from [pksrv-sap].test.dbo.nnm1 t0 
+        select series from [pksrv-sap].pandurasa_live.dbo.nnm1 t0 
         where seriesname like '%tg%' and objectcode = '59' and indicator = YEAR(GETDATE())`;
     
     try {
@@ -461,11 +461,11 @@ const getFinalGoodsReceiptData = async (goodsIssueDocEntry, pool) => {
             T1.DocEntry AS GoodsReceiptDocEntry,
             T1.DocNum AS GoodsReceiptDocNum
         FROM
-            [pksrv-sap].test.dbo.OIGE T0
+            [pksrv-sap].pandurasa_live.dbo.OIGE T0
         LEFT JOIN
-            [pksrv-sap].test.dbo.IGN1 T2 ON T0.DocEntry = T2.BaseEntry AND T2.BaseType = 60
+            [pksrv-sap].pandurasa_live.dbo.IGN1 T2 ON T0.DocEntry = T2.BaseEntry AND T2.BaseType = 60
         LEFT JOIN
-            [pksrv-sap].test.dbo.OIGN T1 ON T2.DocEntry = T1.DocEntry
+            [pksrv-sap].pandurasa_live.dbo.OIGN T1 ON T2.DocEntry = T1.DocEntry
         WHERE
             T0.DocEntry = ${goodsIssueDocEntry}
         GROUP BY

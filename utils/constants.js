@@ -1,6 +1,6 @@
 const SAP_CONFIG = {
     BASE_URL: 'https://192.168.101.254:50000/b1s/v2',
-    COMPANY_DB: 'TEST',
+    COMPANY_DB: 'PANDURASA_LIVE',
     CREDENTIALS: {
         username: 'manager',
         password: 'Password#1'

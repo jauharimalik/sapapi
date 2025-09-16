@@ -511,7 +511,7 @@
         };
 
         let refreshData = function() {
-            M.toast({ html: 'Requesting latest data...', classes: 'rounded' });
+            M.toast({ html: 'Requesting laPANDURASA_LIVE data...', classes: 'rounded' });
             showLoader();
             
             if (ws && ws.readyState === WebSocket.OPEN) {
@@ -573,13 +573,13 @@
             });
         };
 
-        let formatDate = function(dateString) {
-            if (!dateString) return '-';
+        let formatDate = function(daPANDURASA_LIVEring) {
+            if (!daPANDURASA_LIVEring) return '-';
             try {
-                let date = new Date(dateString);
-                return date.toLocaleDateString();
+                let date = new Date(daPANDURASA_LIVEring);
+                return date.toLocaleDaPANDURASA_LIVEring();
             } catch {
-                return dateString;
+                return daPANDURASA_LIVEring;
             }
         };
 

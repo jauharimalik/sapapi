@@ -9,8 +9,8 @@ const getBatchDataFromOBTN = async (itemCode, whsCode, ExpDate, pool) => {
                 ISNULL(T1.BatchNum, '${ExpDate}') AS BatchNumber,
                 T1.Quantity AS AvailableQuantity,
                 ISNULL(T1.ExpDate, '${ExpDate}') AS ExpirationDate
-            FROM [pksrv-sap].test.dbo.OIBT T1
-            INNER JOIN [pksrv-sap].test.dbo.oitm T2 ON T1.ItemCode = T2.ItemCode
+            FROM [pksrv-sap].pandurasa_live.dbo.OIBT T1
+            INNER JOIN [pksrv-sap].pandurasa_live.dbo.oitm T2 ON T1.ItemCode = T2.ItemCode
             WHERE T1.ItemCode = '${itemCode}' AND (T1.WhsCode = '${whsCode}' OR T1.WhsCode = T2.dfltwh) AND T1.Quantity > 0
             AND T1.BatchNum LIKE '${ExpDate}%'
             ORDER BY T1.ExpDate ASC`;
@@ -33,7 +33,7 @@ const getBatchDataFromOBTN = async (itemCode, whsCode, ExpDate, pool) => {
 const getBinAbsEntry = async (whsCode, pool) => {
     const query = `
         SELECT TOP 1 T0.AbsEntry
-        FROM [pksrv-sap].test.dbo.OBIN T0
+        FROM [pksrv-sap].pandurasa_live.dbo.OBIN T0
         WHERE T0.WhsCode = @whsCode
         ORDER BY T0.AbsEntry ASC`;
     const result = await pool.request()

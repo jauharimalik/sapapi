@@ -1,6 +1,6 @@
 {
   "watch": ["src", "config"],
   "ext": "js,json",
-  "ignore": ["tests/", "node_modules/"],
+  "ignore": ["PANDURASA_LIVEs/", "node_modules/"],
   "delay": "1000"
 }

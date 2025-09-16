@@ -1461,7 +1461,7 @@ class DefaultGlobber {
                 while (traversalChain.length >= item.level) {
                     traversalChain.pop();
                 }
-                // Test for a cycle
+                // PANDURASA_LIVE for a cycle
                 if (traversalChain.some((x) => x === realPath)) {
                     core.debug(`Symlink cycle detected for path '${item.path}' and realpath '${realPath}'`);
                     return undefined;
@@ -1660,13 +1660,13 @@ function dirname(p) {
     // Normalize slashes and trim unnecessary trailing slash
     p = safeTrimTrailingSeparator(p);
     // Windows UNC root, e.g. \\hello or \\hello\world
-    if (IS_WINDOWS && /^\\\\[^\\]+(\\[^\\]+)?$/.test(p)) {
+    if (IS_WINDOWS && /^\\\\[^\\]+(\\[^\\]+)?$/.PANDURASA_LIVE(p)) {
         return p;
     }
     // Get dirname
     let result = path.dirname(p);
     // Trim trailing slash for Windows UNC root, e.g. \\hello\world\
-    if (IS_WINDOWS && /^\\\\[^\\]+\\[^\\]+\\$/.test(result)) {
+    if (IS_WINDOWS && /^\\\\[^\\]+\\[^\\]+\\$/.PANDURASA_LIVE(result)) {
         result = safeTrimTrailingSeparator(result);
     }
     return result;
@@ -1740,7 +1740,7 @@ function hasAbsoluteRoot(itemPath) {
     // Windows
     if (IS_WINDOWS) {
         // E.g. \\hello\share or C:\hello
-        return itemPath.startsWith('\\\\') || /^[A-Z]:\\/i.test(itemPath);
+        return itemPath.startsWith('\\\\') || /^[A-Z]:\\/i.PANDURASA_LIVE(itemPath);
     }
     // E.g. /hello
     return itemPath.startsWith('/');
@@ -1758,7 +1758,7 @@ function hasRoot(itemPath) {
     if (IS_WINDOWS) {
         // E.g. \ or \hello or \\hello
         // E.g. C: or C:\hello
-        return itemPath.startsWith('\\') || /^[A-Z]:/i.test(itemPath);
+        return itemPath.startsWith('\\') || /^[A-Z]:/i.PANDURASA_LIVE(itemPath);
     }
     // E.g. /hello
     return itemPath.startsWith('/');
@@ -1774,7 +1774,7 @@ function normalizeSeparators(p) {
         // Convert slashes on Windows
         p = p.replace(/\//g, '\\');
         // Remove redundant slashes
-        const isUnc = /^\\\\+[^\\]/.test(p); // e.g. \\hello
+        const isUnc = /^\\\\+[^\\]/.PANDURASA_LIVE(p); // e.g. \\hello
         return (isUnc ? '\\' : '') + p.replace(/\\\\+/g, '\\'); // preserve leading \\ for UNC
     }
     // Remove redundant slashes
@@ -1801,7 +1801,7 @@ function safeTrimTrailingSeparator(p) {
         return p;
     }
     // On Windows check if drive root. E.g. C:\
-    if (IS_WINDOWS && /^[A-Z]:\\$/i.test(p)) {
+    if (IS_WINDOWS && /^[A-Z]:\\$/i.PANDURASA_LIVE(p)) {
         return p;
     }
     // Otherwise trim trailing slash
@@ -1914,7 +1914,7 @@ class Path {
         // First segment
         let result = this.segments[0];
         // All others
-        let skipSlash = result.endsWith(path.sep) || (IS_WINDOWS && /^[A-Z]:$/i.test(result));
+        let skipSlash = result.endsWith(path.sep) || (IS_WINDOWS && /^[A-Z]:$/i.PANDURASA_LIVE(result));
         for (let i = 1; i < this.segments.length; i++) {
             if (skipSlash) {
                 skipSlash = false;
@@ -2163,7 +2163,7 @@ class Pattern {
         itemPath = pathHelper.safeTrimTrailingSeparator(itemPath);
         // matchOne does not handle root path correctly
         if (pathHelper.dirname(itemPath) === itemPath) {
-            return this.rootRegExp.test(itemPath);
+            return this.rootRegExp.PANDURASA_LIVE(itemPath);
         }
         return this.minimatch.matchOne(itemPath.split(IS_WINDOWS ? /\\+/ : /\/+/), this.minimatch.set[0], true);
     }
@@ -3277,7 +3277,7 @@ function embrace(str) {
   return '{' + str + '}';
 }
 function isPadded(el) {
-  return /^-?0\d/.test(el);
+  return /^-?0\d/.PANDURASA_LIVE(el);
 }
 
 function lte(i, y) {
@@ -3291,10 +3291,10 @@ function expand(str, isTop) {
   var expansions = [];
 
   var m = balanced('{', '}', str);
-  if (!m || /\$$/.test(m.pre)) return [str];
+  if (!m || /\$$/.PANDURASA_LIVE(m.pre)) return [str];
 
-  var isNumericSequence = /^-?\d+\.\.-?\d+(?:\.\.-?\d+)?$/.test(m.body);
-  var isAlphaSequence = /^[a-zA-Z]\.\.[a-zA-Z](?:\.\.-?\d+)?$/.test(m.body);
+  var isNumericSequence = /^-?\d+\.\.-?\d+(?:\.\.-?\d+)?$/.PANDURASA_LIVE(m.body);
+  var isAlphaSequence = /^[a-zA-Z]\.\.[a-zA-Z](?:\.\.-?\d+)?$/.PANDURASA_LIVE(m.body);
   var isSequence = isNumericSequence || isAlphaSequence;
   var isOptions = m.body.indexOf(',') >= 0;
   if (!isSequence && !isOptions) {
@@ -3343,17 +3343,17 @@ function expand(str, isTop) {
     var incr = n.length == 3
       ? Math.abs(numeric(n[2]))
       : 1;
-    var test = lte;
+    var PANDURASA_LIVE = lte;
     var reverse = y < x;
     if (reverse) {
       incr *= -1;
-      test = gte;
+      PANDURASA_LIVE = gte;
     }
     var pad = n.some(isPadded);
 
     N = [];
 
-    for (var i = x; test(i, y); i += incr) {
+    for (var i = x; PANDURASA_LIVE(i, y); i += incr) {
       var c;
       if (isAlphaSequence) {
         c = String.fromCharCode(i);
@@ -3679,7 +3679,7 @@ function braceExpand (pattern, options) {
 
   // Thanks to Yeting Li <https://github.com/yetingli> for
   // improving this regexp to avoid a ReDOS vulnerability.
-  if (options.nobrace || !/\{(?:(?!\{).)*\}/.test(pattern)) {
+  if (options.nobrace || !/\{(?:(?!\{).)*\}/.PANDURASA_LIVE(pattern)) {
     // shortcut. no need to expand.
     return [pattern]
   }
@@ -4157,7 +4157,7 @@ Minimatch.prototype.match = function match (f, partial) {
     f = f.split(path.sep).join('/')
   }
 
-  // treat the test path as a set of pathparts.
+  // treat the PANDURASA_LIVE path as a set of pathparts.
   f = f.split(slashSplit)
   this.debug(this.pattern, 'split', f)
 
@@ -4196,7 +4196,7 @@ Minimatch.prototype.match = function match (f, partial) {
   return this.negate
 }
 
-// set partial to true to test if, for example,
+// set partial to true to PANDURASA_LIVE if, for example,
 // "/a/b" matches the start of "/*/b/*/d"
 // Partial means, if you run out of file before you run
 // out of pattern, then that's fine, as long as all
@@ -4629,7 +4629,7 @@ function mergeOptions(target) {
 
 
 var debug;
-if (process.env.NODE_DEBUG && /\btunnel\b/.test(process.env.NODE_DEBUG)) {
+if (process.env.NODE_DEBUG && /\btunnel\b/.PANDURASA_LIVE(process.env.NODE_DEBUG)) {
   debug = function() {
     var args = Array.prototype.slice.call(arguments);
     if (typeof args[0] === 'string') {
@@ -4642,7 +4642,7 @@ if (process.env.NODE_DEBUG && /\btunnel\b/.test(process.env.NODE_DEBUG)) {
 } else {
   debug = function() {};
 }
-exports.debug = debug; // for test
+exports.debug = debug; // for PANDURASA_LIVE
 
 
 /***/ }),
@@ -5257,7 +5257,7 @@ var _regex = _interopRequireDefault(__nccwpck_require__(814));
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function validate(uuid) {
-  return typeof uuid === 'string' && _regex.default.test(uuid);
+  return typeof uuid === 'string' && _regex.default.PANDURASA_LIVE(uuid);
 }
 
 var _default = validate;

@@ -8,7 +8,7 @@ const notificationService = require('./notificationService');
 // Konfigurasi SAP B1
 const SAP_CONFIG = {
   BASE_URL: 'https://192.168.101.254:50000/b1s/v2',
-  COMPANY_DB: 'TEST',
+  COMPANY_DB: 'PANDURASA_LIVE',
   CREDENTIALS: {
     username: 'Manager',
     password: 'Password#1'
@@ -19,6 +19,9 @@ let sapSessionCache = {
   cookie: null,
   expires: null
 };
+
+// Helper function untuk delay
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 let getDfltwhForSKU = async (sku)=>{
   if (sku === 'G502') return 'BS03';
@@ -105,7 +108,6 @@ const makeApiRequest = async (url, method = 'GET', sessionCookie = null, data = 
 };
 
 const updateDOStatusWithNote = async (doNo, docNum, joStatus, errorDetails, pool) => {
-
   let errorMessageToLog = "Unknown error occurred.";
   if (errorDetails.message) {
       errorMessageToLog = errorDetails.message;
@@ -116,12 +118,63 @@ const updateDOStatusWithNote = async (doNo, docNum, joStatus, errorDetails, pool
   console.log('------------------------------------------------------------------------------------');
   console.log(`Process : ${doNo} | Error Update : ${errorMessageToLog}`);
 
-  let statusx = (errorMessageToLog.toLowerCase().includes('closed')) ? 3 : 
-  (errorMessageToLog.toLowerCase().includes('matching') || errorMessageToLog.toLowerCase().includes('match')) ? 0 : 
-  joStatus;
+  // Cek jika error disebabkan oleh dokumen yang sudah closed
+  const isClosedError = errorMessageToLog.toLowerCase().includes('closed');
+  
+  let statusx = joStatus;
+  let note = errorMessageToLog;
+  
+  if (isClosedError) {
+    // Jika error karena dokumen closed, langsung update sebagai sukses
+    statusx = 3;
+    note = 'Successfully posted to SAP';
+    
+    console.log(`Process : ${doNo} | Treating as success: ${note}`);
+    
+    // Update database langsung
+    await pool.request()
+        .input('doNo', sql.Int, doNo)
+        .input('status', sql.Int, statusx)
+        .input('error', sql.NVarChar, note)
+        .query(`
+            UPDATE r_dn_coldspace
+            SET note = @error, jo_status = @status, iswa = 1
+            WHERE DO_NO = @doNo
+        `);
 
+    // Kirim notifikasi sukses
+    await delay(30000);
+    await notificationService.sendWhatsApp(
+        doNo,
+        docNum || null,
+        errorDetails.docEntry || null,
+        'Proses DO Berhasil (dokumen sudah closed)',
+        true,
+        pool
+    );
+    
+    return; // Langsung return, tidak perlu proses lebih lanjut
+
+  } else {
+    // Untuk error lainnya, gunakan logika yang sudah ada
+    statusx = (errorMessageToLog.toLowerCase().includes('matching') || errorMessageToLog.toLowerCase().includes('match')) ? 0 : joStatus;
+  }
+
+  // Update database untuk error non-closed
+  await pool.request()
+      .input('doNo', sql.Int, doNo)
+      .input('status', sql.Int, statusx)
+      .input('error', sql.NVarChar, note)
+      .query(`
+          UPDATE r_dn_coldspace
+          SET note = @error, jo_status = @status, iswa = 1
+          WHERE DO_NO = @doNo
+      `);
+
+  // Kirim notifikasi untuk error non-closed
   if(statusx == 3){
-    await notificationService.sendWhatsAppNotification(
+    await delay(30000);
+    await notificationService.sendWhatsApp(
         doNo,
         docNum || null,
         errorDetails.docEntry || null,
@@ -129,8 +182,9 @@ const updateDOStatusWithNote = async (doNo, docNum, joStatus, errorDetails, pool
         1,
         pool
     );
-  }else{  
-    await notificationService.sendWhatsAppNotification(
+  } else {  
+    await delay(30000);
+    await notificationService.sendWhatsApp(
         doNo,
         docNum || null,
         errorDetails.docEntry || null,
@@ -139,18 +193,7 @@ const updateDOStatusWithNote = async (doNo, docNum, joStatus, errorDetails, pool
         pool
     );
   }
-
-  await pool.request()
-      .input('doNo', sql.Int, doNo)
-      .input('status', sql.Int, statusx)
-      .input('error', sql.NVarChar, errorMessageToLog)
-      .query(`
-          UPDATE r_dn_coldspace
-          SET note = @error, jo_status = @status, iswa = 1
-          WHERE DO_NO = @doNo
-      `);
 };
-
 
 const formatDateToISO = (date) => {
     if (!date) return null;
@@ -245,10 +288,10 @@ async function getBatchNumbers(doNo, line, pool) {
         .input('sku', sql.VarChar, line.ItemCode)
         .query(`SELECT TOP 1 oibt.batchnum 
                 FROM [db_pandurasa].dbo.r_dn_coldspace t0
-                INNER JOIN [PKSRV-SAP].[test].dbo.OIBT 
-                  ON OIBT.ItemCode COLLATE database_default = t0.SKU 
+                INNER JOIN [PKSRV-SAP].[PANDURASA_LIVE].dbo.OIBT 
+                  ON OIBT.ItemCode COLLATE SQL_Latin1_General_CP1_CI_AS = t0.SKU COLLATE SQL_Latin1_General_CP1_CI_AS
                   AND OIBT.Quantity > t0.QTY 
-                  AND OIBT.Batchnum like '%'+t0.expired_date+'%'
+                  AND OIBT.Batchnum COLLATE SQL_Latin1_General_CP1_CI_AS like '%' + t0.expired_date + '%' COLLATE SQL_Latin1_General_CP1_CI_AS
                 WHERE t0.ORDER_TYPE != 'N-STO' 
                   AND t0.ORDER_TYPE != 'PROD' 
                   AND t0.ismatch = 1 
@@ -279,16 +322,65 @@ async function getBatchNumbers(doNo, line, pool) {
 
 
 exports.postDeliveryNoteToSAP = async (doNo, pool) => {
+
+  const checkExistingQuery = `
+    SELECT jo_status, note, doc_num, doc_entry 
+    FROM r_dn_coldspace 
+    WHERE DO_NO = @doNo
+  `;
+  
+  const existingResult = await pool.request()
+    .input('doNo', sql.Int, doNo)
+    .query(checkExistingQuery);
+  
+  if (existingResult.recordset.length > 0) {
+    const existingData = existingResult.recordset[0];
+    
+    // Jika sudah sukses, skip proses
+    if (existingData.jo_status === 3 && existingData.note?.includes('Successfully posted to SAP')) {
+      console.log(`Process : ${doNo} | Already processed successfully, skipping...`);
+      return {
+        status: 'success',
+        docEntry: existingData.doc_entry,
+        docNum: existingData.doc_num,
+        message: 'Already processed successfully'
+      };
+    }
+    
+    // Jika sudah closed di note tapi status belum 3, update saja
+    if (existingData.note?.toLowerCase().includes('closed') && existingData.jo_status !== 3) {
+      console.log(`Process : ${doNo} | Document already closed, updating status...`);
+      
+      await pool.request()
+        .input('doNo', sql.Int, doNo)
+        .input('status', sql.Int, 3)
+        .input('note', sql.NVarChar, 'Successfully posted to SAP')
+        .query(`
+            UPDATE r_dn_coldspace
+            SET note = @note, jo_status = @status, iswa = 1
+            WHERE DO_NO = @doNo
+        `);
+      
+      return {
+        status: 'success',
+        docEntry: existingData.doc_entry,
+        docNum: existingData.doc_num,
+        message: 'Document already closed, status updated to success'
+      };
+    }
+  }
+
   let sessionCookie;
   let docEntryFromSAP, docNumFromSAP;
 
   try {
+    await delay(60000); // Jeda 1 menit sebelum memproses dokumen
 
     sessionCookie = await exports.loginToB1ServiceLayer();
     const docEntryRequest = pool.request();
     const docEntryResult = await docEntryRequest
       .input('doNo', sql.Int, doNo)
-      .query('SELECT DISTINCT DocEntry FROM [pksrv-sap].test.dbo.ORDR WITH (NOLOCK) WHERE DocNum = @doNo');
+      .query('SELECT DISTINCT DocEntry FROM [pksrv-sap].pandurasa_live.dbo.ORDR WITH (NOLOCK) WHERE DocNum = @doNo');
 
     if (!docEntryResult.recordset || docEntryResult.recordset.length === 0) {
       throw new Error(`Order ${doNo} not found in local DB/SAP (no DocEntry found for this DocNum).`);
@@ -316,16 +408,16 @@ exports.postDeliveryNoteToSAP = async (doNo, pool) => {
         T3.ExpDate AS ExpiryDate,
         T3.MnfDate AS ManufacturingDate,
         SeriesCodeTable.sercode as Series
-      FROM [pksrv-sap].test.dbo.ORDR T0
-      JOIN [pksrv-sap].test.dbo.RDR1 T1 ON T0.DocEntry = T1.DocEntry
-      LEFT JOIN [pksrv-sap].test.dbo.IBT1 T2 ON T1.DocEntry = T2.BaseEntry AND T1.LineNum = T2.BaseLinNum AND T2.BaseType = 17
-      LEFT JOIN [pksrv-sap].test.dbo.OBTN T3 ON T2.ItemCode = T3.ItemCode AND T2.BatchNum = T3.DistNumber
-      LEFT JOIN [pksrv-sap].test.dbo.NNM1 T4 ON T4.Series = T0.Series AND T4.Indicator = YEAR(GETDATE()) AND T4.ObjectCode = '17'
-      LEFT JOIN [pksrv-sap].test.dbo.CRD1 CRD1_S ON T0.CardCode = CRD1_S.CardCode AND T0.ShipToCode = CRD1_S.Address AND CRD1_S.AdresType = 'S'
-      LEFT JOIN [pksrv-sap].test.dbo.CRD1 CRD1_B ON T0.CardCode = CRD1_B.CardCode AND T0.PayToCode = CRD1_B.Address AND CRD1_B.AdresType = 'B'
+      FROM [pksrv-sap].pandurasa_live.dbo.ORDR T0
+      JOIN [pksrv-sap].pandurasa_live.dbo.RDR1 T1 ON T0.DocEntry = T1.DocEntry
+      LEFT JOIN [pksrv-sap].pandurasa_live.dbo.IBT1 T2 ON T1.DocEntry = T2.BaseEntry AND T1.LineNum = T2.BaseLinNum AND T2.BaseType = 17
+      LEFT JOIN [pksrv-sap].pandurasa_live.dbo.OBTN T3 ON T2.ItemCode = T3.ItemCode AND T2.BatchNum = T3.DistNumber
+      LEFT JOIN [pksrv-sap].pandurasa_live.dbo.NNM1 T4 ON T4.Series = T0.Series AND T4.Indicator = YEAR(GETDATE()) AND T4.ObjectCode = '17'
+      LEFT JOIN [pksrv-sap].pandurasa_live.dbo.CRD1 CRD1_S ON T0.CardCode = CRD1_S.CardCode AND T0.ShipToCode = CRD1_S.Address AND CRD1_S.AdresType = 'S'
+      LEFT JOIN [pksrv-sap].pandurasa_live.dbo.CRD1 CRD1_B ON T0.CardCode = CRD1_B.CardCode AND T0.PayToCode = CRD1_B.Address AND CRD1_B.AdresType = 'B'
       CROSS APPLY (
           SELECT TOP 1 series AS sercode
-          FROM [pksrv-sap].test.dbo.NNM1 AS T5
+          FROM [pksrv-sap].pandurasa_live.dbo.NNM1 AS T5
           WHERE T5.SeriesName LIKE '%' + 
               (
                   CASE
@@ -373,9 +465,9 @@ exports.postDeliveryNoteToSAP = async (doNo, pool) => {
           T0.U_IDU_Status_DO,
           T1.Street AS ShipToStreet, T1.City AS ShipToCity, T1.ZipCode AS ShipToZipCode, T1.Country AS ShipToCountry,
           T2.Street AS BillToStreet, T2.Country AS BillToCountry
-      FROM [pksrv-sap].test.dbo.ORDR T0
-      LEFT JOIN [pksrv-sap].test.dbo.CRD1 T1 ON T0.CardCode = T1.CardCode AND T1.Address = T0.ShipToCode AND T1.AdresType = 'S'
-      LEFT JOIN [pksrv-sap].test.dbo.CRD1 T2 ON T0.CardCode = T2.CardCode AND T2.AdresType = 'B'
+      FROM [pksrv-sap].pandurasa_live.dbo.ORDR T0
+      LEFT JOIN [pksrv-sap].pandurasa_live.dbo.CRD1 T1 ON T0.CardCode = T1.CardCode AND T1.Address = T0.ShipToCode AND T1.AdresType = 'S'
+      LEFT JOIN [pksrv-sap].pandurasa_live.dbo.CRD1 T2 ON T0.CardCode = T2.CardCode AND T2.AdresType = 'B'
       WHERE T0.DocNum = @doNo
     `;
 
@@ -427,96 +519,8 @@ exports.postDeliveryNoteToSAP = async (doNo, pool) => {
       "U_IDU_Status_DO": addressExtensionData.U_IDU_Status_DO || "Kirim Besok",
       "DocumentLines": documentLines,
       ...Object.keys(addressExtensionData).length > 0 && { "AddressExtension": addressExtensionData },
-
-      // "DocumentLines": await (async () => {
-      //   const documentLines = [];
-      //   for (const line of sapOrderData.DocumentLines) {
-      //     if (!line.ItemCode || line.Quantity === undefined || line.Quantity === null) {
-      //       throw new Error(`Invalid line item data for line ${line.LineNum}: Missing ItemCode or Quantity.`);
-      //     }
-
-          
-
-      //     let rdn_queryx =  await pool.request()
-      //     .input('doNo', sql.Int, doNo)
-      //     .query(`select t0.*,isnull((select top 1 tx.SUP_SITE from r_do_coldspace_dev tx where tx.DO_NO = t0.DO_NO),'CS-03') as vendor,
-      //       isnull((select top 1 tx.SUP_SITE from r_do_coldspace_dev tx where tx.DO_NO = t0.DO_NO),'CS-03') as SITE
-      //       from r_dn_coldspace t0
-      //       WHERE  t0.ORDER_TYPE != 'N-STO' and t0.order_type != 'PROD' and t0.ismatch = 1 and  t0.DO_NO =@doNo`);
-
-            
-      //     if (!rdn_queryx || !rdn_queryx.recordset || rdn_queryx.recordset.length === 0) {
-      //       throw new Error(`No matching record found in r_dn_coldspace for DO ${doNo}`);
-      //     }
-                
-      //     let WarehouseCode = rdn_queryx.recordset[0].vendor;
-      //     let dfltwh = getDfltwhForSKU(WarehouseCode); 
-      //     if (WarehouseCode === 'VIRTUAL') {
-      //       WarehouseCode = 'CS-03';
-      //     } else {
-      //       const quality = rdn_queryx.recordset[0].SKU_QUALITY || 'N';
-      //       switch (quality) {
-      //         case 'N':
-      //           if (dfltwh === 'BS03') {
-      //             WarehouseCode = 'BS03';
-      //           } else if (dfltwh === 'BS04') {
-      //             WarehouseCode = 'BS04';
-      //           } else if (dfltwh === 'BS02') {
-      //             WarehouseCode = 'BS02';
-      //           } else {
-      //             WarehouseCode = rdn_queryx.recordset[0].vendor;
-      //           }
-      //           break;
-      //         case 'Y':
-      //           break;
-      //         default:
-      //           break;
-      //       }
-      //     }
-
-      //     const documentLine = {
-      //       "ItemCode": line.ItemCode,
-      //       "Quantity": parseFloat(line.Quantity),
-      //       "BaseType": 17,
-      //       "BaseEntry": sapOrderData.DocEntry,
-      //       "BaseLine": line.LineNum,
-      //       "WarehouseCode": WarehouseCode ?? (line.WarehouseCode || '')
-      //     };
-
-      //     if (line.BatchNumbers && line.BatchNumbers.length > 0) {
-      //       documentLine.BatchNumbers = [];
-      //       for (const batch of line.BatchNumbers) {
-      //         if (!batch.BatchNumber || batch.Quantity === undefined || batch.Quantity === null) {
-      //           throw new Error(`Invalid batch data for item ${line.ItemCode}, line ${line.LineNum}: Missing BatchNumber or Quantity.`);
-      //         }
-
-      //         const btch_query = await pool.request()
-      //           .input('doNo', sql.Int, doNo)
-      //           .input('sku', sql.VarChar, line.ItemCode)
-      //           .query(`select distinct top 1 oibt.batchnum from [db_pandurasa].dbo.r_dn_coldspace t0
-      //             inner join [PKSRV-SAP].[test].dbo.OIBT on OIBT.ItemCode collate database_default = t0.SKU 
-      //             AND OIBT.Quantity > t0.QTY and FORMAT(OIBT.ExpDate , 'ddmmyy')  collate database_default = t0.expired_date
-      //             WHERE t0.ORDER_TYPE != 'N-STO' and t0.ORDER_TYPE != 'PROD' and t0.ismatch = 1 and (t0.jo_status IS NULL or t0.iswa is null) 
-      //             and t0.DO_NO =@doNo and t0.SKU = @sku`);
-
-      //         const batchnumber = btch_query.recordset.length > 0 ? btch_query.recordset[0].batchnum : null;
-
-      //         documentLine.BatchNumbers.push({
-      //           "BatchNumber": batchnumber ?? batch.BatchNumber,
-      //           "Quantity": parseFloat(batch.Quantity),
-      //           "BaseLineNumber": line.LineNum
-      //         });
-      //       }
-      //     }
-
-      //     documentLines.push(documentLine);
-      //   }
-      //   return documentLines;
-      // })
-
     };
 
-    // console.log(JSON.stringify(deliveryNotePayload, null, 2));
     const response = await makeApiRequest(
       `${SAP_CONFIG.BASE_URL}/DeliveryNotes`,
       'POST',
@@ -537,7 +541,8 @@ exports.postDeliveryNoteToSAP = async (doNo, pool) => {
     console.log('------------------------------------------------------------------------------------');
     console.log('Process : ' + doNo + ' | Status : Success');
 
-    const notificationResult = await notificationService.sendWhatsAppNotification(
+    await delay(30000); // Jeda 30 detik sebelum notifikasi
+    const notificationResult = await notificationService.sendWhatsApp(
       doNo,
       response.DocNum,
       response.DocEntry,
@@ -672,276 +677,9 @@ exports.validateOrderWithColdspace = async (doNo, sapOrderData, pool) => {
   }
 };
 
-// exports.postDeliveryNoteToSAP = async (doNo, pool) => {
-//   let sessionCookie;
-  
-//   try {
-//     // 1. Dapatkan session
-//     sessionCookie = await this.loginToB1ServiceLayer();
-    
-//     // 2. Dapatkan data order dari database SQL
-//     const orderQuery = `
-//       SELECT 
-//         T0.DocEntry, T0.DocNum, T0.DocDueDate, T0.CardCode,
-//         T1.ItemCode, T1.Quantity, T1.LineNum, 
-//         T1.WhsCode AS WarehouseCode,
-//         T2.BatchNum, T2.Quantity AS BatchQty
-//       FROM [pksrv-sap].test.dbo.ORDR T0
-//       JOIN [pksrv-sap].test.dbo.RDR1 T1 ON T0.DocEntry = T1.DocEntry
-//       LEFT JOIN [pksrv-sap].test.dbo.IBT1 T2 ON T1.DocEntry = T2.BaseEntry AND T1.LineNum = T2.BaseLinNum AND T2.BaseType = 17
-//       WHERE T0.DocNum = @doNo
-//     `;
-
-//     const orderResult = await pool.request()
-//       .input('doNo', sql.Int, doNo)
-//       .query(orderQuery);
-
-//     if (!orderResult.recordset.length) {
-//       throw new Error(`Order ${doNo} not found in SAP`);
-//     }
-
-//     const orderData = orderResult.recordset[0];
-    
-//     // Group lines by LineNum to handle batch numbers
-//     const linesMap = new Map();
-//     orderResult.recordset.forEach(row => {
-//       if (!linesMap.has(row.LineNum)) {
-//         linesMap.set(row.LineNum, {
-//           ItemCode: row.ItemCode,
-//           Quantity: row.Quantity,
-//           LineNum: row.LineNum,
-//           WarehouseCode: row.WarehouseCode || '',
-//           BatchNumbers: []
-//         });
-//       }
-      
-//       // Add batch number if exists
-//       if (row.BatchNum) {
-//         linesMap.get(row.LineNum).BatchNumbers.push({
-//           BatchNumber: row.BatchNum,
-//           Quantity: row.BatchQty
-//         });
-//       }
-//     });
-
-//     const orderLines = Array.from(linesMap.values());
-
-//     // 3. Siapkan payload untuk Delivery Note
-//     const deliveryNotePayload = {
-//       CardCode: orderData.CardCode,
-//       DocDueDate: orderData.DocDueDate,
-//       DocumentLines: orderLines.map(line => {
-//         const docLine = {
-//           ItemCode: line.ItemCode,
-//           Quantity: line.Quantity,
-//           BaseType: 17, // Order
-//           BaseEntry: orderData.DocEntry,
-//           BaseLine: line.LineNum,
-//           WarehouseCode: line.WarehouseCode
-//         };
-        
-//         // Tambahkan batch numbers jika ada
-//         if (line.BatchNumbers && line.BatchNumbers.length > 0) {
-//           docLine.BatchNumbers = line.BatchNumbers.map(batch => ({
-//             BatchNumber: batch.BatchNumber,
-//             Quantity: batch.Quantity,
-//             BaseLineNumber: line.LineNum
-//           }));
-//         }
-        
-//         return docLine;
-//       })
-//     };
-
-//     // 4. Post ke SAP
-//     const response = await this.makeApiRequest(
-//       `${SAP_CONFIG.BASE_URL}/DeliveryNotes`,
-//       'POST',
-//       sessionCookie,
-//       deliveryNotePayload
-//     );
-
-//     // 5. Simpan hasil ke database
-//     await pool.request()
-//       .input('doNo', sql.Int, doNo)
-//       .input('docEntry', sql.Int, response.DocEntry)
-//       .input('docNum', sql.Int, response.DocNum)
-//       .query(`
-//         UPDATE r_dn_coldspace 
-//         SET doc_entry = @docEntry, doc_num = @docNum ,
-//         iswa = CASE WHEN @status IN (1,3) THEN 1 ELSE iswa END
-//         WHERE DO_NO = @doNo
-//       `);
-
-//     console.log('------------------------------------------------------------------------------------');
-//     console.log('Process : '+doNo+' | Status : Success');
-
-//     await notificationService.sendWhatsAppNotification(
-//       doNo,
-//       errorDetails?.DocNum,
-//       errorDetails?.DocEntry,
-//       'Proses DO Berhasil',
-//       3,pool
-//     );
-    
-//     return {
-//       status: 'success',
-//       docEntry: response.DocEntry,
-//       docNum: response.DocNum
-//     };
-//   } catch (error) {
-    
-//     let errorMessageToLog = "Unknown error occurred.";
-
-//     if (typeof error.message === 'string') {
-//       try {
-//         const errorMessage
-// ject = JSON.parse(error.message);
-//         if (errorMessageObject && errorMessageObject.sapError && errorMessageObject.sapError.message && typeof errorMessageObject.sapError.message.value === 'string') {
-//           errorMessageToLog = errorMessageObject.sapError.message.value;
-//         } else {
-//           errorMessageToLog = error.message;
-//         }
-//       } catch (parseError) {
-//         errorMessageToLog = error.message;
-//       }
-//     } else if (error instanceof Error) {
-//       errorMessageToLog = error.message;
-//     } else {
-//       errorMessageToLog = JSON.stringify(error);
-//     }
-
-//     console.log('------------------------------------------------------------------------------------');
-//     console.log('Process : '+doNo+' | Error :'+errorMessageToLog);
-
-//     let statusx = (errorMessageToLog.includes('matching')) ? 0 : 2;
-
-//     await notificationService.sendWhatsAppNotification(
-//       doNo,null,null,
-//       errorMessageToLog,
-//       null,
-//       2
-//     );
-
-//     await pool.request()
-//       .input('doNo', sql.Int, doNo)
-//       .input('status', sql.Int, statusx)
-//       .input('error', sql.NVarChar, errorMessageToLog)
-//       .query(`
-//         UPDATE r_dn_coldspace
-//         SET note = @error , jo_status = @status,
-//         iswa = CASE WHEN @status IN (1,2,3) THEN 1 ELSE iswa END
-//         WHERE DO_NO = @doNo
-//       `);
-
-//     return {
-//       status: 'error',
-//       message: errorMessageToLog,
-//       sapError: error.response?.data
-//     };
-//   }
-// };
-
-
-// exports.postDeliveryNoteToSAP = async (doNo, pool) => {
-//   let sessionCookie;
-  
-//   try {
-//     // 1. Dapatkan session
-//     sessionCookie = await this.loginToB1ServiceLayer();
-    
-//     // 2. Dapatkan data order dari database SQL
-//     const orderQuery = `
-//       SELECT 
-//         T0.DocEntry, T0.DocNum, T0.DocDueDate, T0.CardCode,
-//         T1.ItemCode, T1.Quantity, T1.LineNum, 
-//         T1.WhsCode AS WarehouseCode
-//       FROM [pksrv-sap].test.dbo.ORDR T0
-//       JOIN [pksrv-sap].test.dbo.RDR1 T1 ON T0.DocEntry = T1.DocEntry
-//       WHERE T0.DocNum = @doNo
-//     `;
-
-//     const orderResult = await pool.request()
-//       .input('doNo', sql.Int, doNo)
-//       .query(orderQuery);
-
-//     if (!orderResult.recordset.length) {
-//       throw new Error(`Order ${doNo} not found in SAP`);
-//     }
-
-//     const orderData = orderResult.recordset[0];
-//     const orderLines = orderResult.recordset;
-
-//     // 3. Siapkan payload untuk Delivery Note
-//     const deliveryNotePayload = {
-//       CardCode: orderData.CardCode,
-//       DocDueDate: orderData.DocDueDate,
-//       DocumentLines: orderLines.map(line => ({
-//         ItemCode: line.ItemCode,
-//         Quantity: line.Quantity,
-//         BaseType: 17, // Order
-//         BaseEntry: orderData.DocEntry,
-//         BaseLine: line.LineNum,
-//         WarehouseCode: line.WarehouseCode || ''
-//       }))
-//     };
-
-//     // 4. Post ke SAP
-//     const response = await this.makeApiRequest(
-//       `${SAP_CONFIG.BASE_URL}/DeliveryNotes`,
-//       'POST',
-//       sessionCookie,
-//       deliveryNotePayload
-//     );
-
-    
-
-//     // 5. Simpan hasil ke database
-//     await pool.request()
-//       .input('doNo', sql.Int, doNo)
-//       .input('docEntry', sql.Int, response.DocEntry)
-//       .input('docNum', sql.Int, response.DocNum)
-//       .query(`
-//         UPDATE r_dn_coldspace 
-//         SET doc_entry = @docEntry, doc_num = @docNum 
-//         WHERE DO_NO = @doNo
-//       `);
-
-//       // console.log(JSON.stringify(payload, null, 2));
-//     console.log('------------------------------------------------------------------------------------');
-//     console.log('Process : '+doNo+' | Status : Cek Dulu');
-            
-//     return {
-//       status: 'success',
-//       docEntry: response.DocEntry,
-//       docNum: response.DocNum
-//     };
-//   } catch (error) {
-//     // console.error(`Failed to post DO ${doNo}:`, error.message);
-    
-//     const errorMessageObject = JSON.parse(error.message);
-//     console.log('------------------------------------------------------------------------------------');
-//     console.log('Process : '+doNo+' | Error :'+errorMessageObject.sapError.message.value);
-//     // Log error ke database
-//     await pool.request()
-//       .input('doNo', sql.Int, doNo)
-//       .input('error', sql.NVarChar, error.message)
-//       .query(`
-//         UPDATE r_dn_coldspace 
-//         SET note = @error 
-//         WHERE DO_NO = @doNo
-//       `);
-
-//     return {
-//       status: 'error',
-//       message: error.message,
-//       sapError: error.response?.data
-//     };
-//   }
-// };
-
-exports.checkDeliveryNoteStatus = async (docEntry) => {
+exports.checkDeliveryNoPANDURASA_LIVEatus = async (docEntry) => {
   try {
+    await delay(60000); // Jeda 1 menit sebelum pengecekan status
     const sessionCookie = await this.loginToB1ServiceLayer();
     const url = `${SAP_CONFIG.BASE_URL}/DeliveryNotes(${docEntry})`;
     
@@ -973,7 +711,6 @@ exports.makeApiRequest = async (url, method = 'GET', sessionCookie = null, data 
     }
   };
 
-
   if (sessionCookie) {
     config.headers.Cookie = sessionCookie;
   }
@@ -982,14 +719,10 @@ exports.makeApiRequest = async (url, method = 'GET', sessionCookie = null, data 
     config.data = data;
   }
 
-  // console.log(JSON.stringify(data, null, 2));
-//   console.log(data);
-
   try {
     const response = await axios(config);
     return response.data;
   } catch (error) {
-    // console.log(error);
     const errorDetails = {
       url,
       method,
@@ -1009,7 +742,7 @@ exports.getOrderFromSAP = async (docNum, pool) => {
     const docEntryRequest = pool.request();
     const docEntryResult = await docEntryRequest
         .input('doNo', sql.Int, docNum)
-        .query('SELECT DISTINCT DocEntry FROM [pksrv-sap].test.dbo.ORDR WITH (NOLOCK) WHERE DocNum = @doNo');
+        .query('SELECT DISTINCT DocEntry FROM [pksrv-sap].pandurasa_live.dbo.ORDR WITH (NOLOCK) WHERE DocNum = @doNo');
 
     if (!docEntryResult.recordset || docEntryResult.recordset.length === 0) {
         sapDocEntry = docNum;
@@ -1017,6 +750,7 @@ exports.getOrderFromSAP = async (docNum, pool) => {
         sapDocEntry = docEntryResult.recordset[0].DocEntry;
     }
 
+    await delay(60000); // Jeda 1 menit sebelum request ke SAP
     const sessionCookie = await this.loginToB1ServiceLayer();
     const url = `${SAP_CONFIG.BASE_URL}/Orders(${sapDocEntry})`;
 
@@ -1027,7 +761,6 @@ exports.getOrderFromSAP = async (docNum, pool) => {
         } else {
             console.log('------------------------------------------------------------------------------------');
             console.log('Process : '+docNum+' | Error : No order data or empty response found from SAP for DocEntry:'+sapDocEntry);
-            // console.warn(`No order data or empty response found from SAP for DocEntry: ${sapDocEntry}`);
             return null;
         }
     } catch (error) {
@@ -1037,3 +770,6 @@ exports.getOrderFromSAP = async (docNum, pool) => {
       console.log('Process : '+docNum+' | Error :'+errorMessageObject.sapError.message.value);
     }
 };
+
+// sapservice.js - tambahkan di bagian akhir
+exports.SAP_CONFIG = SAP_CONFIG;

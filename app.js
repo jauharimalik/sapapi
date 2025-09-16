@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
-// doService masih diimpor karena mungkin digunakan di tempat lain atau untuk testing langsung
+// doService masih diimpor karena mungkin digunakan di tempat lain atau untuk PANDURASA_LIVEing langsung
 const doService = require('./services/doService');
 
 app.use(express.json());
@@ -35,5 +35,7 @@ app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).json({ error: 'Terjadi kesalahan pada server!' });
 });
+
+
 
 module.exports = app;

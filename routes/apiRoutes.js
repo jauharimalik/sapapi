@@ -6,7 +6,7 @@ const notificationController = require('../controllers/notificationController');
 router.get('/check-do', doController.checkSingleDO);
 router.get('/recheck-iswa-null', doController.recheckNullIswaDOs);
 router.get('/retry-failed-dos', doController.retryFailedDOs);
-router.get('/testwa', notificationController.sendTestNotification);
+router.get('/PANDURASA_LIVEwa', notificationController.sendPANDURASA_LIVENotification);
 router.get('/tarikandn', doController.getRnColdspaceData);
 router.get('/tarikangr', doController.getgrColdspaceData);
 router.get('/send-success-notifications', notificationController.sendSuccessNotifications);

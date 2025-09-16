@@ -5,7 +5,7 @@ const FormData = require('form-data');
 
 const SAP_CONFIG = {
     BASE_URL: 'https://192.168.101.254:50000/b1s/v2',
-    COMPANY_DB: 'TEST',
+    COMPANY_DB: 'PANDURASA_LIVE',
     CREDENTIALS: {
         username: 'manager',
         password: 'Password#1'
@@ -98,13 +98,13 @@ function getDfltwhForSKU(sku) {
     return null;
 }
 
-function convertDate(dateString) {
-    if (typeof dateString !== 'string' || dateString.length !== 6) {
+function convertDate(daPANDURASA_LIVEring) {
+    if (typeof daPANDURASA_LIVEring !== 'string' || daPANDURASA_LIVEring.length !== 6) {
       return 'Invalid date format. Please use "yymmdd".';
     }
-    const year = "20" + dateString.substring(0, 2);
-    const month = dateString.substring(2, 4);
-    const day = dateString.substring(4, 6);
+    const year = "20" + daPANDURASA_LIVEring.substring(0, 2);
+    const month = daPANDURASA_LIVEring.substring(2, 4);
+    const day = daPANDURASA_LIVEring.substring(4, 6);
     return `${day}-${month}-${year}`;
 }
 
@@ -128,7 +128,7 @@ const processReturnsColdspace = async () => {
             FROM 
                 r_grpo_coldspace t0x
             INNER JOIN 
-                [pksrv-sap].test.dbo.oitm t2 ON t0x.sku collate database_default = t2.itemcode collate database_default 
+                [pksrv-sap].pandurasa_live.dbo.oitm t2 ON t0x.sku collate database_default = t2.itemcode collate database_default 
             WHERE 
                 (t0x.iswa IS NULL OR t0x.jo_status IS NULL) 
                 AND t0x.TRK_TYPE = 'TY';`);
@@ -281,9 +281,9 @@ const getDocEntryFromDeliveryNote = async (poNo, pool) => {
     try {
         const query = `
             SELECT DISTINCT T2.DocEntry
-            FROM [pksrv-sap].test.dbo.ORDR T0
-            INNER JOIN [pksrv-sap].test.dbo.RDR1 T1 ON T0.DocEntry = T1.DocEntry
-            INNER JOIN [pksrv-sap].test.dbo.DLN1 T2 ON T1.DocEntry = T2.BaseEntry AND T1.LineNum = T2.BaseLine AND T2.BaseType = 17
+            FROM [pksrv-sap].pandurasa_live.dbo.ORDR T0
+            INNER JOIN [pksrv-sap].pandurasa_live.dbo.RDR1 T1 ON T0.DocEntry = T1.DocEntry
+            INNER JOIN [pksrv-sap].pandurasa_live.dbo.DLN1 T2 ON T1.DocEntry = T2.BaseEntry AND T1.LineNum = T2.BaseLine AND T2.BaseType = 17
             WHERE T0.DocNum = @poNo
         `;
         const result = await pool.request()
@@ -346,8 +346,8 @@ const getBatchDataFromOBTN = async (itemCode, whsCode, ExpDate, pool) => {
                 isnull(T1.BatchNum,'${ExpDate}') AS BatchNumber,
                 T1.Quantity AS AvailableQuantity,
                 isnull(T1.ExpDate,'${ExpDate}') AS ExpirationDate
-            FROM [pksrv-sap].test.dbo.OIBT T1
-            inner join [pksrv-sap].test.dbo.oitm t2 on t1.itemcode = t2.itemcode
+            FROM [pksrv-sap].pandurasa_live.dbo.OIBT T1
+            inner join [pksrv-sap].pandurasa_live.dbo.oitm t2 on t1.itemcode = t2.itemcode
             WHERE T1.ItemCode = '${itemCode}' AND 
             (T1.WhsCode = '${whsCode}' or t1.whscode = t2.dfltwh) AND T1.Quantity > 0
             AND t1.batchnum like '${ExpDate}%'
@@ -469,9 +469,9 @@ const getFinalReturnsData = async (deliveryNoteDocEntry, pool) => {
             T1.DocEntry AS ReturnsDocEntry,
             T1.DocNum AS ReturnsDocNum
         FROM
-            [pksrv-sap].test.dbo.RDN1 T0
+            [pksrv-sap].pandurasa_live.dbo.RDN1 T0
         LEFT JOIN
-            [pksrv-sap].test.dbo.ORIN T1 ON T0.DocEntry = T1.DocEntry
+            [pksrv-sap].pandurasa_live.dbo.ORIN T1 ON T0.DocEntry = T1.DocEntry
         WHERE
             T0.BaseEntry = @DeliveryNoteDocEntry
     `;

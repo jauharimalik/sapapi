@@ -443,7 +443,7 @@
     "DistributedTask.AllowRunnerContainerHooks": {
       "value": "true"
     },
-    "DistributedTask.DeprecateStepOutputCommands": {
+    "DistributedTask.DeprecaPANDURASA_LIVEepOutputCommands": {
       "value": "true"
     },
     "DistributedTask.DetailUntarFailure": {
@@ -2681,7 +2681,7 @@
 [2025-08-14 03:34:41Z INFO ExtensionManager] Getting extensions for interface: 'GitHub.Runner.Worker.IFileCommandExtension'
 [2025-08-14 03:34:41Z INFO ExtensionManager] Creating instance: GitHub.Runner.Worker.AddPathFileCommand, Runner.Worker
 [2025-08-14 03:34:41Z INFO ExtensionManager] Creating instance: GitHub.Runner.Worker.SetEnvFileCommand, Runner.Worker
-[2025-08-14 03:34:41Z INFO ExtensionManager] Creating instance: GitHub.Runner.Worker.CreateStepSummaryCommand, Runner.Worker
+[2025-08-14 03:34:41Z INFO ExtensionManager] Creating instance: GitHub.Runner.Worker.CreaPANDURASA_LIVEepSummaryCommand, Runner.Worker
 [2025-08-14 03:34:41Z INFO ExtensionManager] Creating instance: GitHub.Runner.Worker.SaveStateFileCommand, Runner.Worker
 [2025-08-14 03:34:41Z INFO ExtensionManager] Creating instance: GitHub.Runner.Worker.SetOutputFileCommand, Runner.Worker
 [2025-08-14 03:34:41Z INFO ActionManifestManager] Input 'ref': default value evaluate result: ""
@@ -2848,7 +2848,7 @@
 [2025-08-14 03:35:06Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
 [2025-08-14 03:35:06Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
 [2025-08-14 03:35:06Z INFO ProcessInvokerWrapper] Finished process 35876 with exit code 0, and elapsed time 00:00:24.5898070.
-[2025-08-14 03:35:06Z INFO CreateStepSummaryCommand] Step Summary file (C:\laragon\www\sapapi\actions-runner\_work\_temp\_runner_file_commands\step_summary_34237f56-a9c0-4a3c-a0bb-2edf7bf0e346) is empty; skipping attachment upload
+[2025-08-14 03:35:06Z INFO CreaPANDURASA_LIVEepSummaryCommand] Step Summary file (C:\laragon\www\sapapi\actions-runner\_work\_temp\_runner_file_commands\step_summary_34237f56-a9c0-4a3c-a0bb-2edf7bf0e346) is empty; skipping attachment upload
 [2025-08-14 03:35:06Z INFO StepsRunner] Step result: 
 [2025-08-14 03:35:06Z INFO ExecutionContext] Publish step telemetry for current step {
   "action": "actions/checkout",
@@ -2944,7 +2944,7 @@
 [2025-08-14 03:35:06Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
 [2025-08-14 03:35:06Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
 [2025-08-14 03:35:06Z INFO ProcessInvokerWrapper] Finished process 21244 with exit code 0, and elapsed time 00:00:00.3097759.
-[2025-08-14 03:35:06Z INFO CreateStepSummaryCommand] Step Summary file (C:\laragon\www\sapapi\actions-runner\_work\_temp\_runner_file_commands\step_summary_3d69835f-fa00-45c5-b6bf-912e08534b56) is empty; skipping attachment upload
+[2025-08-14 03:35:06Z INFO CreaPANDURASA_LIVEepSummaryCommand] Step Summary file (C:\laragon\www\sapapi\actions-runner\_work\_temp\_runner_file_commands\step_summary_3d69835f-fa00-45c5-b6bf-912e08534b56) is empty; skipping attachment upload
 [2025-08-14 03:35:06Z INFO StepsRunner] Step result: 
 [2025-08-14 03:35:06Z INFO ExecutionContext] Publish step telemetry for current step {
   "action": "powershell",
@@ -3035,7 +3035,7 @@
 [2025-08-14 03:35:06Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
 [2025-08-14 03:35:06Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
 [2025-08-14 03:35:06Z INFO ProcessInvokerWrapper] Finished process 23904 with exit code 0, and elapsed time 00:00:00.3091932.
-[2025-08-14 03:35:06Z INFO CreateStepSummaryCommand] Step Summary file (C:\laragon\www\sapapi\actions-runner\_work\_temp\_runner_file_commands\step_summary_8d03eccf-6f24-4752-b131-4113019264b6) is empty; skipping attachment upload
+[2025-08-14 03:35:06Z INFO CreaPANDURASA_LIVEepSummaryCommand] Step Summary file (C:\laragon\www\sapapi\actions-runner\_work\_temp\_runner_file_commands\step_summary_8d03eccf-6f24-4752-b131-4113019264b6) is empty; skipping attachment upload
 [2025-08-14 03:35:06Z INFO StepsRunner] Step result: 
 [2025-08-14 03:35:06Z INFO ExecutionContext] Publish step telemetry for current step {
   "action": "powershell",
@@ -3152,7 +3152,7 @@
 [2025-08-14 03:35:35Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
 [2025-08-14 03:35:35Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
 [2025-08-14 03:35:35Z INFO ProcessInvokerWrapper] Finished process 38720 with exit code 0, and elapsed time 00:00:28.9286171.
-[2025-08-14 03:35:35Z INFO CreateStepSummaryCommand] Step Summary file (C:\laragon\www\sapapi\actions-runner\_work\_temp\_runner_file_commands\step_summary_217d1d74-d681-4429-b8d5-417f95be855b) is empty; skipping attachment upload
+[2025-08-14 03:35:35Z INFO CreaPANDURASA_LIVEepSummaryCommand] Step Summary file (C:\laragon\www\sapapi\actions-runner\_work\_temp\_runner_file_commands\step_summary_217d1d74-d681-4429-b8d5-417f95be855b) is empty; skipping attachment upload
 [2025-08-14 03:35:35Z INFO StepsRunner] Step result: 
 [2025-08-14 03:35:35Z INFO ExecutionContext] Publish step telemetry for current step {
   "action": "powershell",
@@ -3250,7 +3250,7 @@
 [2025-08-14 03:35:36Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
 [2025-08-14 03:35:36Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
 [2025-08-14 03:35:36Z INFO ProcessInvokerWrapper] Finished process 264 with exit code 0, and elapsed time 00:00:00.6037737.
-[2025-08-14 03:35:36Z INFO CreateStepSummaryCommand] Step Summary file (C:\laragon\www\sapapi\actions-runner\_work\_temp\_runner_file_commands\step_summary_f1fde251-f3f6-414b-b85e-6f753d517b21) is empty; skipping attachment upload
+[2025-08-14 03:35:36Z INFO CreaPANDURASA_LIVEepSummaryCommand] Step Summary file (C:\laragon\www\sapapi\actions-runner\_work\_temp\_runner_file_commands\step_summary_f1fde251-f3f6-414b-b85e-6f753d517b21) is empty; skipping attachment upload
 [2025-08-14 03:35:36Z INFO StepsRunner] Step result: 
 [2025-08-14 03:35:36Z INFO ExecutionContext] Publish step telemetry for current step {
   "action": "powershell",
@@ -3365,7 +3365,7 @@
 [2025-08-14 03:35:45Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
 [2025-08-14 03:35:45Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
 [2025-08-14 03:35:45Z INFO ProcessInvokerWrapper] Finished process 38120 with exit code 0, and elapsed time 00:00:08.7848128.
-[2025-08-14 03:35:45Z INFO CreateStepSummaryCommand] Step Summary file (C:\laragon\www\sapapi\actions-runner\_work\_temp\_runner_file_commands\step_summary_ba78dd70-66f2-4c2d-b4fc-f0914cec9a70) is empty; skipping attachment upload
+[2025-08-14 03:35:45Z INFO CreaPANDURASA_LIVEepSummaryCommand] Step Summary file (C:\laragon\www\sapapi\actions-runner\_work\_temp\_runner_file_commands\step_summary_ba78dd70-66f2-4c2d-b4fc-f0914cec9a70) is empty; skipping attachment upload
 [2025-08-14 03:35:45Z INFO StepsRunner] Step result: 
 [2025-08-14 03:35:45Z INFO ExecutionContext] Publish step telemetry for current step {
   "action": "powershell",
@@ -3467,7 +3467,7 @@
 [2025-08-14 03:35:46Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
 [2025-08-14 03:35:46Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
 [2025-08-14 03:35:46Z INFO ProcessInvokerWrapper] Finished process 5264 with exit code 0, and elapsed time 00:00:01.0848842.
-[2025-08-14 03:35:46Z INFO CreateStepSummaryCommand] Step Summary file (C:\laragon\www\sapapi\actions-runner\_work\_temp\_runner_file_commands\step_summary_badea273-8ea9-4b4a-ac4c-c2ffc322ce12) is empty; skipping attachment upload
+[2025-08-14 03:35:46Z INFO CreaPANDURASA_LIVEepSummaryCommand] Step Summary file (C:\laragon\www\sapapi\actions-runner\_work\_temp\_runner_file_commands\step_summary_badea273-8ea9-4b4a-ac4c-c2ffc322ce12) is empty; skipping attachment upload
 [2025-08-14 03:35:46Z INFO StepsRunner] Step result: 
 [2025-08-14 03:35:46Z INFO ExecutionContext] Publish step telemetry for current step {
   "action": "powershell",
@@ -3569,7 +3569,7 @@
 [2025-08-14 03:35:47Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
 [2025-08-14 03:35:47Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
 [2025-08-14 03:35:47Z INFO ProcessInvokerWrapper] Finished process 24588 with exit code 0, and elapsed time 00:00:01.1213739.
-[2025-08-14 03:35:47Z INFO CreateStepSummaryCommand] Step Summary file (C:\laragon\www\sapapi\actions-runner\_work\_temp\_runner_file_commands\step_summary_94837c80-9c94-4192-9482-c3dd1e85c158) is empty; skipping attachment upload
+[2025-08-14 03:35:47Z INFO CreaPANDURASA_LIVEepSummaryCommand] Step Summary file (C:\laragon\www\sapapi\actions-runner\_work\_temp\_runner_file_commands\step_summary_94837c80-9c94-4192-9482-c3dd1e85c158) is empty; skipping attachment upload
 [2025-08-14 03:35:47Z INFO StepsRunner] Step result: 
 [2025-08-14 03:35:47Z INFO ExecutionContext] Publish step telemetry for current step {
   "action": "powershell",
@@ -4076,7 +4076,7 @@
 [2025-08-14 03:35:50Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
 [2025-08-14 03:35:50Z INFO ProcessInvokerWrapper] STDOUT/STDERR stream read finished.
 [2025-08-14 03:35:50Z INFO ProcessInvokerWrapper] Finished process 7620 with exit code 0, and elapsed time 00:00:03.2897231.
-[2025-08-14 03:35:50Z INFO CreateStepSummaryCommand] Step Summary file (C:\laragon\www\sapapi\actions-runner\_work\_temp\_runner_file_commands\step_summary_7366001b-5417-4672-9b7f-97a7389c20dc) is empty; skipping attachment upload
+[2025-08-14 03:35:50Z INFO CreaPANDURASA_LIVEepSummaryCommand] Step Summary file (C:\laragon\www\sapapi\actions-runner\_work\_temp\_runner_file_commands\step_summary_7366001b-5417-4672-9b7f-97a7389c20dc) is empty; skipping attachment upload
 [2025-08-14 03:35:50Z INFO StepsRunner] Step result: 
 [2025-08-14 03:35:50Z INFO ExecutionContext] Publish step telemetry for current step {
   "action": "actions/checkout",

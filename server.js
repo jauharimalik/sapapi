@@ -1,31 +1,44 @@
 const app = require('./app');
 const dbService = require('./services/dbService');
 const doService = require('./services/doService');
+const http = require('http');
+const WebSocket = require('ws');
 
 const port = 3300;
 async function initialize() {
     try {
       const pool = await dbService.connect();
-      
-      // Make pool available to app
       app.set('pool', pool);
-      
-      // Verify connection
       const connOk = await dbService.verifyConnection();
       if (!connOk) throw new Error('Database connection failed');
       
-      // Initialize services
       await doService.dnbund(pool); 
       await doService.runAutoCheck(pool);
       await doService.recheckNullIswaDOs(pool);
-      
-      // Start periodic checks
-      setInterval(() => doService.dnbund(pool), 1000); // 5 minutes
-      setInterval(() => doService.runAutoCheck(pool), 6000); // 5 minutes
-      setInterval(() => doService.recheckNullIswaDOs(pool), 360000); // 1 hour
-      
+
+      setInterval(() => doService.dnbund(pool), 1000);
+      setInterval(() => doService.runAutoCheck(pool), 6000); 
+      setInterval(() => doService.recheckNullIswaDOs(pool), 360000); 
+
+      const server = http.createServer(app);
+      const wss = new WebSocket.Server({ server });
+
+      wss.on('connection', (ws) => {
+          console.log('Client WebSocket connected');
+          ws.send('Welcome to WebSocket server');
+
+          ws.on('message', (message) => {
+              console.log('Received:', message);
+              ws.send(`Server received: ${message}`);
+          });
+
+          ws.on('close', () => {
+              console.log('Client WebSocket disconnected');
+          });
+      });
+
       console.log('------------------------------------------------------------------------------------');
-      app.listen(port, () => {
+      server.listen(port, () => {
         console.log(`Server ready on port ${port}`);
       });
     } catch (error) {

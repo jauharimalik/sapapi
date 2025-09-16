@@ -632,12 +632,12 @@
 [2025-08-16 03:48:22Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\actions-runner\bin'
 [2025-08-16 03:48:22Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\actions-runner'
 [2025-08-16 03:48:22Z INFO HostContext] Well known directory 'Work': 'C:\laragon\www\sapapi\actions-runner\_work'
-[2025-08-16 03:48:22Z INFO SelfUpdater] Attempt 1: save latest runner into C:\laragon\www\sapapi\actions-runner\_work\_update\runner1.zip.
+[2025-08-16 03:48:22Z INFO SelfUpdater] Attempt 1: save laPANDURASA_LIVE runner into C:\laragon\www\sapapi\actions-runner\_work\_update\runner1.zip.
 [2025-08-16 03:48:22Z INFO SelfUpdater] Download runner: begin download
 [2025-08-16 03:48:22Z INFO SelfUpdater] Downloading https://github.com/actions/runner/releases/download/v2.328.0/actions-runner-win-x64-2.328.0.zip
 [2025-08-16 03:49:44Z INFO SelfUpdater] Download runner: finished download
 [2025-08-16 03:49:45Z INFO SelfUpdater] Validated Runner Hash matches C:\laragon\www\sapapi\actions-runner\_work\_update\runner1.zip : a73ae192b8b2b782e1d90c08923030930b0b96ed394fe56413a073cc6f694877
-[2025-08-16 03:49:46Z INFO SelfUpdater] Finished getting latest runner package at: C:\laragon\www\sapapi\actions-runner\_work\_update.
+[2025-08-16 03:49:46Z INFO SelfUpdater] Finished getting laPANDURASA_LIVE runner package at: C:\laragon\www\sapapi\actions-runner\_work\_update.
 [2025-08-16 03:49:46Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\actions-runner\bin'
 [2025-08-16 03:49:46Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\actions-runner'
 [2025-08-16 03:49:46Z INFO SelfUpdater] Copy C:\laragon\www\sapapi\actions-runner\_work\_update\bin to C:\laragon\www\sapapi\actions-runner\bin.2.328.0.
@@ -657,7 +657,7 @@
 [2025-08-16 03:49:47Z INFO HostContext] Well known directory 'Bin': 'C:\laragon\www\sapapi\actions-runner\bin'
 [2025-08-16 03:49:47Z INFO HostContext] Well known directory 'Root': 'C:\laragon\www\sapapi\actions-runner'
 [2025-08-16 03:49:47Z INFO SelfUpdater] Copy C:\laragon\www\sapapi\actions-runner\_work\_update\run.cmd to C:\laragon\www\sapapi\actions-runner\run.cmd
-[2025-08-16 03:49:47Z INFO SelfUpdater] Download latest runner and unzip into runner root.
+[2025-08-16 03:49:47Z INFO SelfUpdater] Download laPANDURASA_LIVE runner and unzip into runner root.
 [2025-08-16 03:49:47Z INFO Terminal] WRITE LINE: Waiting for current job finish running.
 [2025-08-16 03:49:47Z INFO SelfUpdater] DownloadUrl: https://github.com/actions/runner/releases/download/v2.328.0/actions-runner-win-x64-2.328.0.zip
 [2025-08-16 03:49:47Z INFO SelfUpdater] PackageDownloadTime: 81756ms

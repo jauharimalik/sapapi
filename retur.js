@@ -8,7 +8,7 @@ const FormData = require('form-data');
 // --- Konfigurasi SAP ---
 const SAP_CONFIG = {
     BASE_URL: 'https://192.168.101.254:50000/b1s/v2',
-    COMPANY_DB: 'TEST',
+    COMPANY_DB: 'PANDURASA_LIVE',
     CREDENTIALS: {
         username: 'manager',
         password: 'Password#1'
@@ -68,7 +68,7 @@ const processGrpoColdspace = async () => {
             FROM 
                 r_grpo_coldspace t0x
             INNER JOIN 
-                [pksrv-sap].test.dbo.oitm t2 ON t0x.sku collate database_default = t2.itemcode collate database_default 
+                [pksrv-sap].pandurasa_live.dbo.oitm t2 ON t0x.sku collate database_default = t2.itemcode collate database_default 
             WHERE 
                 (t0x.iswa IS NULL OR t0x.jo_status IS NULL) 
             AND t0x.TRK_TYPE = 'N-TY'`);
@@ -224,7 +224,7 @@ const getDocEntryFromORRR = async (poNo, pool) => {
     try {
         const result = await pool.request()
             .input('poNo', sql.Int, poNo)
-            .query('SELECT TOP 1 docentry FROM [pksrv-sap].test.dbo.orrr WHERE docnum = @poNo');
+            .query('SELECT TOP 1 docentry FROM [pksrv-sap].pandurasa_live.dbo.orrr WHERE docnum = @poNo');
         return result.recordset[0]?.docentry || null;
     } catch (error) {
         console.log('------------------------------------------------------------------------------------');
@@ -297,8 +297,8 @@ const getBatchDataFromOBTN = async (itemCode, whsCode, ExpDate, pool) => {
                 T1.Quantity AS AvailableQuantity,
                 isnull(T1.ExpDate,'${ExpDate}') AS ExpirationDate,
                 isnull(T1.ExpDate,'${ExpDate}') AS ExpDate
-            FROM [pksrv-sap].test.dbo.OIBT T1
-            inner join [pksrv-sap].test.dbo.oitm t2 on t1.itemcode = t2.itemcode
+            FROM [pksrv-sap].pandurasa_live.dbo.OIBT T1
+            inner join [pksrv-sap].pandurasa_live.dbo.oitm t2 on t1.itemcode = t2.itemcode
             WHERE T1.ItemCode = '${itemCode}' AND 
             (T1.WhsCode = '${whsCode}' or t1.whscode = t2.dfltwh) AND T1.Quantity > 0
             AND t1.batchnum like '${ExpDate}%'
@@ -406,11 +406,11 @@ const getFinalCreditNoteData = async (goodsReturnDocEntry, pool) => {
             T2.DocEntry AS CreditNoteDocEntry,
             T2.DocNum AS CreditNoteDocNum
         FROM
-            [pksrv-sap].test.dbo.ORRR T0
+            [pksrv-sap].pandurasa_live.dbo.ORRR T0
         LEFT JOIN
-            [pksrv-sap].test.dbo.RIN1 T1 ON T0.DocEntry = T1.BaseEntry
+            [pksrv-sap].pandurasa_live.dbo.RIN1 T1 ON T0.DocEntry = T1.BaseEntry
         LEFT JOIN
-            [pksrv-sap].test.dbo.ORIN T2 ON T1.DocEntry = T2.DocEntry
+            [pksrv-sap].pandurasa_live.dbo.ORIN T2 ON T1.DocEntry = T2.DocEntry
         WHERE
             T0.DocEntry = @GoodsReturnDocEntry
     `;
