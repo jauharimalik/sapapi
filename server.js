@@ -25,11 +25,11 @@ async function initialize() {
 
       wss.on('connection', (ws) => {
           console.log('Client WebSocket connected');
-          ws.send('Welcome to WebSocket server');
+          ws.send(JSON.stringify({ message: 'Welcome to WebSocket server' }));
 
           ws.on('message', (message) => {
               console.log('Received:', message);
-              ws.send(`Server received: ${message}`);
+              ws.send(JSON.stringify({ message: `Server received: ${message}` }));
           });
 
           ws.on('close', () => {
