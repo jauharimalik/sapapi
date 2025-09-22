@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
     <style>
+        html {font-size: 11px;}
         body {
             background-color: #f0f2f5;
             font-family: "Poppins", sans-serif;
@@ -165,7 +166,7 @@
             max-height: 80%;
             border-top-left-radius: 16px;
             border-top-right-radius: 16px;
-            padding: 24px;
+            padding:15px;
         }
         .modal .modal-content {padding: 0!important; margin-bottom:80px;}
         .modal .modal-content h4 {
@@ -233,6 +234,33 @@
             border-radius: 20px;
             padding: 10px 20px;
         }
+        .modal table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        .modal th, .modal td {
+            padding: 8px 10px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        .modal th {
+            font-weight: 600;
+            background-color: #f8f9fa;
+        }
+        .modal tr:last-child td {
+            border-bottom: none;
+        }
+        .detail-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            color: #075e54;
+        }
+        .detail-header i.material-icons {
+            margin-right: 8px;
+        }
+        #modalContent tr:last-child{border-bottom:none;}
     </style>
 </head>
 <body>
@@ -241,7 +269,7 @@
             <div class="search-container">
                 <i class="material-icons">search</i>
                 <input type="text" id="searchInput" placeholder="Search data..." oninput="handleSearch()">
-                <i class="material-icons close-icon" style="display: none; right: 10px; left: unset;"  onclick="clearSearch()">close</i>
+                <i class="material-icons close-icon" style="display: none; right: 10px; left: unset;" onclick="clearSearch()">close</i>
             </div>
         </div>
 
@@ -279,19 +307,21 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 <script>
-let formatDate = daPANDURASA_LIVEring =>
-    (daPANDURASA_LIVEring?.length === 6 && !isNaN(daPANDURASA_LIVEring))
-        ? `${daPANDURASA_LIVEring.substring(4, 6)}-${daPANDURASA_LIVEring.substring(2, 4)}-20${daPANDURASA_LIVEring.substring(0, 2)}`
-        : '-';
+let formatDate = dateString => {
+    if (dateString?.length === 6 && !isNaN(dateString)) {
+        return `${dateString.substring(4, 6)}-${dateString.substring(2, 4)}-20${dateString.substring(0, 2)}`;
+    }
+    return '-';
+};
 
 let levenshtein = (a, b) => {
-    let [an, bn] = [a.length, b.length];
-    let matrix = Array(bn + 1).fill(null).map(() => Array(an + 1).fill(null));
+    const [an, bn] = [a.length, b.length];
+    const matrix = Array(bn + 1).fill(null).map(() => Array(an + 1).fill(null));
     for (let i = 0; i <= an; i++) matrix[0][i] = i;
     for (let j = 0; j <= bn; j++) matrix[j][0] = j;
     for (let j = 1; j <= bn; j++) {
         for (let i = 1; i <= an; i++) {
-            let cost = a[i - 1] === b[j - 1] ? 0 : 1;
+            const cost = a[i - 1] === b[j - 1] ? 0 : 1;
             matrix[j][i] = Math.min(matrix[j][i - 1] + 1, matrix[j - 1][i] + 1, matrix[j - 1][i - 1] + cost);
         }
     }
@@ -304,33 +334,60 @@ let currentTab = 'dn';
 let modalInstance = null;
 let ws = null;
 let reconnectAttempts = 0;
-let maxReconnectAttempts = 5;
+const maxReconnectAttempts = 5;
 let selectedItemForModal = null;
 let lastUpdateTime = null;
-let API_BASE_URL = 'https://cute-mature-shrew.ngrok-free.app/api/';
-let DN_ENDPOINT = API_BASE_URL + 'tarikandn';
-let GR_ENDPOINT = API_BASE_URL + 'tarikangr';
+const API_BASE_URL = 'https://cute-mature-shrew.ngrok-free.app/api/';
+const DN_ENDPOINT = API_BASE_URL + 'tarikandn';
+const GR_ENDPOINT = API_BASE_URL + 'tarikangr';
+const WS_URL = 'wss://rightly-composed-marlin.ngrok-free.app';
 
-let createCardHtml = (row, type) => {
+let groupData = (data, type) => {
+    const grouped = {};
+    const key = (type === 'dn') ? 'DO_NO' : 'PO_NO';
+    data.forEach(item => {
+        const groupKey = item[key];
+        if (groupKey) {
+            if (!grouped[groupKey]) {
+                grouped[groupKey] = [];
+            }
+            grouped[groupKey].push(item);
+        }
+    });
+    return Object.values(grouped);
+};
+
+let createCardHtml = (group, type) => {
+    const mainItem = group[0];
     let title, subtitle, mainInfo, subInfo;
-    let statusBadge = getStatusBadge(row.jo_status);
+    
+    let overallStatus = 'Completed';
+    if (group.some(item => ['0', 'fail', 'error'].includes(item.jo_status?.toString().toLowerCase()))) {
+        overallStatus = 'Failed';
+    } else if (group.some(item => ['processing'].includes(item.jo_status?.toString().toLowerCase()))) {
+        overallStatus = 'Processing';
+    }
+
+    const statusBadge = getStatusBadge(overallStatus);
+
     if (type === 'dn') {
         [title, subtitle, mainInfo, subInfo] = [
-            row.DO_NO || '-',
-            `STO: ${row.STO_NO || '-'}`,
-            `SKU: ${row.SKU || '-'}`,
-            `Qty: ${row.QTY || '-'} | Exp: ${formatDate(row.expired_date)}`
+            mainItem.DO_NO || '-',
+            `STO: ${mainItem.STO_NO || '-'}`,
+            `Total Items: ${group.length}`,
+            `First Item Qty: ${mainItem.QTY || '-'} | Exp: ${formatDate(mainItem.expired_date)}`
         ];
     } else if (type === 'gr') {
         [title, subtitle, mainInfo, subInfo] = [
-            row.PO_NO || '-',
-            `ASN: ${row.WMS_ASN_NO || '-'}`,
-            `Vendor: ${row.VENDOR || '-'}`,
-            `GR Qty: ${row.QTYGR || '-'} | Exp: ${formatDate(row.VFDAT)}`
+            mainItem.PO_NO || '-',
+            `ASN: ${mainItem.WMS_ASN_NO || '-'}`,
+            `Total Items: ${group.length}`,
+            `Vendor: ${mainItem.VENDOR || '-'} | Exp: ${formatDate(mainItem.VFDAT)}`
         ];
     }
+    
     return `
-        <div class="data-card" onclick="showDetails('${row.id}')">
+        <div class="data-card" onclick="showDetails('${mainItem.id}')">
             <div class="card-title">
                 <span>${title}</span>
                 <span>${statusBadge}</span>
@@ -343,9 +400,86 @@ let createCardHtml = (row, type) => {
         </div>`;
 };
 
+let showDetails = id => {
+    let group = displayedData.find(g => g.some(item => item.id == id));
+    if (!group) {
+        group = allData[currentTab].find(g => g.some(item => item.id == id));
+        if (!group) return;
+    }
+    selectedItemForModal = group;
+    
+    const isDN = currentTab === 'dn';
+    let modalContent = '';
+
+    const headerData = isDN
+        ? {
+            'DO Number': group[0].DO_NO || '-',
+            'STO Number': group[0].STO_NO || '-',
+            'Company Code': group[0].COMP_CODE || '-',
+            'PL Number': group[0].PL_NP || '-',
+            'Delivery Date': formatDate(group[0].DEL_DATE) || '-',
+            'Site': group[0].SITE || '-'
+        }
+        : {
+            'PO Number': group[0].PO_NO || '-',
+            'ASN Number': group[0].WMS_ASN_NO || '-',
+            'Company Code': group[0].COMP_CODE || '-',
+            'Receipt Date': formatDate(group[0].RR_DATE) || '-',
+            'Vendor': group[0].VENDOR || '-',
+        };
+
+    const detailColumns = isDN
+        ? ['SKU', 'QTY', 'LOT', 'expired_date', 'ismatch', 'jo_status', 'note']
+        : ['SKU', 'QTYPO', 'QTYGR', 'SLOC', 'VFDAT', 'ismatch', 'jo_status', 'note'];
+
+    modalContent += `
+        
+            <table>
+                <tbody>
+    `;
+    for (const [label, value] of Object.entries(headerData)) {
+        modalContent += `<tr><td><strong>${label}</strong></td><td>${value}</td></tr>`;
+    }
+    modalContent += `
+                </tbody>
+            </table>
+    `;
+
+    group.forEach((item, index) => {
+        modalContent += `
+            <div class="card" style="border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                <div class="card-content" style="padding: 16px;">
+             
+                    <table>
+                        <tbody>
+        `;
+        detailColumns.forEach(colKey => {
+            let label = colKey.charAt(0).toUpperCase() + colKey.slice(1).replace(/_/g, ' ');
+            let value = item[colKey] || '-';
+
+            if (colKey.includes('date') || colKey.includes('VFDAT')) {
+                value = formatDate(value);
+            } else if (colKey === 'ismatch') {
+                value = item.ismatch ? 'Matched' : 'Mismatch';
+            } else if (colKey === 'jo_status') {
+                value = getStatusBadge(item.jo_status);
+            }
+            modalContent += `<tr><td><strong>${label}</strong></td><td>${value}</td></tr>`;
+        });
+        modalContent += `
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    });
+
+    document.getElementById('modalContent').innerHTML = modalContent;
+    modalInstance.open();
+};
+
 let connectWebSocket = () => {
     try {
-        let WS_URL = 'wss://rightly-composed-marlin.ngrok-free.app';
         ws = new WebSocket(WS_URL);
         ws.onopen = () => {
             console.log('WebSocket connection established');
@@ -373,9 +507,8 @@ let connectWebSocket = () => {
             console.log('WebSocket connection closed');
             updateConnectionStatus(false);
             if (reconnectAttempts < maxReconnectAttempts) {
-                let delay = Math.pow(2, reconnectAttempts) * 1000;
+                const delay = Math.pow(2, reconnectAttempts) * 1000;
                 reconnectAttempts++;
-                console.log(`Attempting to reconnect in ${delay / 1000} seconds (${reconnectAttempts}/${maxReconnectAttempts})`);
                 setTimeout(connectWebSocket, delay);
             } else {
                 M.toast({ html: 'Unable to connect to server', classes: 'red rounded' });
@@ -392,8 +525,8 @@ let connectWebSocket = () => {
 
 let processDataUpdate = data => {
     lastUpdateTime = new Date();
-    data.dn && (allData.dn = data.dn);
-    data.grpo && (allData.gr = data.grpo);
+    data.dn && (allData.dn = groupData(data.dn, 'dn'));
+    data.grpo && (allData.gr = groupData(data.grpo, 'gr'));
     showUpdateNotification();
     applyFiltersAndSort();
     hideLoader();
@@ -401,20 +534,30 @@ let processDataUpdate = data => {
 
 let processPartialUpdate = (newData, type) => {
     let hasNewItem = false;
+    const key = (type === 'dn') ? 'DO_NO' : 'PO_NO';
+    
     newData.forEach(newItem => {
-        let existingIndex = allData[type].findIndex(item => item.id === newItem.id);
-        if (existingIndex !== -1) {
-            allData[type][existingIndex] = newItem;
+        const groupKey = newItem[key];
+        
+        const existingGroup = allData[type].find(group => group[0]?.[key] === groupKey);
+
+        if (existingGroup) {
+            const existingItemIndex = existingGroup.findIndex(item => item.id === newItem.id);
+            if (existingItemIndex !== -1) {
+                existingGroup[existingItemIndex] = newItem;
+            } else {
+                hasNewItem = true;
+                existingGroup.push(newItem);
+            }
         } else {
             hasNewItem = true;
-            allData[type].push(newItem);
+            allData[type].push([newItem]);
         }
     });
 
     if (currentTab === type) {
         applyFiltersAndSort();
     }
-
     if (hasNewItem) {
         showUpdateNotification();
     }
@@ -430,22 +573,22 @@ let showUpdateNotification = () => {
 };
 
 let updateConnectionStatus = connected => {
-    let statusElement = document.getElementById('connectionStatus');
+    const statusElement = document.getElementById('connectionStatus');
     statusElement.className = connected ? 'connection-status connected' : 'connection-status disconnected';
     statusElement.title = connected ? 'Connected' : 'Disconnected';
 };
 
 let loadInitialData = () => {
     showLoader();
-    let requestHeaders = new Headers();
+    const requestHeaders = new Headers();
     requestHeaders.append('ngrok-skip-browser-warning', 'true');
     Promise.all([
         fetch(DN_ENDPOINT, { headers: requestHeaders }).then(response => response.json()),
         fetch(GR_ENDPOINT, { headers: requestHeaders }).then(response => response.json())
     ])
     .then(([dnData, grData]) => {
-        Array.isArray(dnData) && (allData.dn = dnData);
-        Array.isArray(grData) && (allData.gr = grData);
+        Array.isArray(dnData) && (allData.dn = groupData(dnData, 'dn'));
+        Array.isArray(grData) && (allData.gr = groupData(grData, 'gr'));
         applyFiltersAndSort();
     })
     .catch(error => {
@@ -463,7 +606,7 @@ let switchTab = tab => {
 };
 
 let showLoader = () => {
-    let dataList = document.getElementById('data-list');
+    const dataList = document.getElementById('data-list');
     dataList.innerHTML = '';
     document.getElementById('data-list-loader').style.display = 'block';
 };
@@ -473,18 +616,20 @@ let hideLoader = () => {
 };
 
 let renderDataCards = () => {
-    let dataList = document.getElementById('data-list');
-    dataList.innerHTML = displayedData.length === 0 ? '<p class="center-align">No data found</p>' : displayedData.map(row => createCardHtml(row, currentTab)).join('');
+    const dataList = document.getElementById('data-list');
+    dataList.innerHTML = displayedData.length === 0 ? '<p class="center-align">No data found</p>' : displayedData.map(group => createCardHtml(group, currentTab)).join('');
 };
 
 let getStatusBadge = status => {
     if (!status) return '';
-    let s = status.toString().toLowerCase();
-    return s.includes('complete') || s.includes('success') || s === '3'
-        ? '<span class="status-badge success">Completed</span>'
-        : s.includes('error') || s.includes('fail') || s === '0'
-            ? '<span class="status-badge error">Failed</span>'
-            : '<span class="status-badge warning">Processing</span>';
+    const s = status.toString().toLowerCase();
+    if (s.includes('complete') || s.includes('success') || s === '3') {
+        return '<span class="status-badge success">Completed</span>';
+    } else if (s.includes('error') || s.includes('fail') || s === '0') {
+        return '<span class="status-badge error">Failed</span>';
+    } else {
+        return '<span class="status-badge warning">Processing</span>';
+    }
 };
 
 let handleSearch = () => {
@@ -509,22 +654,25 @@ let clearSearch = () => {
 
 let applyFiltersAndSort = () => {
     let data = [...allData[currentTab]];
-    let searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    let threshold = 0.3;
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const threshold = 0.3;
+
     if (searchTerm) {
-        let searchKeywords = searchTerm.split(' ').filter(word => word.length > 1);
-        data = data.filter(row =>
-            searchKeywords.every(keyword =>
-                Object.values(row).some(value => {
-                    if (value === null || value === undefined) return false;
-                    let cellValue = String(value).toLowerCase();
-                    return cellValue.includes(keyword) ||
-                        cellValue.split(' ').some(word =>
-                            (Math.max(word.length, keyword.length) > 0
-                                ? levenshtein(word, keyword) / Math.max(word.length, keyword.length)
-                                : 1) <= threshold
-                        );
-                })
+        const searchKeywords = searchTerm.split(' ').filter(word => word.length > 1);
+        data = data.filter(group =>
+            group.some(row =>
+                searchKeywords.every(keyword =>
+                    Object.values(row).some(value => {
+                        if (value === null || value === undefined) return false;
+                        const cellValue = String(value).toLowerCase();
+                        return cellValue.includes(keyword) ||
+                            cellValue.split(' ').some(word =>
+                                (Math.max(word.length, keyword.length) > 0
+                                    ? levenshtein(word, keyword) / Math.max(word.length, keyword.length)
+                                    : 1) <= threshold
+                            );
+                    })
+                )
             )
         );
     }
@@ -533,37 +681,12 @@ let applyFiltersAndSort = () => {
     hideLoader();
 };
 
-let showDetails = id => {
-    let item = displayedData.find(i => i.id == id);
-    if (!item) {
-        item = allData[currentTab].find(i => i.id == id);
-        if (!item) return;
-    }
-    selectedItemForModal = item;
-    let isDN = currentTab === 'dn';
-    let columns = isDN
-        ? [{ key: 'DO_NO', label: 'DO Number' }, { key: 'STO_NO', label: 'STO Number' }, { key: 'COMP_CODE', label: 'Company Code' }, { key: 'PL_NP', label: 'PL Number' }, { key: 'DEL_DATE', label: 'Delivery Date' }, { key: 'SITE', label: 'Site' }, { key: 'SKU', label: 'SKU' }, { key: 'QTY', label: 'Quantity' }, { key: 'LOT', label: 'LOT' }, { key: 'expired_date', label: 'Expiry Date' }, { key: 'ismatch', label: 'Match Status' }, { key: 'jo_status', label: 'Status' }, { key: 'note', label: 'Notes' }]
-        : [{ key: 'PO_NO', label: 'PO Number' }, { key: 'WMS_ASN_NO', label: 'ASN Number' }, { key: 'COMP_CODE', label: 'Company Code' }, { key: 'RR_DATE', label: 'Receipt Date' }, { key: 'VENDOR', label: 'Vendor' }, { key: 'SKU', label: 'SKU' }, { key: 'QTYPO', label: 'PO Quantity' }, { key: 'QTYGR', label: 'GR Quantity' }, { key: 'SLOC', label: 'Storage Loc' }, { key: 'VFDAT', label: 'Expiry Date' }, { key: 'ismatch', label: 'Match Status' }, { key: 'jo_status', label: 'Status' }, { key: 'note', label: 'Notes' }];
-
-    let modalContent = columns.map(col => {
-        let value = item[col.key];
-        value = ['DEL_DATE', 'expired_date', 'VFDAT', 'RR_DATE'].includes(col.key)
-            ? formatDate(value)
-            : col.key === 'ismatch'
-                ? (value ? 'Matched' : 'Mismatch')
-                : value || '-';
-        return `<div class="detail-item ${col.key === 'note' ? 'notes-item' : ''}"><span>${value}</span></div>`;
-    }).join('');
-    document.getElementById('modalContent').innerHTML = modalContent;
-    modalInstance.open();
-};
-
 let recheckItem = () => {
-    if (!selectedItemForModal) return;
-    let { id, currentTab } = selectedItemForModal;
-    M.toast({ html: `Rechecking ${currentTab.toUpperCase()} item ${id}...`, classes: 'rounded' });
+    if (!selectedItemForModal || selectedItemForModal.length === 0) return;
+    const firstItem = selectedItemForModal[0];
+    M.toast({ html: `Rechecking ${currentTab.toUpperCase()} item ${firstItem.id}...`, classes: 'rounded' });
     (ws && ws.readyState === WebSocket.OPEN)
-        ? ws.send(JSON.stringify({ type: 'recheck', itemId: id, itemType: currentTab }))
+        ? ws.send(JSON.stringify({ type: 'recheck', itemId: firstItem.id, itemType: currentTab }))
         : M.toast({ html: 'Not connected to server', classes: 'red rounded' });
     modalInstance.close();
 };
