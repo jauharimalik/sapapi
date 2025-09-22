@@ -208,7 +208,7 @@ exports.checkSingleDO = async (doNo, pool) => {  
                     docEntry: docEntry
                 }, pool);
                 const note = `No order found with DocNum: ${doNo}`;
-                await notificationService.sendTelegramNotification(note, false);
+                // await notificationService.sendTelegramNotification(note, false);
                 return { status: 'error', message: note };
             }
 
@@ -222,7 +222,7 @@ exports.checkSingleDO = async (doNo, pool) => {  
                 if (sapResult.status === 'success') {
                     await notificationService.sendTelegramNotification(note, true);
                 } else {
-                    await notificationService.sendTelegramNotification(note, false);
+                    // await notificationService.sendTelegramNotification(note, false);
                 }
                 return {
                     status: sapResult.status === 'success' ? 'processed' : 'matched_but_failed',
@@ -231,7 +231,7 @@ exports.checkSingleDO = async (doNo, pool) => {  
             }
 
             const note = `No goods issue data found for DO: ${doNo}`;
-            await notificationService.sendTelegramNotification(note, false);
+            // await notificationService.sendTelegramNotification(note, false);
             return { status: 'no_goods_issue', message: note };
         } else {
             const firstRecord = goodsIssueResult.recordset[0];
@@ -343,7 +343,7 @@ exports.checkSingleDO = async (doNo, pool) => {  
             docEntry: docEntry,
             docNum: docNum
         }, pool);
-        await notificationService.sendTelegramNotification(note, false);
+        // await notificationService.sendTelegramNotification(note, false);
         return { status: 'error', message: note };
     }
 };
@@ -520,8 +520,8 @@ exports.dnbund = async (pool) => {
 
                 failedUpdates.push({ docEntry: doc.docEntry, error: errorMessage });
                 const failureNote = `Failed to update U_BUNDLING_CS for DocEntry ${doc.docEntry}. Details: ${errorMessage}`;
-                await notificationService.sendWhatsApp(doc.doNo, doc.docNum, doc.docEntry, failureNote, false, pool);
-                await notificationService.sendTelegramNotification(failureNote, false);
+                // await notificationService.sendWhatsApp(doc.doNo, doc.docNum, doc.docEntry, failureNote, false, pool);
+                // await notificationService.sendTelegramNotification(failureNote, false);
             }
         }
 
@@ -552,7 +552,7 @@ exports.dnbund = async (pool) => {
         }
 
         const note = `General Error in dnbund: ${generalErrorMessage}`;
-        await notificationService.sendTelegramNotification(note, false);
+        // await notificationService.sendTelegramNotification(note, false);
         console.log('------------------------------------------------------------------------------------');
         console.log(`Process : Bundling | General Error: ${generalErrorMessage}`);
         return { status: 'error', message: generalErrorMessage };
@@ -580,7 +580,7 @@ exports.runAutoCheck = async (pool) => {
         return { status: 'complete', processed: doList.length, results };
     } catch (error) {
         const note = `Auto check failed: ${error.message}`;
-        await notificationService.sendTelegramNotification(note, false);
+        // await notificationService.sendTelegramNotification(note, false);
         console.error('Auto check failed:', error);
         return { status: 'error', message: error.message };
     }
@@ -614,7 +614,7 @@ exports.recheckNullIswaDOs = async (pool) => {
         } catch (e) {
             // Biarkan note tetap seperti di atas jika parsing JSON gagal
         }
-        await notificationService.sendTelegramNotification(note, false);
+        // await notificationService.sendTelegramNotification(note, false);
         console.error('Recheck failed:', error);
         return { status: 'error', message: note };
     }
@@ -633,7 +633,7 @@ exports.updateDOStatusWithNote = async (doNo, lineNum, status, errorDetails, poo
             const noteMessage = buildNoteMessage(status, errorDetails);
             
             // Kirim notifikasi Telegram berdasarkan status
-            await notificationService.sendTelegramNotification(noteMessage, status === 3);
+            // await notificationService.sendTelegramNotification(noteMessage, status === 3);
 
             let query = `UPDATE r_dn_coldspace SET 
                 jo_status = @status, 
@@ -664,7 +664,7 @@ exports.updateDOStatusWithNote = async (doNo, lineNum, status, errorDetails, poo
             await transaction.commit();
 
             // Kirim notifikasi WhatsApp untuk status 2 (error) dan 3 (success)
-            if ([2, 3].includes(status)) {
+            if ([3].includes(status)) {
                 await notificationService.sendWhatsApp(
                     doNo,
                     errorDetails?.docNum,

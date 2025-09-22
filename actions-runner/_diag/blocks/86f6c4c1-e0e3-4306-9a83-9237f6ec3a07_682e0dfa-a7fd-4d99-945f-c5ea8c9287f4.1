@@ -1,0 +1,69 @@
+﻿2025-09-22T10:58:06.8768663Z ##[group]Run actions/checkout@v4
+2025-09-22T10:58:06.8771095Z with:
+2025-09-22T10:58:06.8771868Z   repository: jauharimalik/sapapi
+2025-09-22T10:58:06.8773930Z   token: ***
+2025-09-22T10:58:06.8774598Z   submodules: false
+2025-09-22T10:58:06.8775251Z   ssh-strict: true
+2025-09-22T10:58:06.8775966Z   ssh-user: git
+2025-09-22T10:58:06.8776763Z   persist-credentials: true
+2025-09-22T10:58:06.8777574Z   clean: true
+2025-09-22T10:58:06.8778253Z   sparse-checkout-cone-mode: true
+2025-09-22T10:58:06.8779144Z   fetch-depth: 1
+2025-09-22T10:58:06.8779878Z   fetch-tags: false
+2025-09-22T10:58:06.8780541Z   show-progress: true
+2025-09-22T10:58:06.8781479Z   lfs: false
+2025-09-22T10:58:06.8782145Z   set-safe-directory: true
+2025-09-22T10:58:06.8783733Z ##[endgroup]
+2025-09-22T10:58:08.8643429Z Syncing repository: jauharimalik/sapapi
+2025-09-22T10:58:08.8645429Z ##[group]Getting Git version info
+2025-09-22T10:58:08.8645989Z Working directory is 'C:\laragon\www\sapapi\actions-runner\_work\sapapi\sapapi'
+2025-09-22T10:58:08.9392315Z [command]"C:\Program Files\Git\cmd\git.exe" version
+2025-09-22T10:58:08.9758096Z git version 2.44.0.windows.1
+2025-09-22T10:58:08.9844087Z ##[endgroup]
+2025-09-22T10:58:08.9863514Z Copying 'C:\Users\PROGRAM-002\.gitconfig' to 'C:\laragon\www\sapapi\actions-runner\_work\_temp\dbbcb92b-872a-4a5f-9bba-6d7bc32a5e1b\.gitconfig'
+2025-09-22T10:58:08.9893781Z Temporarily overriding HOME='C:\laragon\www\sapapi\actions-runner\_work\_temp\dbbcb92b-872a-4a5f-9bba-6d7bc32a5e1b' before making global git config changes
+2025-09-22T10:58:08.9895879Z Adding repository directory to the temporary git global config as a safe directory
+2025-09-22T10:58:08.9916003Z [command]"C:\Program Files\Git\cmd\git.exe" config --global --add safe.directory C:\laragon\www\sapapi\actions-runner\_work\sapapi\sapapi
+2025-09-22T10:58:09.0390194Z [command]"C:\Program Files\Git\cmd\git.exe" config --local --get remote.origin.url
+2025-09-22T10:58:09.0742904Z https://github.com/jauharimalik/sapapi
+2025-09-22T10:58:09.0808408Z ##[group]Removing previously created refs, to avoid conflicts
+2025-09-22T10:58:09.0826795Z [command]"C:\Program Files\Git\cmd\git.exe" rev-parse --symbolic-full-name --verify --quiet HEAD
+2025-09-22T10:58:09.1192827Z refs/heads/main
+2025-09-22T10:58:09.1303592Z [command]"C:\Program Files\Git\cmd\git.exe" checkout --detach
+2025-09-22T10:58:09.4082507Z HEAD is now at 31979c8 perbaikan dn
+2025-09-22T10:58:09.5017633Z ##[endgroup]
+2025-09-22T10:58:09.5032378Z [command]"C:\Program Files\Git\cmd\git.exe" submodule status
+2025-09-22T10:58:10.2572015Z ##[group]Cleaning the repository
+2025-09-22T10:58:10.2572586Z [command]"C:\Program Files\Git\cmd\git.exe" clean -ffdx
+2025-09-22T10:58:19.4562720Z Removing node_modules/
+2025-09-22T10:58:19.4620434Z [command]"C:\Program Files\Git\cmd\git.exe" reset --hard HEAD
+2025-09-22T10:58:19.5870556Z HEAD is now at 31979c8 perbaikan dn
+2025-09-22T10:58:19.5914720Z ##[endgroup]
+2025-09-22T10:58:19.5922131Z ##[group]Disabling automatic garbage collection
+2025-09-22T10:58:19.5938076Z [command]"C:\Program Files\Git\cmd\git.exe" config --local gc.auto 0
+2025-09-22T10:58:19.6292937Z ##[endgroup]
+2025-09-22T10:58:19.6296157Z ##[group]Setting up auth
+2025-09-22T10:58:19.6311424Z [command]"C:\Program Files\Git\cmd\git.exe" config --local --name-only --get-regexp core\.sshCommand
+2025-09-22T10:58:19.6676176Z [command]"C:\Program Files\Git\cmd\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+2025-09-22T10:58:20.1998619Z [command]"C:\Program Files\Git\cmd\git.exe" config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2025-09-22T10:58:20.2338271Z [command]"C:\Program Files\Git\cmd\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\""
+2025-09-22T10:58:20.7659464Z [command]"C:\Program Files\Git\cmd\git.exe" config --local http.https://github.com/.extraheader "AUTHORIZATION: basic ***"
+2025-09-22T10:58:20.8128649Z ##[endgroup]
+2025-09-22T10:58:20.8129441Z ##[group]Fetching the repository
+2025-09-22T10:58:20.8145608Z [command]"C:\Program Files\Git\cmd\git.exe" -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +0fdd30771d5bc0e0acba7678671fd01fa84107d9:refs/remotes/origin/main
+2025-09-22T10:58:21.9627625Z From https://github.com/jauharimalik/sapapi
+2025-09-22T10:58:21.9628733Z  + 31979c8...0fdd307 0fdd30771d5bc0e0acba7678671fd01fa84107d9 -> origin/main  (forced update)
+2025-09-22T10:58:21.9801750Z ##[endgroup]
+2025-09-22T10:58:21.9802169Z ##[group]Determining the checkout info
+2025-09-22T10:58:21.9804349Z ##[endgroup]
+2025-09-22T10:58:21.9819599Z [command]"C:\Program Files\Git\cmd\git.exe" sparse-checkout disable
+2025-09-22T10:58:22.0286038Z [command]"C:\Program Files\Git\cmd\git.exe" config --local --unset-all extensions.worktreeConfig
+2025-09-22T10:58:22.0626710Z ##[group]Checking out the ref
+2025-09-22T10:58:22.0637732Z [command]"C:\Program Files\Git\cmd\git.exe" checkout --progress --force -B main refs/remotes/origin/main
+2025-09-22T10:58:22.1581303Z branch 'main' set up to track 'origin/main'.
+2025-09-22T10:58:22.1582317Z Your branch is up to date with 'origin/main'.
+2025-09-22T10:58:22.1583103Z Previous HEAD position was 31979c8 perbaikan dn
+2025-09-22T10:58:22.1583824Z Switched to and reset branch 'main'
+2025-09-22T10:58:22.1629703Z ##[endgroup]
+2025-09-22T10:58:22.2028257Z [command]"C:\Program Files\Git\cmd\git.exe" log -1 --format=%H
+2025-09-22T10:58:22.2323629Z 0fdd30771d5bc0e0acba7678671fd01fa84107d9
