@@ -39,6 +39,9 @@ exports.getgrColdspaceData = async (pool, params = {}) => {
     }
 };
 
+exports.updatedatatb = async(pool)=>{
+    await sapService.syncDeliveryNoteFromSAP(pool);
+}
 exports.checkSingleDO = async (doNo, pool) => {  
     const statusCheck = await pool.request()
         .input('doNo', sql.Int, doNo)
@@ -198,7 +201,8 @@ exports.checkSingleDO = async (doNo, pool) => {  
         const goodsIssueResult = await pool.request()
             .input('doNo', sql.Int, doNo)
             .query(goodsIssueQuery);
-
+        
+        
         if (goodsIssueResult.recordset.length === 0) {
             const orderData = await sapService.getOrderFromSAP(doNo, pool);
             if (!orderData) {
@@ -231,7 +235,7 @@ exports.checkSingleDO = async (doNo, pool) => {  
             }
 
             const note = `No goods issue data found for DO: ${doNo}`;
-            // await notificationService.sendTelegramNotification(note, false);
+            await notificationService.sendTelegramNotification(note, false);
             return { status: 'no_goods_issue', message: note };
         } else {
             const firstRecord = goodsIssueResult.recordset[0];
@@ -324,6 +328,8 @@ exports.checkSingleDO = async (doNo, pool) => {  
                 sapResponse: sapResponse
             };
         }
+
+        
     } catch (error) {
         let errorMessageObject = {};
         let note = `Gagal memproses DO ${doNo}`;
@@ -343,9 +349,11 @@ exports.checkSingleDO = async (doNo, pool) => {  
             docEntry: docEntry,
             docNum: docNum
         }, pool);
-        // await notificationService.sendTelegramNotification(note, false);
+        await notificationService.sendTelegramNotification(note, false);
         return { status: 'error', message: note };
     }
+
+    
 };
 
 // exports.dnbund = async (pool) => {
@@ -453,7 +461,18 @@ exports.checkSingleDO = async (doNo, pool) => {  
 //     }
 // };
 
+let isProcessing = {
+    dnbund: false,
+    runAutoCheck: false,
+    updatedatatb: false,
+    recheckNullIswaDOs: false
+};
+
+
 exports.dnbund = async (pool) => {
+    if (isProcessing.dnbund) {return;}
+    
+    isProcessing.dnbund = true;
     try {
         const docEntryQuery = `
             SELECT T0.DocEntry, T1.DO_NO, T1.doc_num
@@ -475,7 +494,7 @@ exports.dnbund = async (pool) => {
         }
 
         const sessionCookie = await sapService.loginToB1ServiceLayer();
-        const baseUrl = sapService.SAP_CONFIG.BASE_URL; // Menggunakan SAP_CONFIG yang sudah diekspor
+        const baseUrl = sapService.SAP_CONFIG.BASE_URL;
 
         const successfulUpdates = [];
         const failedUpdates = [];
@@ -518,17 +537,17 @@ exports.dnbund = async (pool) => {
                 console.log('------------------------------------------------------------------------------------');
                 console.log(`Process : ${doc.doNo} | Error Patching DocEntry ${doc.docEntry}: ${errorMessage}`);
 
-                failedUpdates.push({ docEntry: doc.docEntry, error: errorMessage });
-                const failureNote = `Failed to update U_BUNDLING_CS for DocEntry ${doc.docEntry}. Details: ${errorMessage}`;
+                // failedUpdates.push({ docEntry: doc.docEntry, error: errorMessage });
+                // const failureNote = `Failed to update U_BUNDLING_CS for DocEntry ${doc.docEntry}. Details: ${errorMessage}`;
                 // await notificationService.sendWhatsApp(doc.doNo, doc.docNum, doc.docEntry, failureNote, false, pool);
                 // await notificationService.sendTelegramNotification(failureNote, false);
             }
         }
 
-        console.log('------------------------------------------------------------------------------------');
-        console.log(`Process : Bundling Complete. Total processed: ${docsToUpdate.length}`);
-        console.log(`Successful updates: ${successfulUpdates.length}`);
-        console.log(`Failed updates: ${failedUpdates.length}`);
+        // console.log('------------------------------------------------------------------------------------');
+        // console.log(`Process : Bundling Complete. Total processed: ${docsToUpdate.length}`);
+        // console.log(`Successful updates: ${successfulUpdates.length}`);
+        // console.log(`Failed updates: ${failedUpdates.length}`);
 
         return {
             status: 'complete',
@@ -556,6 +575,8 @@ exports.dnbund = async (pool) => {
         console.log('------------------------------------------------------------------------------------');
         console.log(`Process : Bundling | General Error: ${generalErrorMessage}`);
         return { status: 'error', message: generalErrorMessage };
+    } finally {
+        isProcessing.dnbund = false;
     }
 };
 

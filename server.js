@@ -15,9 +15,11 @@ async function initialize() {
       await doService.dnbund(pool); 
       await doService.runAutoCheck(pool);
       await doService.recheckNullIswaDOs(pool);
+      await doService.updatedatatb(pool);
 
       setInterval(() => doService.dnbund(pool), 1000);
-      setInterval(() => doService.runAutoCheck(pool), 6000); 
+      setInterval(() => doService.runAutoCheck(pool), 6000);
+      setInterval(() => doService.updatedatatb(pool), 600); 
       setInterval(() => doService.recheckNullIswaDOs(pool), 360000); 
 
       const server = http.createServer(app);
@@ -28,7 +30,6 @@ async function initialize() {
           ws.send(JSON.stringify({ message: 'Welcome to WebSocket server' }));
 
           ws.on('message', (message) => {
-              console.log('Received:', message);
               ws.send(JSON.stringify({ message: `Server received: ${message}` }));
           });
 

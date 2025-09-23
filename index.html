@@ -261,6 +261,64 @@
             margin-right: 8px;
         }
         #modalContent tr:last-child{border-bottom:none;}
+        .notification-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            min-width: 300px;
+            max-width: 400px;
+        }
+
+        .notification-item {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-left: 4px solid #075e54;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .notification-item.success { border-left-color: #4CAF50; }
+        .notification-item.error { border-left-color: #f44336; }
+        .notification-item.warning { border-left-color: #ff9800; }
+        .notification-item.info { border-left-color: #2196F3; }
+
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .notification-title {
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .notification-time {
+            font-size: 11px;
+            color: #888;
+        }
+
+        .notification-message {
+            font-size: 13px;
+            color: #333;
+        }
+
+        .notification-close {
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            color: #888;
+        }
+                
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -361,9 +419,15 @@ let createCardHtml = (group, type) => {
     const mainItem = group[0];
     let title, subtitle, mainInfo, subInfo;
     
-    let overallStatus = 'Completed';
+    let overallStatus = 'Pending';
     if (group.some(item => ['0', 'fail', 'error'].includes(item.jo_status?.toString().toLowerCase()))) {
         overallStatus = 'Failed';
+    }else if (group.some(item => ['1', 'fail', 'error'].includes(item.jo_status?.toString().toLowerCase()))) {
+        overallStatus = 'Failed';
+    }else if (group.some(item => ['2', 'fail', 'error'].includes(item.jo_status?.toString().toLowerCase()))) {
+        overallStatus = 'Failed';
+    }else if (group.some(item => ['3', 'success', 'berhasil'].includes(item.jo_status?.toString().toLowerCase()))) {
+        overallStatus = 'Completed';
     } else if (group.some(item => ['processing'].includes(item.jo_status?.toString().toLowerCase()))) {
         overallStatus = 'Processing';
     }

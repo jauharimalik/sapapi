@@ -219,9 +219,8 @@ async function getBatchNumbers(doNo, line, pool, sapOrderData) {
 async function getWarehouseData(doNo, itemCode, pool) {
   const query = `
     SELECT TOP 1 
-    t1.sup_site as site
+    t0.site as site
     FROM r_dn_coldspace t0
-    INNER JOIN r_do_coldspace_dev t1 ON t0.do_no = t1.do_no
     WHERE t0.DO_NO = @doNo 
     AND t0.SKU = @itemCode
     AND t0.ORDER_TYPE != 'N-STO' 
@@ -859,6 +858,90 @@ exports.makeApiRequest = async (url, method = 'GET', sessionCookie = null, data 
     };
     
     throw new Error(JSON.stringify(errorDetails));
+  }
+};
+
+exports.syncDeliveryNoteFromSAP = async (pool) => {
+  try {
+    // New query to update records that have a doc_num but an incorrect status
+    const initialUpdateQuery = `
+      UPDATE r_dn_coldspace
+      SET jo_status = 3, note = 'Successfully posted to SAP'
+      WHERE (jo_status != 3 OR jo_status IS NULL) AND doc_num IS NOT NULL;
+    `;
+    const initialUpdateResult = await pool.request().query(initialUpdateQuery);
+    
+    // Main query to find records missing a doc_num
+    const query = `
+      SELECT do_no
+      FROM r_dn_coldspace
+      WHERE jo_status = 3 AND doc_num IS NULL
+    `;
+
+    const result = await pool.request().query(query);
+    const recordsToSync = result.recordset;
+
+    if (recordsToSync.length === 0) {
+      return { status: 'success', message: 'No records found to sync.' };
+    }
+
+    const sessionCookie = await exports.loginToB1ServiceLayer();
+
+    for (const record of recordsToSync) {
+      const doNo = record.do_no;
+      console.log(`Attempting to sync DO_NO: ${doNo}`);
+
+      const sapQuery = `
+        SELECT DISTINCT T1.DocNum, T1.DocEntry
+        FROM [pksrv-sap].PANDURASA_LIVE.dbo.ODLN T1
+        INNER JOIN [pksrv-sap].PANDURASA_LIVE.dbo.DLN1 T2 ON T1.DocEntry = T2.DocEntry
+        INNER JOIN [pksrv-sap].PANDURASA_LIVE.dbo.RDR1 T3 ON T2.BaseEntry = T3.DocEntry AND T2.BaseLine = T3.LineNum AND T2.BaseType = T3.ObjType
+        INNER JOIN [pksrv-sap].PANDURASA_LIVE.dbo.ORDR T4 ON T3.DocEntry = T4.DocEntry
+        WHERE T4.DocNum = '${doNo}';
+      `;
+
+      try {
+        const sapResult = await pool.request().query(sapQuery);
+
+        if (sapResult.recordset.length > 0) {
+          const { DocNum, DocEntry } = sapResult.recordset[0];
+
+          const updateQuery = `
+            UPDATE r_dn_coldspace
+            SET doc_num = @docNum, doc_entry = @docEntry
+            WHERE do_no = @doNo
+          `;
+
+          await pool.request()
+            .input('docNum', sql.Int, DocNum)
+            .input('docEntry', sql.Int, DocEntry)
+            .input('doNo', sql.Int, doNo)
+            .query(updateQuery);
+
+          console.log('------------------------------------------------------------------------------------');
+          console.log(`Successfully updated DO_NO ${doNo} with DocNum ${DocNum} and DocEntry ${DocEntry}`);
+        } else {
+          const updateJoStatusQuery = `
+            UPDATE r_dn_coldspace
+            SET jo_status = 2, note = 'Document Canceled'
+            WHERE do_no = @doNo
+          `;
+
+          await pool.request()
+            .input('doNo', sql.Int, doNo)
+            .query(updateJoStatusQuery);
+          
+        }
+      } catch (sapError) {
+        console.error(`Error querying SAP for DO_NO ${doNo}:`, sapError.message);
+      }
+    }
+
+    console.log('Delivery note sync process finished.');
+    return { status: 'success', message: 'Sync process completed.' };
+  } catch (error) {
+    console.error('Overall sync process failed:', error.message);
+    return { status: 'error', message: 'Sync process failed.', error: error.message };
   }
 };
 

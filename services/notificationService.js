@@ -6,13 +6,14 @@ const mime = require('mime-types');
 const sql = require('mssql');
 const config = require('../config/whatsappConfig');
 
-const WHATSAPP_PERSONAL_NUMBER = '08561018889';
+const WHATSAPP_PERSONAL_NUMBER = '085781550337';
 const TELEGRAM_CONFIG = {
     // Anda harus mengisi TELEGRAM_CHAT_ID yang benar di sini.
     // Contoh: 'TELEGRAM_CHAT_ID': '-1002030113192'
     successUrl: 'http://192.168.100.202:40200/group-cs-success',
     failureUrl: 'http://162.168.100.202:40200/group-cs-error'
 };
+
 
 function sleep(ms = 100) {
     return new Promise(resolve => setTimeout(resolve, ms));
